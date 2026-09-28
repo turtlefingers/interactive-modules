@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>사람 그림 런타임 확인 · 인터랙티브 모듈들</title>
+<title>사람 · 동물 런타임 확인 · 인터랙티브 모듈들</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   body { margin: 0; background: #f4f2ee; font-family: "Pretendard Variable", sans-serif; color: #1b1b1a; padding: 28px; }
@@ -13,52 +13,56 @@
 </style>
 </head>
 <body>
-<h2>DOM: humaaanSVG() — PEOPLE 8명 (뒤집기 포함)</h2>
+<h2>DOM: peepSVG() — PEOPLE 8명 (뒤집기 포함)</h2>
 <div class="row" id="dom"></div>
-<h2>Canvas: drawHumaaan() — 크기 · 회전 · 찌그러짐 · 앉기</h2>
+<h2>Canvas: drawPeep() — 크기 · 회전 · 찌그러짐 · 앉기 · 상반신</h2>
 <canvas id="cv" width="1300" height="300"></canvas>
 <script type="module">
-  import { humaaanSVG, drawHumaaan, PEOPLE, preload, outfit, NAMES } from "./src/lib/figure.js";
-  import { ILLO } from "./src/lib/draw.js";
+  import { peepSVG, drawPeep, PEOPLE, preload, outfit, NAMES } from "./src/lib/figure.js";
+  import { ILLO, TONE } from "./src/lib/draw.js";
   console.log(NAMES);
   const dom = document.getElementById("dom");
-  dom.innerHTML = PEOPLE.map((p, i) => humaaanSVG({ ...p, flip: i % 2 === 1 })).join("");
+  dom.innerHTML = PEOPLE.map((p, i) => peepSVG({ ...p, flip: i % 2 === 1 })).join("");
   preload();
   const cv = document.getElementById("cv"), g = cv.getContext("2d"), dpr = devicePixelRatio || 1;
   cv.width = 1300 * dpr; cv.height = 300 * dpr; cv.style.width = "1300px"; cv.style.height = "300px"; g.scale(dpr, dpr);
-  const sit = { head: "Airy", torso: "Hoodie", bottom: "SweatPants", posture: "sitting", colors: outfit(ILLO.orange) };
-  const wheel = { head: "Long", torso: "LabCoat", bottom: "Wheelchair", posture: "sitting", colors: outfit(ILLO.blue) };
+  const sit = { body: "MediumBW", face: "Smile", hair: "Bun", colors: outfit(ILLO.orange) };
+  const wheel = { body: "Wheelchair", face: "Calm", hair: "Long", colors: outfit(ILLO.blue) };
+  const bust = { body: "Hoodie", face: "Cheeky", hair: "ShortWavy", accessory: "GlassRound", colors: outfit(ILLO.green) };
   let t = 0;
   (function loop() {
     t += 0.03;
     g.clearRect(0, 0, 1300, 300);
     g.fillStyle = "#1b1b1a"; g.fillRect(0, 262, 1300, 1.5);
-    drawHumaaan(g, PEOPLE[0], 90, 262, 240);
-    drawHumaaan(g, PEOPLE[1], 220, 262, 160);
-    drawHumaaan(g, PEOPLE[2], 330, 262, 100);
-    drawHumaaan(g, PEOPLE[3], 410, 262, 60);
-    drawHumaaan(g, PEOPLE[4], 540, 262, 200, { rotate: Math.sin(t) * 0.15 });
-    drawHumaaan(g, PEOPLE[5], 700, 262, 200, { squash: (Math.sin(t * 2) + 1) * 0.12 });
-    drawHumaaan(g, { ...PEOPLE[6], flip: true }, 860, 262, 200);
-    drawHumaaan(g, sit, 1020, 262, 190);
-    drawHumaaan(g, wheel, 1190, 262, 190);
+    drawPeep(g, PEOPLE[0], 90, 262, 240);
+    drawPeep(g, PEOPLE[1], 220, 262, 160);
+    drawPeep(g, PEOPLE[2], 330, 262, 100);
+    drawPeep(g, PEOPLE[3], 410, 262, 60);
+    drawPeep(g, PEOPLE[4], 540, 262, 200, { rotate: Math.sin(t) * 0.15 });
+    drawPeep(g, PEOPLE[5], 700, 262, 200, { squash: (Math.sin(t * 2) + 1) * 0.12 });
+    drawPeep(g, { ...PEOPLE[6], flip: true }, 860, 262, 200);
+    drawPeep(g, sit, 1000, 262, 160);
+    drawPeep(g, wheel, 1130, 262, 170);
+    drawPeep(g, bust, 1240, 262, 120);
+    requestAnimationFrame(loop);
+  })();
+</script>
+<h2>Canvas: drawDoodle() — OpenMoji 선 아이콘 (동물 · 자연 · 사물, 잉크 · 강조색 · 뒤집기 · 회전)</h2>
+<canvas id="dd" width="1300" height="230"></canvas>
+<script type="module">
+  import { drawDoodle } from "./src/lib/doodle.js";
+  import { ILLO, TONE } from "./src/lib/draw.js";
+  const cv = document.getElementById("dd"), g = cv.getContext("2d"), dpr = devicePixelRatio || 1;
+  cv.width = 1300 * dpr; cv.height = 230 * dpr; cv.style.width = "1300px"; cv.style.height = "230px"; g.scale(dpr, dpr);
+  const row1 = ["cat", "bird", "dove", "fish", "bee", "ladybug", "rabbit", "dog", "owl", "butterfly", "snail", "duck"];
+  const row2 = ["cloud", "sun", "moon", "seedling", "tree", "flower", "mountain", "balloon", "cup", "house", "bulb", "box", "book", "flag", "target", "heart", "dice", "magnet", "pizza", "carrot"];
+  let t = 0;
+  (function loop() {
+    t += 0.03; g.clearRect(0, 0, 1300, 230);
+    row1.forEach((n, i) => drawDoodle(g, n, 60 + i * 105, 105, 84, { color: i % 4 === 1 ? ILLO.orange : ILLO.ink, flip: i % 2 === 1, angle: n === "bird" ? Math.sin(t) * 0.2 : 0 }));
+    row2.forEach((n, i) => drawDoodle(g, n, 40 + i * 64, 215, 54, { color: i % 5 === 2 ? ILLO.blue : ILLO.ink, lw: 2.4 }));
     requestAnimationFrame(loop);
   })();
 </script>
 </body>
 </html>
-<h2>Canvas: drawAnimal() — PhyloPic 실루엣 (톤 · 강조색 · 뒤집기 · 회전)</h2>
-<canvas id="an" width="1300" height="220"></canvas>
-<script type="module">
-  import { drawAnimal, ANIMAL_NAMES } from "./src/lib/animals.js";
-  import { TONE, ILLO } from "./src/lib/draw.js";
-  const cv = document.getElementById("an"), g = cv.getContext("2d"), dpr = devicePixelRatio || 1;
-  cv.width = 1300 * dpr; cv.height = 220 * dpr; cv.style.width = "1300px"; cv.style.height = "220px"; g.scale(dpr, dpr);
-  let t = 0;
-  (function loop() {
-    t += 0.03; g.clearRect(0, 0, 1300, 220);
-    g.fillStyle = "#1b1b1a"; g.fillRect(0, 190, 1300, 1.5);
-    ANIMAL_NAMES.forEach((n, i) => drawAnimal(g, n, 70 + i * 125, 190, n === "bee" || n === "ladybug" ? 60 : 110, { color: i % 3 === 1 ? ILLO.orange : TONE[5], flip: i % 2 === 1, angle: n === "sparrow-fly" ? Math.sin(t) * 0.2 : 0 }));
-    requestAnimationFrame(loop);
-  })();
-</script>

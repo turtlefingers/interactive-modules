@@ -101,20 +101,18 @@ export default function demo(api) {
 - 커서 모양을 인터랙션에 맞게 바꾼다(grab, grabbing, pointer, crosshair 등).
 
 ### 그림 스타일 (사람 · 생물 · 사물 · 풍경)
-기준은 **"외곽선 없는 평면 실루엣 + 가는 잉크 디테일"**이다. 검정 테두리를 두른 원색 그림(색칠공부 느낌)은 금지다.
+기준은 **"검정 손그림 선 + 한 색 채움"**(Open Peeps 계열)이다. 굵은 검정 테두리를 두른 원색 그림(색칠공부 느낌)과 유치원 아이콘 도상(세모 지붕 집, 노란 원 해, 별)은 금지다.
 
-- **사람은 직접 그리지 않는다.** `src/lib/figure.js`의 Humaaans(Pablo Stanley, CC BY 4.0) 조합을 쓴다.
-  - DOM/SVG: `humaaanSVG({ head, torso, bottom, posture, colors, flip })` 문자열을 넣는다.
-  - Canvas: `drawHumaaan(g, opts, x, y, h, { rotate, squash, alpha })` — (x, y)는 발바닥 가운데, h는 높이. 이미지가 준비되기 전에는 false를 돌려주므로 첫 프레임은 비어 있을 수 있다. 시작할 때 `preload()`를 부른다.
-  - 사람 목록은 `PEOPLE`, 옷 색은 `outfit(색)`으로 만든다. 한 사람에 색은 옷 한 가지만 쓰고 나머지는 톤이다.
-  - 포즈는 부품 조합으로 바꾼다(걷기 `SkinnyJeansWalk`/`Jogging`/`Sprint`, 앉기 `posture: "sitting"`). 점프·웅크림은 `rotate`/`squash`와 y 이동으로 표현한다.
-  - 사이트 어딘가에 출처 표기가 있어야 한다(메인 페이지 푸터에 있음).
-- **풍경과 구조물은 톤 면으로만** 그린다: `TONE` 배열(밝은 베이지 → 어두운 회갈색)로 겹치는 면을 만들고, 외곽선은 두르지 않는다. 강조색(`--accent` 또는 ILLO 한 색)은 장면에 하나만 쓴다. 세모 지붕 집, 노란 원 해, 별 같은 아이콘 도상은 쓰지 않는다. 기준 예: `mouse-parallax`.
-- **작은 사물**(풍선, 컵, 구름, 새싹)은 실루엣 채움이 기본이고, 필요한 곳(풍선 끈, 구름 윤곽, 줄기)에만 1.5px 가는 잉크 선을 쓴다. `src/lib/draw.js`의 `shape/line/curve/cloud/drop/sprout/leaf/flag`를 쓴다. 기준 예: `press-and-hold`의 풍선.
-- **동물은 직접 그리지 않는다.** `src/lib/animals.js`의 PhyloPic(CC0) 실루엣을 쓴다: `drawAnimal(g, name, x, y, h, { color, flip, angle })` / `animalSVG(name, { color, flip })`. 이름: `sparrow-fly`, `sparrow`, `pigeon`, `cat-sit`, `cat`, `rabbit`, `dog-sit`, `fish`, `bee`, `ladybug`. 색은 `TONE[5]`(기본)이나 강조색 한 가지. 날개짓 같은 움직임은 `angle`·y 흔들림·좌우 뒤집기로 표현한다.
-- **얼굴**은 점 두 개와 가는 선 하나(`face()`), 외곽선 없는 색 원 위에 그린다. 기준 예: `look-at`.
+- **사람은 직접 그리지 않는다.** `src/lib/figure.js`의 Open Peeps(Pablo Stanley, CC0) 조합을 쓴다.
+  - DOM/SVG: `peepSVG({ body, face, hair, accessory, facialHair, colors: { fill }, flip })` 문자열을 넣는다. 상반신만 필요하면 `body`에 `NAMES.bust` 이름을 준다.
+  - Canvas: `drawPeep(g, opts, x, y, h, { rotate, squash, alpha })` — (x, y)는 발바닥 가운데, h는 높이. 준비되기 전에는 false를 돌려주므로 시작할 때 `preload()`를 부른다.
+  - 사람 목록은 `PEOPLE`, 색은 `outfit(색)` 하나만(선은 항상 검정). 포즈는 `NAMES.standing`(걷기 `WalkingBW`/`WalkingWB`, 서기 `ShirtBW`, 가리키기 `PointingFingerBW`, 팔짱 `CrossedArmsBW`, 기대기 `EasingBW`, 쉬기 `RestingBW`), `NAMES.sitting`(`MediumBW`, `CrossedLegs`, `OneLegUpBW`, `Wheelchair`), `NAMES.bust`에서 고른다. 표정은 `NAMES.face`(Smile, Calm, Cheeky, EyesClosed, Tired, Awe, Fear, Serious …), 머리는 `NAMES.hair`.
+  - 점프·웅크림은 `rotate`/`squash`와 y 이동으로, 잠은 표정 `EyesClosed`/`Tired`와 앉기 포즈로 표현한다.
+- **동물과 사물도 직접 그리지 않는다.** `src/lib/doodle.js`의 OpenMoji black(CC BY-SA 4.0) 선 아이콘을 쓴다: `drawDoodle(g, name, x, y, h, { color, lw, flip, angle, anchor })` / `doodleSVG(name, { color, lw, flip })`. 이름은 `vendor/openmoji/names.json`(cat, bird, dove, fish, bee, ladybug, rabbit, dog, owl, cloud, sun, moon, seedling, tree, flower, mountain, balloon, cup, house, bulb, box, book, flag, target, heart, key, lock, dice, magnet, pizza, chocolate, carrot, earth, hand, eyes …). 선 색은 검정이 기본이고 강조색 한 가지까지 쓴다. 선 굵기 `lw`는 2~2.6(72 단위 기준).
+- **풍경과 구조물**은 톤 면(`TONE`)으로만 그리고 외곽선을 두르지 않는다. 필요한 곳(풍선 끈, 줄기)에만 1.5px 가는 잉크 선(`src/lib/draw.js`의 `line/curve`)을 쓴다. 강조색은 장면에 하나만.
 - 3D 장면은 `keyboard-orbit`처럼 그린다: 납작한 면 채움, 가는 외곽선, 강조면 하나, 회색 격자 바닥.
-- 개발 서버에서 `/illo3.html`(사람), `/styles.html`(그림체 비교)을 열어 기준을 확인할 수 있다.
+- 사이트 어딘가에 Open Peeps와 OpenMoji 출처 표기가 있어야 한다(메인 페이지 푸터에 있음).
+- 개발 서버에서 `/illo3.html`(사람 · 동물 · 사물 런타임)을 열어 기준을 확인할 수 있다.
 
 ### 읽는 값과 상태
 - readouts는 이 인터랙션이 **실제로 읽는 입력값**을 보여준다(위치, 거리, 속도, 각도, 누른 시간, 횟수 등). 숫자는 정수나 소수 1자리로 짧게.
