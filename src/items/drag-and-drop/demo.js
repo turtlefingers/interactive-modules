@@ -1,5 +1,6 @@
 import { clamp, dist, localPoint } from "../../lib/util.js";
-import { ILLO } from "../../lib/draw.js";
+import { ILLO, TONE } from "../../lib/draw.js";
+import { humaaanSVG, outfit } from "../../lib/figure.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -44,34 +45,28 @@ export default function demo(api) {
   const gridEl = document.createElement("div"); gridEl.className = "drag-and-drop-gridlines"; root.appendChild(gridEl);
   const tray = document.createElement("div"); tray.className = "drag-and-drop-tray"; tray.innerHTML = "<span>파츠</span>"; root.appendChild(tray);
 
-  /* ---------- 캐릭터 (그림 키트 규칙: 3px 검정 외곽선, 평면 단색, 점 두 개와 선 하나) ---------- */
-  const INK = ILLO.ink, PAPER = ILLO.paper;
-  const LINE = `stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
+  /* ---------- 캐릭터: Humaaans 사람 (서 있음). 260×340 상자 안에 세로 맞춤으로 들어간다 ---------- */
+  const INK = ILLO.ink;
   const charEl = document.createElement("div");
   charEl.className = "drag-and-drop-char";
-  charEl.innerHTML = `<svg viewBox="0 0 260 340" fill="none">
-    <circle cx="24" cy="222" r="15" fill="${ILLO.yellow}" ${LINE}/><circle cx="236" cy="222" r="15" fill="${ILLO.yellow}" ${LINE}/>
-    <ellipse cx="130" cy="190" rx="104" ry="132" fill="${PAPER}" ${LINE}/>
-    <circle cx="100" cy="150" r="7" fill="${INK}"/><circle cx="160" cy="150" r="7" fill="${INK}"/>
-    <path d="M112 224 Q130 240 148 224" ${LINE}/>
-  </svg>`;
+  charEl.innerHTML = humaaanSVG({ head: "Short", torso: "TurtleNeck", bottom: "SkinnyJeans", colors: outfit(ILLO.blue) });
   root.appendChild(charEl);
 
-  /* ---------- 파츠 ---------- */
+  /* ---------- 파츠: 외곽선 없는 납작한 실루엣. 안경테만 1.5px 가는 선 ----------
+     자리(slot)는 260×340 캐릭터 상자 기준 좌표: 머리 위, 얼굴, 목, 손. 스티커는 아무 데나 */
+  const THIN = `fill="none" stroke="${INK}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"`;
   const starPath = (cx, cy, r) => Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; return `${i ? "L" : "M"}${(cx + Math.cos(a) * rr).toFixed(1)} ${(cy + Math.sin(a) * rr).toFixed(1)}`; }).join(" ") + " Z";
   const PARTS = [
-    { id: "hat", name: "모자", w: 120, h: 86, slot: [130, 36],
-      svg: `<svg viewBox="0 0 120 86"><rect x="28" y="4" width="64" height="64" rx="4" fill="${ILLO.blue}" ${LINE}/><rect x="28" y="46" width="64" height="12" fill="${ILLO.red}" ${LINE}/><rect x="4" y="64" width="112" height="14" rx="7" fill="${ILLO.blue}" ${LINE}/></svg>` },
-    { id: "glasses", name: "안경", w: 130, h: 50, slot: [130, 150],
-      svg: `<svg viewBox="0 0 130 50"><circle cx="34" cy="25" r="20" fill="${PAPER}" ${LINE}/><circle cx="96" cy="25" r="20" fill="${PAPER}" ${LINE}/><path d="M54 22 Q65 14 76 22" ${LINE}/><path d="M14 22 L4 18 M116 22 L126 18" ${LINE}/></svg>` },
-    { id: "mustache", name: "콧수염", w: 100, h: 40, slot: [130, 196],
-      svg: `<svg viewBox="0 0 100 40"><path d="M50 14 C40 2 20 4 12 16 C6 26 0 24 2 16 C0 34 22 40 38 30 C44 26 48 22 50 20 C52 22 56 26 62 30 C78 40 100 34 98 16 C100 24 94 26 88 16 C80 4 60 2 50 14Z" fill="${INK}"/></svg>` },
-    { id: "bowtie", name: "나비넥타이", w: 80, h: 44, slot: [130, 272],
-      svg: `<svg viewBox="0 0 80 44"><path d="M40 22 L4 4 L4 40 Z M40 22 L76 4 L76 40 Z" fill="${ILLO.red}" ${LINE}/><rect x="31" y="12" width="18" height="20" rx="5" fill="${ILLO.red}" ${LINE}/></svg>` },
-    { id: "flower", name: "꽃", w: 64, h: 96, slot: [240, 186],
-      svg: `<svg viewBox="0 0 64 96"><path d="M32 40 L32 92" stroke="${INK}" stroke-width="11" stroke-linecap="round"/><path d="M32 40 L32 92" stroke="${ILLO.green}" stroke-width="5" stroke-linecap="round"/>${[0, 1, 2, 3, 4].map(k => { const a = k / 5 * Math.PI * 2 - Math.PI / 2; return `<circle cx="${32 + Math.cos(a) * 15}" cy="${28 + Math.sin(a) * 15}" r="10" fill="${ILLO.pink}" ${LINE}/>`; }).join("")}<circle cx="32" cy="28" r="8" fill="${ILLO.yellow}" ${LINE}/></svg>` },
-    { id: "star", name: "별 스티커", w: 72, h: 72, slot: null,
-      svg: `<svg viewBox="0 0 72 72"><path d="${starPath(36, 36, 32)}" fill="${ILLO.yellow}" ${LINE}/></svg>` }
+    { id: "hat", name: "모자", w: 110, h: 70, slot: [132, 34],
+      svg: `<svg viewBox="0 0 110 70"><path d="M14 54 C14 14 96 14 96 54 Z" fill="${ILLO.blue}"/><rect x="6" y="48" width="98" height="16" rx="8" fill="${ILLO.blue}"/><circle cx="55" cy="14" r="7" fill="${ILLO.blue}"/></svg>` },
+    { id: "glasses", name: "안경", w: 110, h: 44, slot: [138, 76],
+      svg: `<svg viewBox="0 0 110 44"><circle cx="30" cy="24" r="16" ${THIN}/><circle cx="80" cy="24" r="16" ${THIN}/><path d="M46 22 Q55 15 64 22" ${THIN}/><path d="M14 20 L4 14 M96 20 L106 14" ${THIN}/></svg>` },
+    { id: "scarf", name: "목도리", w: 100, h: 74, slot: [130, 128],
+      svg: `<svg viewBox="0 0 100 74"><path d="M12 12 Q50 34 88 12 L90 30 Q50 52 10 30 Z" fill="${TONE[4]}"/><path d="M58 32 L76 30 L80 70 L62 72 Z" fill="${TONE[4]}"/></svg>` },
+    { id: "bag", name: "가방", w: 70, h: 96, slot: [62, 236],
+      svg: `<svg viewBox="0 0 70 96"><path d="M22 34 C22 6 48 6 48 34" fill="none" stroke="${TONE[5]}" stroke-width="5" stroke-linecap="round"/><path d="M8 34 H62 L58 92 H12 Z" fill="${TONE[5]}"/></svg>` },
+    { id: "sticker", name: "스티커", w: 64, h: 64, slot: null,
+      svg: `<svg viewBox="0 0 64 64"><path d="${starPath(32, 32, 28)}" fill="${ILLO.blue}"/></svg>` }
   ];
   const slotCount = PARTS.filter(p => p.slot).length;
 

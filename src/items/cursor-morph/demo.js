@@ -1,4 +1,5 @@
 import { clamp, lerp, localPoint } from "../../lib/util.js";
+import { ILLO, TONE } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -13,15 +14,17 @@ export default function demo(api) {
       padding: 28px; display: flex; flex-direction: column; gap: 22px; }
     .cursor-morph-text { margin: 0; font-size: 18px; line-height: 1.6; color: var(--ink); cursor: text; }
     .cursor-morph-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-    .cursor-morph-btn { font: inherit; font-size: 15px; font-weight: 600; border: 0; cursor: pointer; transition: background .2s, color .2s, transform .2s; }
-    .cursor-morph-icon { width: 52px; height: 52px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 24px; line-height: 1; }
+    /* 버튼: 종이색 면 + 1px 톤 테두리. 색은 커서 쪽(잉크·강조색)에만 쓴다 */
+    .cursor-morph-btn { font: inherit; font-size: 15px; font-weight: 600; border: 1px solid ${TONE[3]}; background: ${ILLO.paper}; color: var(--ink); cursor: pointer;
+      transition: background .2s, color .2s, transform .2s, border-color .2s; }
+    .cursor-morph-icon { width: 52px; height: 52px; border-radius: 50%; font-size: 24px; line-height: 1; }
     .cursor-morph-icon:hover { transform: scale(.92); }
-    .cursor-morph-pill { height: 44px; padding: 0 22px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent); }
-    .cursor-morph-pill:hover { background: var(--accent); color: var(--on-ink); }
-    .cursor-morph-pill.is-off { background: var(--line); color: var(--ink-3); cursor: not-allowed; }
+    .cursor-morph-pill { height: 44px; padding: 0 22px; border-radius: var(--r-pill); }
+    .cursor-morph-pill:hover { background: ${TONE[0]}; }
+    .cursor-morph-pill.is-off { background: ${TONE[0]}; border-color: ${TONE[1]}; color: var(--ink-3); cursor: not-allowed; }
     .cursor-morph-link { font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; align-self: flex-start; }
     .cursor-morph-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .cursor-morph-photo { height: 130px; border-radius: var(--r-card); cursor: zoom-in; transition: transform .3s; }
+    .cursor-morph-photo { height: 130px; border-radius: var(--r-card); cursor: zoom-in; transition: transform .3s; } /* 사진: 톤 사각형 */
     .cursor-morph-photo:hover { transform: scale(.98); }
     .cursor-morph-cur { position: absolute; left: 0; top: 0; z-index: 45; pointer-events: none; will-change: transform; }
     .cursor-morph-cur.blend { mix-blend-mode: difference; }
@@ -44,8 +47,8 @@ export default function demo(api) {
       </div>
       <a class="${P}-link" data-cm="link">자세히 보기</a>
       <div class="${P}-photos">
-        <div class="${P}-photo" data-cm="view" style="background:var(--toggle-off)"></div>
-        <div class="${P}-photo" data-cm="view" style="background:var(--ink-3)"></div>
+        <div class="${P}-photo" data-cm="view" style="background:${TONE[1]}"></div>
+        <div class="${P}-photo" data-cm="view" style="background:${TONE[2]}"></div>
       </div>
     </div>`;
   el.appendChild(root);

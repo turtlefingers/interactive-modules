@@ -111,7 +111,7 @@ export default function demo(api) {
   - 사이트 어딘가에 출처 표기가 있어야 한다(메인 페이지 푸터에 있음).
 - **풍경과 구조물은 톤 면으로만** 그린다: `TONE` 배열(밝은 베이지 → 어두운 회갈색)로 겹치는 면을 만들고, 외곽선은 두르지 않는다. 강조색(`--accent` 또는 ILLO 한 색)은 장면에 하나만 쓴다. 세모 지붕 집, 노란 원 해, 별 같은 아이콘 도상은 쓰지 않는다. 기준 예: `mouse-parallax`.
 - **작은 사물**(풍선, 컵, 구름, 새싹)은 실루엣 채움이 기본이고, 필요한 곳(풍선 끈, 구름 윤곽, 줄기)에만 1.5px 가는 잉크 선을 쓴다. `src/lib/draw.js`의 `shape/line/curve/cloud/drop/sprout/leaf/flag`를 쓴다. 기준 예: `press-and-hold`의 풍선.
-- **생물**(새, 벌레, 고양이)은 당분간 `draw.js`의 실루엣 함수를 쓰되 색은 톤이나 강조색 한 가지로 제한한다.
+- **동물은 직접 그리지 않는다.** `src/lib/animals.js`의 PhyloPic(CC0) 실루엣을 쓴다: `drawAnimal(g, name, x, y, h, { color, flip, angle })` / `animalSVG(name, { color, flip })`. 이름: `sparrow-fly`, `sparrow`, `pigeon`, `cat-sit`, `cat`, `rabbit`, `dog-sit`, `fish`, `bee`, `ladybug`. 색은 `TONE[5]`(기본)이나 강조색 한 가지. 날개짓 같은 움직임은 `angle`·y 흔들림·좌우 뒤집기로 표현한다.
 - **얼굴**은 점 두 개와 가는 선 하나(`face()`), 외곽선 없는 색 원 위에 그린다. 기준 예: `look-at`.
 - 3D 장면은 `keyboard-orbit`처럼 그린다: 납작한 면 채움, 가는 외곽선, 강조면 하나, 회색 격자 바닥.
 - 개발 서버에서 `/illo3.html`(사람), `/styles.html`(그림체 비교)을 열어 기준을 확인할 수 있다.

@@ -1,4 +1,5 @@
 import { rng, clamp, localPoint, fitCanvas } from "../../lib/util.js";
+import { TONE } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -27,7 +28,7 @@ export default function demo(api) {
       const x = zx * 1000 + gx * 333 + 20 + rand() * (333 - w - 40);
       const y = zy * 1000 + gy * 333 + 20 + rand() * (333 - h - 40);
       const p = Math.floor(rand() * 4);
-      cards.push({ x, y, w, h, kind, tone: ["#d8d1c3", "#cbc3b3", "#e2dccf", "#bfb7a7"][p % 4] });
+      cards.push({ x, y, w, h, kind, tone: p % 2 ? TONE[2] : TONE[1] });
     }
   }
   const LET = "ABCDEF";
@@ -103,18 +104,18 @@ export default function demo(api) {
     g.fillStyle = "rgba(0,0,0,.035)"; g.font = FONT;
     g.textAlign = "center"; g.textBaseline = "middle";
     for (let i = 0; i < 6; i++) g.fillText(LET[i], (i % 3) * 1000 + 500, Math.floor(i / 3) * 1000 + 520);
+    // 카드: 외곽선 없는 톤 면 (사진 = 톤 사각형, 메모 = 밝은 톤 + 톤 줄, 점 = 톤 원). 강조색은 시작점 하나뿐
     for (const c of cards) {
       if (c.x + c.w < cam.x - 40 || c.x > cam.x + w + 40 || c.y + c.h < cam.y - 40 || c.y > cam.y + h + 40) continue;
-      g.lineWidth = 1.5; g.strokeStyle = C.ink;
-      if (c.kind === "dot") { g.beginPath(); g.arc(c.x + c.w / 2, c.y + c.h / 2, c.w / 2, 0, TAU); g.stroke(); }
+      if (c.kind === "dot") { g.fillStyle = c.tone; g.beginPath(); g.arc(c.x + c.w / 2, c.y + c.h / 2, c.w / 2, 0, TAU); g.fill(); }
       else if (c.kind === "note") {
-        g.fillStyle = C.note; rr(c.x, c.y, c.w, c.h, 10); g.fill(); g.stroke();
-        g.fillStyle = "rgba(0,0,0,.12)";
+        g.fillStyle = TONE[0]; rr(c.x, c.y, c.w, c.h, 10); g.fill();
+        g.fillStyle = TONE[2];
         [0.7, 1, 0.85].forEach((k, j) => { g.fillRect(c.x + 16, c.y + 18 + j * 16, (c.w - 32) * k, 2); });
       } else { g.fillStyle = c.tone; rr(c.x, c.y, c.w, c.h, 10); g.fill(); }
     }
     g.fillStyle = C.accent; g.beginPath(); g.arc(W / 2, H / 2, 9, 0, TAU); g.fill();
-    g.strokeStyle = "rgba(0,0,0,.25)"; g.lineWidth = 2; g.strokeRect(0, 0, W, H);
+    g.strokeStyle = "rgba(0,0,0,.2)"; g.lineWidth = 1; g.strokeRect(0.5, 0.5, W - 1, H - 1);
     g.restore();
 
     /* ---------- 가장자리 띠 (가장자리 스크롤) ---------- */

@@ -1,24 +1,20 @@
 import { clamp, dist } from "../../lib/util.js";
-import { ILLO } from "../../lib/draw.js";
+import { ILLO, TONE } from "../../lib/draw.js";
+import { humaaanInner, outfit } from "../../lib/figure.js";
 
 const HEART = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
-// 그림 키트 규칙(3px 잉크 외곽선, 평면 단색)으로 그린 하트. 크기와 상관없이 선 굵기를 유지한다
-const OUT = `stroke="${ILLO.ink}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"`;
-const heartSVG = fill => `<svg viewBox="0 0 24 24"><path d="${HEART}" fill="${fill}" ${OUT}/></svg>`;
-// 사진: 언덕 위에 앉은 고양이와 지는 해 (그림 키트의 cat과 같은 규칙으로 그린 SVG)
+// 하트는 외곽선 없는 실루엣. 깨진 하트는 같은 실루엣에 종이색 가는 금 하나
+const heartSVG = fill => `<svg viewBox="0 0 24 24"><path d="${HEART}" fill="${fill}"/></svg>`;
+const brokenSVG = `<svg viewBox="0 0 24 24"><path d="${HEART}" fill="${ILLO.red}"/><path d="M12 4.6 10.2 8.6l2.8 2.4-2.2 3.6 1.6 3.2" fill="none" stroke="${ILLO.paper}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+// 사진: 톤 면으로만 만든 언덕 세 겹과 그 앞에 선 사람 하나 (강조색은 사람의 옷 하나)
 const PHOTO = `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
   <rect x="-5" y="-5" width="110" height="110" fill="${ILLO.paper}"/>
-  <circle cx="72" cy="40" r="14" fill="${ILLO.yellow}" ${OUT}/>
-  <path d="M-5 80 Q25 54 55 74 T105 66 V105 H-5 Z" fill="${ILLO.green}" ${OUT}/>
-  <path d="M-5 96 Q35 72 68 92 T105 86 V105 H-5 Z" fill="${ILLO.green}" ${OUT}/>
-  <g fill="${ILLO.orange}" ${OUT}>
-    <path d="M43 71 Q56 68 52 56 Q53 70 44 66 Z"/>
-    <ellipse cx="32" cy="69" rx="12" ry="8"/>
-    <path d="M22 60 L24 50 L30 56 Z"/><path d="M42 60 L40 50 L34 56 Z"/>
-    <circle cx="32" cy="60" r="9"/>
-  </g>
-  <circle cx="28.6" cy="59" r="1.1" fill="${ILLO.ink}"/><circle cx="35.4" cy="59" r="1.1" fill="${ILLO.ink}"/>
-  <path d="M29.6 63 A2.6 2.6 0 0 0 34.4 63" fill="none" ${OUT}/>
+  <path d="M-5 62 Q20 44 45 58 T105 52 V105 H-5 Z" fill="${TONE[1]}"/>
+  <path d="M-5 78 Q30 62 58 76 T105 70 V105 H-5 Z" fill="${TONE[2]}"/>
+  <path d="M-5 92 Q35 84 70 92 T105 88 V105 H-5 Z" fill="${TONE[3]}"/>
+  <svg x="44" y="38" width="46" height="58" viewBox="0 0 380 480">${
+    humaaanInner({ head: "Curly", torso: "LongSleeve", bottom: "SkinnyJeans", colors: outfit(ILLO.orange), flip: true })
+  }</svg>
 </svg>`;
 
 export default function demo(api) {
@@ -28,7 +24,7 @@ export default function demo(api) {
     .dtl-demo { position: absolute; inset: 0; display: grid; place-items: center; background: var(--board); }
     .dtl-card { background: var(--note); border: 1px solid var(--ink-3); border-radius: 8px; overflow: hidden; }
     .dtl-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600; color: var(--ink); }
-    .dtl-ava { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--ink); }
+    .dtl-ava { width: 26px; height: 26px; border-radius: 50%; background: ${TONE[2]}; }
     .dtl-head .more { margin-left: auto; color: var(--ink-3); letter-spacing: 2px; }
     .dtl-photo { position: relative; overflow: hidden; cursor: default; background: ${ILLO.paper}; border-top: 1px solid var(--ink-3); border-bottom: 1px solid var(--ink-3); }
     .dtl-photo > svg { display: block; width: 100%; height: 100%; }
@@ -106,9 +102,7 @@ export default function demo(api) {
     const big = document.createElement("div");
     big.className = "dtl-big";
     big.style.cssText = `width:${size}px;height:${size}px;left:${x - size / 2}px;top:${y - size / 2}px`;
-    big.innerHTML = broken
-      ? `<svg viewBox="0 0 24 24"><path d="${HEART}" fill="${ILLO.paper}" ${OUT}/><path d="M12 5.2 10.4 9l2.6 2.2-2 3.4" fill="none" ${OUT}/></svg>`
-      : heartSVG(ILLO.red);
+    big.innerHTML = broken ? brokenSVG : heartSVG(ILLO.red);
     photo.appendChild(big);
     const a = broken
       ? big.animate([

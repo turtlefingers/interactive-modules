@@ -11,8 +11,8 @@ export default function demo(api) {
     .${P}-col { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; }
     .${P}-pips { display: flex; gap: 8px; height: 12px; }
     .${P}-pip { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--ink); box-sizing: border-box; }
-    /* 스킬 버튼: 그림 키트 규칙 — 평면 단색 + 3px 잉크 테두리, 안에는 외곽선이 있는 번개 */
-    .${P}-btn { position: relative; width: 112px; height: 112px; border-radius: 24px; border: 3px solid ${ILLO.ink}; padding: 0; background: ${ILLO.blue}; color: var(--on-ink);
+    /* 스킬 버튼: 잉크색 원판, 안에는 외곽선 없는 종이색 번개 실루엣 */
+    .${P}-btn { position: relative; width: 112px; height: 112px; border-radius: 50%; border: 0; padding: 0; background: ${ILLO.ink}; color: var(--on-ink);
       box-sizing: border-box; cursor: pointer; overflow: hidden; font: inherit; transition: translate .2s; -webkit-tap-highlight-color: transparent; }
     .${P}-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
     .${P}-btn.ready:hover { translate: 0 -3px; }
@@ -21,7 +21,7 @@ export default function demo(api) {
     .${P}-shade { position: absolute; inset: 0; pointer-events: none; }
     .${P}-num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 30px; font-weight: 800; color: #fff; mix-blend-mode: difference;
       font-variant-numeric: tabular-nums; pointer-events: none; }
-    .${P}-ring { position: absolute; left: 50%; top: 50%; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 24px;
+    .${P}-ring { position: absolute; left: 50%; top: 50%; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%;
       border: 2px solid var(--accent); pointer-events: none; opacity: 0; }
     .${P}-bar { width: 112px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; transition: opacity .25s; }
     .${P}-bar b { display: block; height: 100%; background: var(--ink); transform-origin: left; }
@@ -37,7 +37,7 @@ export default function demo(api) {
       <div style="position:relative">
         <div class="${P}-ring"></div>
         <button class="${P}-btn ready" aria-label="스킬 사용">
-          <svg viewBox="0 0 48 48"><path d="M26 3 L8 27 H22 L20 45 L38 21 H24 Z" fill="${ILLO.yellow}" stroke="${ILLO.ink}" stroke-width="3" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 48 48"><path d="M26 3 L8 27 H22 L20 45 L38 21 H24 Z" fill="${ILLO.paper}"/></svg>
           <div class="${P}-shade"></div>
           <div class="${P}-num"></div>
         </button>

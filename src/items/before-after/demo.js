@@ -1,5 +1,5 @@
 import { rng, clamp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, shape, tube, circle, cloud, line } from "../../lib/draw.js";
+import { ILLO, TONE, LINE, shape, circle, line } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -21,17 +21,14 @@ export default function demo(api) {
   root.append(labA, labB);
   const FILTER_NAMES = { gray: "흑백", sepia: "빈티지", invert: "반전", pixel: "픽셀" };
 
-  /* ---------- 그림: 그림 키트 스타일(3px 잉크 외곽선 + 평면 단색)로 그린 풍경 ---------- */
+  /* ---------- 그림: 외곽선 없는 톤 면으로 만든 풍경. 강조색은 해 하나 (필터 차이가 여기서 읽힌다) ---------- */
   const before = document.createElement("canvas"), after = document.createElement("canvas"), tmp = document.createElement("canvas");
-  const LW = 3;
   const drawScene = (c, w, h) => {
-    c.fillStyle = ILLO.paper; c.fillRect(0, 0, w, h);
+    c.fillStyle = ILLO.cream; c.fillRect(0, 0, w, h);
     const m = Math.min(w, h), rand = rng(3);
-    // 해
-    circle(c, w * 0.7, h * 0.28, m * 0.075, { fill: ILLO.yellow, lw: LW });
-    // 구름
-    [[0.18, 0.2, 1], [0.48, 0.14, 0.7], [0.86, 0.22, 0.85]].forEach(([x, y, s]) => cloud(c, w * x, h * y, { w: m * 0.2 * s, color: ILLO.paper, lw: LW }));
-    // 능선
+    // 해: 강조색 원판
+    circle(c, w * 0.7, h * 0.3, m * 0.075, { fill: ILLO.orange });
+    // 능선: 뒤에서 앞으로 점점 어두운 톤
     const ridge = (base, amp, seed, color, stepPx = 6) => {
       const r = rng(seed), ph = [r() * 6, r() * 6, r() * 6];
       shape(c, p => {
@@ -42,47 +39,27 @@ export default function demo(api) {
           p.lineTo(x, y);
         }
         p.lineTo(w + 10, h + 10); p.closePath();
-      }, { fill: color, lw: LW });
+      }, { fill: color });
     };
-    ridge(h * 0.46, h * 0.1, 7, ILLO.lilac);
-    ridge(h * 0.53, h * 0.08, 9, ILLO.blue);
-    ridge(h * 0.6, h * 0.06, 12, ILLO.green);
-    // 호수
-    const ly = h * 0.66;
-    shape(c, p => p.rect(-10, ly, w + 20, h * 0.12 + 10), { fill: ILLO.blue, lw: LW });
-    for (let i = 0; i < 4; i++) {
-      const y = ly + 10 + i * h * 0.022, len = m * (0.05 + rand() * 0.08), x = w * 0.7 - len / 2 + (rand() - 0.5) * m * 0.08;
-      line(c, [[x, y], [x + len, y]], { lw: LW });
+    ridge(h * 0.5, h * 0.1, 7, TONE[1]);
+    ridge(h * 0.57, h * 0.08, 9, TONE[2]);
+    ridge(h * 0.64, h * 0.06, 12, TONE[3]);
+    // 호수: 밝은 톤 띠 + 가는 물결선 몇 개
+    const ly = h * 0.7;
+    shape(c, p => p.rect(-10, ly, w + 20, h * 0.1 + 10), { fill: TONE[1] });
+    for (let i = 0; i < 3; i++) {
+      const y = ly + h * 0.025 + i * h * 0.022, len = m * (0.05 + rand() * 0.08), x = w * 0.7 - len / 2 + (rand() - 0.5) * m * 0.08;
+      line(c, [[x, y], [x + len, y]], { lw: LINE, stroke: TONE[3] });
     }
     // 앞 들판
-    shape(c, p => p.rect(-10, h * 0.78, w + 20, h * 0.22 + 10), { fill: ILLO.green, lw: LW });
-    // 집
-    const house = (x, s, roof) => {
-      const by = h * 0.86, hw = s, hh = s * 0.8;
-      shape(c, p => p.rect(x - hw / 2, by - hh, hw, hh), { fill: ILLO.paper, lw: LW });
-      shape(c, p => { p.moveTo(x - hw * 0.62, by - hh); p.lineTo(x, by - hh - s * 0.62); p.lineTo(x + hw * 0.62, by - hh); p.closePath(); }, { fill: roof, lw: LW });
-      shape(c, p => p.rect(x - s * 0.1, by - s * 0.38, s * 0.2, s * 0.38), { fill: ILLO.orange, lw: LW });
-      shape(c, p => p.rect(x - s * 0.36, by - hh + s * 0.16, s * 0.16, s * 0.16), { fill: ILLO.yellow, lw: LW });
-      shape(c, p => p.rect(x + s * 0.2, by - hh + s * 0.16, s * 0.16, s * 0.16), { fill: ILLO.yellow, lw: LW });
-    };
-    // 나무: 줄기 + 둥근 수관
+    shape(c, p => p.rect(-10, h * 0.8, w + 20, h * 0.2 + 10), { fill: TONE[3] });
+    // 나무: 가늘고 긴 어두운 톤 실루엣 (mouse-parallax와 같은 모양)
     const tree = (x, s) => {
-      const by = h * 0.87;
-      tube(c, [[x, by], [x, by - s * 0.7]], { color: ILLO.orange, w: Math.max(4, s * 0.14), lw: LW });
-      circle(c, x, by - s * 0.85, s * 0.42, { fill: ILLO.green, lw: LW });
+      const y = h * 0.82 + s * 0.15, th = s * 1.6, tw = th * 0.28;
+      shape(c, p => { p.moveTo(x - tw, y); p.quadraticCurveTo(x - tw * 0.9, y - th * 0.55, x, y - th); p.quadraticCurveTo(x + tw * 0.9, y - th * 0.55, x + tw, y); p.closePath(); }, { fill: TONE[5] });
     };
     const u = m * 0.09;
-    tree(w * 0.08, u * 1.1); tree(w * 0.14, u * 0.8);
-    house(w * 0.26, u, ILLO.red);
-    tree(w * 0.38, u * 0.95);
-    house(w * 0.5, u * 1.2, ILLO.orange);
-    house(w * 0.64, u * 0.85, ILLO.pink);
-    tree(w * 0.76, u * 1.2); tree(w * 0.83, u * 0.85);
-    house(w * 0.93, u * 0.9, ILLO.red);
-    // 꽃
-    for (let i = 0; i < 28; i++) {
-      circle(c, rand() * w, h * 0.91 + rand() * h * 0.08, 4 + rand() * 2, { fill: [ILLO.yellow, ILLO.pink, ILLO.paper, ILLO.red][i % 4], lw: LW });
-    }
+    [[0.08, 1.1], [0.14, 0.8], [0.3, 0.95], [0.52, 1.2], [0.6, 0.7], [0.78, 1.15], [0.85, 0.85], [0.95, 1]].forEach(([x, s]) => tree(w * x, u * s));
   };
   const applyFilter = (src, dst, type, dpr) => {
     const W = src.width, H = src.height;

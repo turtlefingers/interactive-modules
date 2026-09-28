@@ -1,5 +1,5 @@
 import { clamp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, flag, bird, shape } from "../../lib/draw.js";
+import { ILLO, TONE, flag, shape, circle, dot } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -15,7 +15,7 @@ export default function demo(api) {
   const FONT = getComputedStyle(root).fontFamily;
   const C = { ink: api.color("--ink"), ink3: api.color("--ink-3"), acc: api.color("--accent"), line: api.color("--line") };
 
-  const SWARM = 40, ARRIVE_R = 120, LW = 3;
+  const SWARM = 40, ARRIVE_R = 120;
   let flags = [];      // { x, y, born, fade }  — 앞의 것이 지금 목표
   const ghosts = [];   // 사라지는 깃발
   let agents = [];
@@ -61,9 +61,9 @@ export default function demo(api) {
       g.beginPath(); g.arc(f.x, f.y, 8 + age * 70, 0, Math.PI * 2); g.stroke();
       g.globalAlpha = alpha;
     }
-    // 깃발(키트): 꽂히는 순간 솟아오르고, 잠깐 펄럭인다
+    // 깃발(키트): 강조색 실루엣 + 가는 깃대. 꽂히는 순간 솟아오르고, 잠깐 펄럭인다
     const rise = Math.min(1, age / 0.18);
-    flag(g, f.x, f.y, { h: Math.max(2, 40 * rise), color: ILLO.red, lw: LW, wave: Math.sin(age * 8) * Math.max(0, 1 - age / 2) });
+    flag(g, f.x, f.y, { h: Math.max(2, 40 * rise), color: C.acc || ILLO.orange, wave: Math.sin(age * 8) * Math.max(0, 1 - age / 2) });
     if (label) { g.fillStyle = C.ink; g.font = `700 13px ${FONT}`; g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(label, f.x + 8, f.y + 8); }
     g.globalAlpha = 1;
   };
@@ -141,16 +141,16 @@ export default function demo(api) {
     }
     flags.forEach((f, i) => drawFlag(f, i === 0 ? 1 : 0.55, S.persist === "queue" ? String(i + 1) : ""));
 
-    // 개체: 하나면 키트의 새, 무리면 외곽선이 있는 작은 삼각형들 (평면 단색)
+    // 개체: 외곽선 없는 톤 실루엣. 무리면 작은 삼각형들, 하나면 원 + 진행 방향을 알리는 작은 강조색 점
     for (const a of agents) {
       const ang = Math.atan2(a.vy, a.vx);
-      const sp = Math.min(1, Math.hypot(a.vx, a.vy) / maxV);
       if (swarm) {
         g.save(); g.translate(a.x, a.y); g.rotate(ang);
-        shape(g, c => { c.moveTo(8, 0); c.lineTo(-6, 5.5); c.lineTo(-6, -5.5); c.closePath(); }, { fill: ILLO.blue, lw: 2 });
+        shape(g, c => { c.moveTo(8, 0); c.lineTo(-6, 5.5); c.lineTo(-6, -5.5); c.closePath(); }, { fill: TONE[4] });
         g.restore();
       } else {
-        bird(g, a.x, a.y, { size: 26, color: ILLO.orange, angle: ang, flap: Math.sin(t * 0.02) * sp, lw: LW });
+        circle(g, a.x, a.y, 11, { fill: TONE[5] });
+        dot(g, a.x + Math.cos(ang) * 6.5, a.y + Math.sin(ang) * 6.5, 2.6, C.acc || ILLO.orange);
       }
     }
 

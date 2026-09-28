@@ -1,19 +1,20 @@
 import { clamp, rng } from "../../lib/util.js";
-import { ILLO } from "../../lib/draw.js";
+import { ILLO, TONE } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
   const NS = "http://www.w3.org/2000/svg";
   const INK = ILLO.ink, PAPER = ILLO.paper;
   const ACC = api.color("--accent") || "#ff5a36";
-  const LW = 3; // 그림 키트와 같은 외곽선 굵기
+  const LINE = 1.5; // 가는 잉크 디테일 선
 
   /* ---------- 결과와 확률 ---------- */
+  // 등급 색: 톤 세 단계 + 전설만 강조색
   const TIERS = [
-    { name: "일반", prize: "스티커", fill: PAPER },
-    { name: "희귀", prize: "배지", fill: ILLO.blue },
-    { name: "영웅", prize: "피규어", fill: ILLO.lilac },
-    { name: "전설", prize: "황금 고양이", fill: ILLO.orange }
+    { name: "일반", prize: "스티커", fill: TONE[0] },
+    { name: "희귀", prize: "배지", fill: TONE[2] },
+    { name: "영웅", prize: "피규어", fill: TONE[4] },
+    { name: "전설", prize: "황금 고양이", fill: ACC }
   ];
   const TIER_W = [60, 25, 12, 3];
   const outcomes = kind => (kind === "dice" ? ["1", "2", "3", "4", "5", "6"] : TIERS.map(t => t.name));
@@ -67,12 +68,12 @@ export default function demo(api) {
     .randomizer-root.narrow .randomizer-side { width: 100%; max-width: 340px; }
     .randomizer-cube-scene { width: 120px; height: 120px; perspective: 700px; }
     .randomizer-cube { position: relative; width: 120px; height: 120px; transform-style: preserve-3d; }
-    /* 주사위: 납작한 면 채움 + 잉크 외곽선 (keyboard-orbit의 입체와 같은 그림체). 면마다 평평한 명도 차이만, 6은 강조면 */
-    .randomizer-face { position: absolute; inset: 0; background: ${PAPER}; border: ${LW}px solid ${INK}; border-radius: 10px; box-sizing: border-box;
+    /* 주사위: 종이색 면 + 톤 명도 차이로만 입체감, 1px 톤 모서리. 6은 강조면 */
+    .randomizer-face { position: absolute; inset: 0; background: ${PAPER}; border: 1px solid ${TONE[3]}; border-radius: 10px; box-sizing: border-box;
       display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 14px; backface-visibility: hidden; }
-    .randomizer-face.side { background: #efeadf; }
-    .randomizer-face.cap { background: #e4ded0; }
-    .randomizer-face.mark { background: ${ILLO.orange}; }
+    .randomizer-face.side { background: ${TONE[1]}; }
+    .randomizer-face.cap { background: ${TONE[2]}; }
+    .randomizer-face.mark { background: ${ACC}; border-color: ${ACC}; }
     .randomizer-face i { width: 18px; height: 18px; border-radius: 50%; background: ${INK}; place-self: center; visibility: hidden; }
     .randomizer-face.mark i { background: ${PAPER}; }
     .randomizer-face i.on { visibility: visible; }
@@ -123,21 +124,21 @@ export default function demo(api) {
   setCube();
 
   /* ---------- 캡슐 뽑기 기계 ---------- */
-  // 외곽선이 있는 납작한 도형들: 몸통은 빨강, 유리통은 종이색, 캡슐은 ILLO 색 (위 반쪽 색 + 아래 반쪽 종이색)
+  // 외곽선 없는 톤 실루엣: 몸통은 톤, 유리통은 종이색에 가는 잉크 윤곽만, 손잡이는 강조색. 캡슐은 톤 위 반쪽 + 종이색 아래 반쪽
   const gsvg = apps.gacha.querySelector("svg");
-  const O = { stroke: INK, "stroke-width": LW, "stroke-linejoin": "round", "stroke-linecap": "round" };
-  mk("path", { d: "M92 172 L84 290 H216 L208 172 Z", fill: ILLO.red, ...O }, gsvg);
+  const O = { stroke: INK, "stroke-width": LINE, "stroke-linejoin": "round", "stroke-linecap": "round" };
+  mk("path", { d: "M92 172 L84 290 H216 L208 172 Z", fill: TONE[3] }, gsvg);
   mk("circle", { cx: 150, cy: 112, r: 84, fill: PAPER, ...O }, gsvg);
-  mk("rect", { x: 176, y: 250, width: 30, height: 24, rx: 3, fill: PAPER, ...O }, gsvg);
+  mk("rect", { x: 176, y: 250, width: 30, height: 24, rx: 3, fill: TONE[1] }, gsvg);
   const knob = mk("g", {}, gsvg);
-  mk("circle", { cx: 128, cy: 232, r: 17, fill: ILLO.yellow, ...O }, knob);
-  mk("path", { d: "M128 221 V243", ...O, "stroke-width": LW + 1 }, knob);
+  mk("circle", { cx: 128, cy: 232, r: 17, fill: ACC }, knob);
+  mk("path", { d: "M128 221 V243", stroke: PAPER, "stroke-width": 2.5, "stroke-linecap": "round" }, knob);
   const r7 = rng(5);
   const caps = [];
-  const CAP_COL = [ILLO.blue, ILLO.green, ILLO.yellow, ILLO.lilac];
+  const CAP_COL = [TONE[2], TONE[3], TONE[4], TONE[1]];
   const capsule = (parent, r, color) => {
-    mk("path", { d: `M${-r} 0 A${r} ${r} 0 0 0 ${r} 0 Z`, fill: PAPER, ...O }, parent);
-    return mk("path", { d: `M${-r} 0 A${r} ${r} 0 0 1 ${r} 0 Z`, fill: color, ...O }, parent);
+    mk("path", { d: `M${-r} 0 A${r} ${r} 0 0 0 ${r} 0 Z`, fill: PAPER }, parent);
+    return mk("path", { d: `M${-r} 0 A${r} ${r} 0 0 1 ${r} 0 Z`, fill: color }, parent);
   };
   for (let i = 0; i < 13; i++) {
     const a = r7() * Math.PI * 2, d = Math.sqrt(r7()) * 56;
@@ -146,7 +147,7 @@ export default function demo(api) {
     caps.push({ g, x: 150 + Math.cos(a) * d, y: 118 + Math.sin(a) * d * 0.8, ph: r7() * 6 });
   }
   const outCap = mk("g", { opacity: 0 }, gsvg);
-  const capTop = capsule(outCap, 20, ILLO.blue);
+  const capTop = capsule(outCap, 20, TONE[2]);
   const capLabel = mk("text", { x: 0, y: -34, "text-anchor": "middle", "font-size": 15, "font-weight": 700, fill: INK, opacity: 0 }, outCap);
 
   /* ---------- 룰렛 ---------- */
@@ -159,12 +160,11 @@ export default function demo(api) {
     return SEG_TIER.map(t => p[t] / 2);
   };
   let fr = segFrac();
-  // 납작한 칸 채움 + 잉크 칸막이 선
-  const segEls = SEG_TIER.map(t => ({ path: mk("path", { fill: TIERS[t].fill, ...O }, wheel),
-    text: mk("text", { "text-anchor": "middle", "font-size": 13, "font-weight": 600, fill: INK }, wheel) }));
-  mk("circle", { cx: RC.x, cy: RC.y, r: RC.r, fill: "none", ...O }, rsvg);
-  mk("circle", { cx: RC.x, cy: RC.y, r: 9, fill: PAPER, ...O }, rsvg);
-  const needle = mk("path", { d: `M${RC.x - 11} ${RC.y - RC.r - 20} H${RC.x + 11} L${RC.x} ${RC.y - RC.r + 10} Z`, fill: ILLO.orange, ...O }, rsvg);
+  // 톤 칸 채움 + 1px 종이색 칸막이 선, 바늘은 잉크
+  const segEls = SEG_TIER.map(t => ({ path: mk("path", { fill: TIERS[t].fill, stroke: PAPER, "stroke-width": 1 }, wheel),
+    text: mk("text", { "text-anchor": "middle", "font-size": 13, "font-weight": 600, fill: t === 2 || t === 3 ? PAPER : INK }, wheel) }));
+  mk("circle", { cx: RC.x, cy: RC.y, r: 9, fill: INK }, rsvg);
+  const needle = mk("path", { d: `M${RC.x - 9} ${RC.y - RC.r - 18} H${RC.x + 9} L${RC.x} ${RC.y - RC.r + 10} Z`, fill: INK }, rsvg);
   const drawWheel = () => {
     let a0 = -Math.PI / 2;
     const pt = a => `${RC.x + Math.cos(a) * RC.r} ${RC.y + Math.sin(a) * RC.r}`;
@@ -235,7 +235,7 @@ export default function demo(api) {
     if (r.kind === "gacha") {
       capLabel.textContent = TIERS[r.idx].name;
       capLabel.setAttribute("fill", legend ? ACC : INK);
-      capTop.setAttribute("fill", r.idx === 0 ? ILLO.blue : TIERS[r.idx].fill);
+      capTop.setAttribute("fill", r.idx === 0 ? TONE[2] : TIERS[r.idx].fill);
     }
     lastResult = { kind: r.kind, name, p };
     renderSide(true);
@@ -316,7 +316,7 @@ export default function demo(api) {
     if (seg !== rou.seg) { if (roll) rou.kick = 1; rou.seg = seg; }
     rou.kick = Math.max(0, rou.kick - dt / 90);
     wheel.setAttribute("transform", `rotate(${rou.ang} ${RC.x} ${RC.y})`);
-    needle.setAttribute("transform", `rotate(${-rou.kick * 16} ${RC.x} ${RC.y - RC.r - 20})`);
+    needle.setAttribute("transform", `rotate(${-rou.kick * 16} ${RC.x} ${RC.y - RC.r - 18})`);
 
     // 캡슐 뽑기
     const g = roll && roll.kind === "gacha";

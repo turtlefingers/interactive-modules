@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><title>동물 실루엣 후보 (PhyloPic CC0)</title>
+<style>
+  body { margin: 0; background: #f4f2ee; font-family: sans-serif; padding: 24px; color: #1b1b1a; }
+  .g { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  .c { background: #fff; border-radius: 10px; padding: 14px; text-align: center; font-size: 12px; color: #5d5b57; }
+  .c img { width: 100%; height: 120px; object-fit: contain; display: block; margin-bottom: 8px; filter: invert(19%) sepia(9%) saturate(400%) hue-rotate(20deg) brightness(60%); }
+</style></head>
+<body><h3 style="margin:0 0 12px;font-size:15px">동물 실루엣 후보 · PhyloPic (CC0) · 톤 색으로 표시</h3>
+<div class="g" id="g"></div>
+<script>
+  const names = ["sparrow1","sparrow2","pigeon1","pigeon2","cat1","cat2","cat3","cat4","rabbit1","rabbit2","dog1","dog2","fish1","fish2","bee1","bee2","bug1","bug2"];
+  document.getElementById("g").innerHTML = names.map(n => `<div class="c"><img src="/illo-preview/${n}.svg">${n}</div>`).join("");
+</script></body></html>

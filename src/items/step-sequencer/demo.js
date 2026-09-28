@@ -1,15 +1,16 @@
 import { clamp, fitCanvas } from "../../lib/util.js";
-import { ILLO, circle, ellipse, roundRect, star } from "../../lib/draw.js";
+import { ILLO, TONE as T, circle, ellipse, roundRect } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
   const MAXN = 16;
-  // 줄마다 무대 위 도형 하나 (그림 키트 규칙의 납작한 도형): 원(킥), 네모(스네어), 납작한 타원(하이햇), 별(톤)
+  // 줄마다 무대 위 실루엣 하나 (외곽선 없는 톤 면): 원(킥), 네모(스네어), 납작한 타원(하이햇), 작은 점(톤)
+  // 울리는 동안에는 강조색으로 채워진다. 격자 라벨 아이콘도 같은 모양·같은 톤이다
   const TRACKS = [
-    { name: "킥", color: ILLO.blue, icon: `<circle cx="7" cy="7" r="5.5"/>` },
-    { name: "스네어", color: ILLO.orange, icon: `<rect x="2" y="2" width="10" height="10" rx="2"/>` },
-    { name: "하이햇", color: ILLO.yellow, icon: `<ellipse cx="7" cy="7" rx="6" ry="2.4"/>` },
-    { name: "톤", color: ILLO.green, icon: `<path d="M7 1.2 L8.6 5.2 L13 5.5 L9.6 8.3 L10.7 12.5 L7 10.2 L3.3 12.5 L4.4 8.3 L1 5.5 L5.4 5.2 Z"/>` }
+    { name: "킥", color: T[4], icon: `<circle cx="7" cy="7" r="5.5" fill="${T[4]}"/>` },
+    { name: "스네어", color: T[3], icon: `<rect x="2" y="2" width="10" height="10" rx="1.5" fill="${T[3]}"/>` },
+    { name: "하이햇", color: T[2], icon: `<ellipse cx="7" cy="7" rx="6" ry="2.2" fill="${T[2]}"/>` },
+    { name: "톤", color: "accent", icon: `<circle cx="7" cy="7" r="3.2" fill="var(--accent)"/>` }
   ];
   // 톤 줄: 칸 위치마다 정해진 음 (마이너 펜타토닉, 반음 단위)
   const TONE = [12, 0, 7, 10, 12, 15, 10, 7, 5, 7, 10, 12, 15, 17, 12, 10];
@@ -41,7 +42,7 @@ export default function demo(api) {
     .step-sequencer-grid { width: 100%; max-width: 820px; display: grid; gap: 6px; align-items: center; }
     .step-sequencer-label { font: inherit; font-size: 13px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 7px;
       background: none; border: 0; padding: 0; cursor: pointer; white-space: nowrap; text-align: left; }
-    .step-sequencer-label svg { width: 12px; height: 12px; flex: none; fill: none; stroke: var(--ink); stroke-width: 1.4; }
+    .step-sequencer-label svg { width: 12px; height: 12px; flex: none; }
     .step-sequencer-cell { position: relative; aspect-ratio: 1; padding: 0; border-radius: 6px; cursor: pointer; background: transparent;
       border: 1px solid rgba(0,0,0,.14); transition: background .1s, border-color .1s; }
     .step-sequencer-cell.beat { border-color: rgba(0,0,0,.34); }
@@ -200,16 +201,16 @@ export default function demo(api) {
     if (r === 1) f.angT += Math.PI / 2;
     if (r === 3) f.yT = TONE[step] / 17;
   };
-  const LW = 3; // 그림 키트와 같은 외곽선 굵기
-  // 울리는 동안(f.p > 0)만 제 색으로 채워지고, 평소에는 종이색
+  // 울리는 동안(f.p > 0)은 강조색, 평소에는 제 톤. 외곽선은 없다
   const figure = (r, x, y, s, f, e) => {
-    const fill = f.p > 0 ? TRACKS[r].color : ILLO.paper;
-    if (r === 0) circle(g, x, y, s * (0.8 + 0.3 * e), { fill, lw: LW });
+    const base = TRACKS[r].color === "accent" ? C.accent : TRACKS[r].color;
+    const fill = f.p > 0 ? C.accent : base;
+    if (r === 0) circle(g, x, y, s * (0.8 + 0.3 * e), { fill });
     else if (r === 1) {
       const q = s * 1.3;
-      g.save(); g.translate(x, y); g.rotate(f.ang); roundRect(g, -q / 2, -q / 2, q, q, s * 0.18, { fill, lw: LW }); g.restore();
-    } else if (r === 2) ellipse(g, x, y - e * s, s * 0.9, s * 0.3, { fill, lw: LW });
-    else star(g, x, y, { r: s * 0.5, color: fill, lw: LW });
+      g.save(); g.translate(x, y); g.rotate(f.ang); roundRect(g, -q / 2, -q / 2, q, q, s * 0.18, { fill }); g.restore();
+    } else if (r === 2) ellipse(g, x, y - e * s, s * 0.9, s * 0.3, { fill });
+    else circle(g, x, y, s * (0.32 + 0.14 * e), { fill });
   };
   const drawStage = dt => {
     fitVis();

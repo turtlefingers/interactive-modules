@@ -1,5 +1,5 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, ILLO_CYCLE, circle, roundRect, dot } from "../../lib/draw.js";
+import { ILLO, TONE, circle, roundRect, dot } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -13,8 +13,7 @@ export default function demo(api) {
   el.appendChild(root);
   const { g, size } = fitCanvas(api, { parent: root });
   const C = { ink: api.color("--ink"), ink3: api.color("--ink-3"), acc: api.color("--accent"), note: api.color("--note"), line: api.color("--line") };
-  const LW = 3; // 그림 키트와 같은 외곽선 굵기
-  let colorN = 0;
+  const ACC = C.acc || ILLO.orange; // 장면의 강조색 하나
 
   const gun = { x: 0, y: 0, ang: -Math.PI / 4, recoil: 0, flash: 0, shake: 0 };
   const ptr = { x: 0, y: 0, has: false, down: false, downT: 0 };
@@ -32,7 +31,7 @@ export default function demo(api) {
       t.x = size.w * (0.25 + Math.random() * 0.68); t.y = size.h * (0.14 + Math.random() * 0.5);
       if (targets.every(o => o === t || Math.hypot(o.x - t.x, o.y - t.y) > 90)) break;
     }
-    t.dead = 0; t.hit = 0; t.born = 0; t.c = ILLO_CYCLE[colorN++ % ILLO_CYCLE.length];
+    t.dead = 0; t.hit = 0; t.born = 0;
   };
   for (let i = 0; i < 4; i++) { const t = {}; targets.push(t); place(t); }
   api.onResize(() => targets.forEach(t => { t.x = clamp(t.x, 30, size.w - 30); t.y = clamp(t.y, 30, size.h - 80); }));
@@ -110,14 +109,14 @@ export default function demo(api) {
     g.clearRect(0, 0, size.w, size.h);
     g.save(); g.translate((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh);
 
-    // 표적: 외곽선이 있는 납작한 동심원 과녁
+    // 표적: 외곽선 없는 톤 동심원 + 강조색 중심점
     for (const t of targets) {
       if (t.dead) continue;
       const s = Math.max(0.01, t.born);
       g.save(); g.translate(t.x, t.y); g.scale(s, s);
-      circle(g, 0, 0, t.r, { fill: t.c, lw: LW });
-      circle(g, 0, 0, t.r * 0.55, { fill: ILLO.paper, lw: LW });
-      dot(g, 0, 0, 3.5);
+      circle(g, 0, 0, t.r, { fill: TONE[1] });
+      circle(g, 0, 0, t.r * 0.55, { fill: TONE[3] });
+      dot(g, 0, 0, 3.5, ACC);
       g.restore();
     }
 
@@ -133,29 +132,32 @@ export default function demo(api) {
       }
     }
 
-    // 발사체: 가는 꼬리선 + 외곽선이 있는 점
+    // 발사체: 가는 꼬리선 + 강조색 점
     for (const s of shots) {
       g.strokeStyle = C.ink3; g.lineWidth = 1.5; g.beginPath();
       for (let i = 0; i < s.trail.length; i += 2) i ? g.lineTo(s.trail[i], s.trail[i + 1]) : g.moveTo(s.trail[i], s.trail[i + 1]);
       g.lineTo(s.x, s.y); g.stroke();
-      circle(g, s.x, s.y, 5, { fill: ILLO.orange, lw: LW });
+      circle(g, s.x, s.y, 5, { fill: ACC });
     }
-    for (const p of sparks) { g.globalAlpha = p.life; dot(g, p.x, p.y, 2); }
+    for (const p of sparks) { g.globalAlpha = p.life; dot(g, p.x, p.y, 2, ACC); }
     g.globalAlpha = 1;
 
-    // 포대
-    // 포대: 외곽선이 있는 납작한 받침 + 포신
+    // 포대: 외곽선 없는 톤 면 — 반원 받침 + 포신
     if (S.origin !== "click") {
       const o = origin();
       g.save(); g.translate(o.x, o.y); g.rotate(gun.ang);
-      roundRect(g, -gun.recoil, -7, 42, 14, 4, { fill: ILLO.grey, lw: LW });
-      if (gun.flash > 0) circle(g, 48 - gun.recoil, 0, 3 + gun.flash * 4, { fill: ILLO.yellow, lw: LW }); // 포구 섬광: 작은 원 하나
+      roundRect(g, -gun.recoil, -7, 42, 14, 4, { fill: TONE[5] });
+      if (gun.flash > 0) { g.globalAlpha = gun.flash; circle(g, 46 - gun.recoil, 0, 2.5 + gun.flash * 3, { fill: ACC }); g.globalAlpha = 1; } // 포구 섬광: 작은 점 하나
       g.restore();
-      circle(g, o.x, o.y, 18, { fill: ptr.down ? ILLO.orange : ILLO.blue, lw: LW });
+      g.save(); g.translate(o.x, o.y);
+      const flat = S.origin === "bottom" ? 0 : -Math.PI / 4; // 왼쪽 아래 구석에서는 받침을 대각선으로 기울인다
+      g.rotate(flat);
+      g.beginPath(); g.arc(0, 0, 18, Math.PI, 0); g.lineTo(24, 10); g.lineTo(-24, 10); g.closePath(); g.fillStyle = TONE[4]; g.fill();
+      g.restore();
     } else if (gun.flash > 0 && shots.length) {
       const s = shots[shots.length - 1];
       g.globalAlpha = gun.flash;
-      circle(g, s.trail[0] ?? s.x, s.trail[1] ?? s.y, 18 * (1.4 - gun.flash), { fill: null, lw: LW });
+      circle(g, s.trail[0] ?? s.x, s.trail[1] ?? s.y, 18 * (1.4 - gun.flash), { fill: null, lw: 1.5, stroke: ACC });
       g.globalAlpha = 1;
     }
     g.restore();

@@ -1,5 +1,5 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, ILLO_CYCLE, shape, circle, roundRect, dot } from "../../lib/draw.js";
+import { ILLO, TONE, shape, circle, roundRect, dot } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -14,8 +14,7 @@ export default function demo(api) {
   const { g, size } = fitCanvas(api, { parent: root });
   const FONT = getComputedStyle(root).fontFamily;
   const C = { ink: api.color("--ink"), ink3: api.color("--ink-3"), acc: api.color("--accent"), note: api.color("--note") };
-  const LW = 3; // 그림 키트와 같은 외곽선 굵기
-  let colorN = 0;
+  const ACC = C.acc || ILLO.orange; // 장면의 강조색 하나
 
   const gun = { x: 0, y: 0, ang: -Math.PI / 2, recoil: 0, flash: 0 };
   const ptr = { x: 0, y: 0, has: false, down: false, key: false, holdT: 0, shots: 0, acc: 0 };
@@ -29,7 +28,7 @@ export default function demo(api) {
     t.x = first ? size.w * (0.15 + Math.random() * 0.7) : (Math.random() < 0.5 ? -t.r : size.w + t.r);
     t.y = size.h * (0.12 + Math.random() * 0.4);
     t.vx = (0.4 + Math.random() * 0.7) * (t.x > size.w / 2 ? -1 : 1);
-    t.hp = 3; t.hit = 0; t.dead = 0; t.c = ILLO_CYCLE[colorN++ % ILLO_CYCLE.length];
+    t.hp = 3; t.hit = 0; t.dead = 0; t.c = ACC;
   };
   const layout = () => { gun.x = size.w / 2; gun.y = size.h - 56; };
   layout();
@@ -50,7 +49,7 @@ export default function demo(api) {
     if (S.mode === "particle") {
       for (let i = 0; i < 5; i++) {
         const a = gun.ang + (Math.random() - 0.5) * (spread + 0.12), sp = 5 + Math.random() * 6;
-        parts.push({ x: mx, y: my, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, s: 3 + Math.random() * 4, c: Math.random() < 0.6 ? ILLO.orange : ILLO.yellow });
+        parts.push({ x: mx, y: my, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, s: 3 + Math.random() * 4, c: Math.random() < 0.6 ? ACC : TONE[3] });
       }
     } else {
       const a = gun.ang + (Math.random() - 0.5) * spread, sp = 15;
@@ -146,24 +145,26 @@ export default function demo(api) {
 
     /* ---------- 그리기 ---------- */
     g.clearRect(0, 0, size.w, size.h);
-    // 표적: 외곽선이 있는 납작한 과녁. 남은 체력만큼 바깥 고리가 남는다
+    // 표적: 외곽선 없는 톤 동심원 + 강조색 중심점. 남은 체력만큼 바깥 고리 조각이 남는다
     for (const t of targets) {
       if (t.dead) continue;
       const s = 1 + t.hit * 0.15;
       g.save(); g.translate(t.x, t.y); g.scale(s, s);
-      circle(g, 0, 0, t.r, { fill: t.hit > 0.3 ? ILLO.yellow : t.c, lw: LW });
-      circle(g, 0, 0, t.r * 0.58, { fill: ILLO.paper, lw: LW });
-      dot(g, 0, 0, t.r * 0.2);
+      circle(g, 0, 0, t.r, { fill: TONE[1] });
+      circle(g, 0, 0, t.r * 0.58, { fill: TONE[3] });
+      dot(g, 0, 0, t.r * 0.2, ACC);
       for (let i = 0; i < 3; i++) {
         if (i >= t.hp) continue;
         const a0 = -Math.PI / 2 + i * (Math.PI * 2 / 3) + 0.14;
-        shape(g, c => c.arc(0, 0, t.r * 0.8, a0, a0 + Math.PI * 2 / 3 - 0.28), { fill: null, lw: LW });
+        shape(g, c => c.arc(0, 0, t.r * 0.8, a0, a0 + Math.PI * 2 / 3 - 0.28), { fill: null, lw: 1.5, stroke: TONE[4] });
       }
+      // 맞은 순간: 짧게 강조색 고리 하나
+      if (t.hit > 0) { g.globalAlpha = t.hit; circle(g, 0, 0, t.r + 4 + (1 - t.hit) * 6, { fill: null, lw: 1.5, stroke: ACC }); g.globalAlpha = 1; }
       g.restore();
     }
-    // 발사체: 외곽선이 있는 점
-    for (const b of bullets) circle(g, b.x, b.y, 5, { fill: ILLO.orange, lw: LW });
-    for (const p of parts) { g.globalAlpha = clamp(p.life * 1.5, 0, 1); circle(g, p.x, p.y, p.s * (0.5 + p.life * 0.5) + 1, { fill: p.c, lw: 2 }); }
+    // 발사체: 강조색 점
+    for (const b of bullets) circle(g, b.x, b.y, 5, { fill: ACC });
+    for (const p of parts) { g.globalAlpha = clamp(p.life * 1.5, 0, 1); circle(g, p.x, p.y, p.s * (0.5 + p.life * 0.5) + 1, { fill: p.c }); }
     for (const s of sparks) { g.globalAlpha = s.life; dot(g, s.x, s.y, 2.5, s.c); }
     g.globalAlpha = 1;
 
@@ -173,13 +174,13 @@ export default function demo(api) {
       g.beginPath(); g.moveTo(gun.x, gun.y); g.lineTo(gun.x + Math.cos(gun.ang) * 2000, gun.y + Math.sin(gun.ang) * 2000); g.stroke();
       g.setLineDash([]);
     }
-    // 포대: 외곽선이 있는 납작한 받침 + 포신
+    // 포대: 외곽선 없는 톤 면 — 반원 받침 + 포신
     g.save(); g.translate(gun.x, gun.y);
     g.save(); g.rotate(gun.ang);
-    roundRect(g, -gun.recoil, -9, 48, 18, 5, { fill: ILLO.grey, lw: LW });
-    if (gun.flash > 0) circle(g, 54 - gun.recoil, 0, 4 + gun.flash * 4, { fill: ILLO.yellow, lw: LW }); // 포구 섬광: 작은 원 하나
+    roundRect(g, -gun.recoil, -9, 48, 18, 5, { fill: TONE[5] });
+    if (gun.flash > 0) { g.globalAlpha = gun.flash; circle(g, 52 - gun.recoil, 0, 3 + gun.flash * 3, { fill: ACC }); g.globalAlpha = 1; } // 포구 섬광: 작은 점 하나
     g.restore();
-    shape(g, c => { c.arc(0, 0, 26, Math.PI, 0); c.lineTo(34, 16); c.lineTo(-34, 16); c.closePath(); }, { fill: ptr.down ? ILLO.orange : ILLO.blue, lw: LW });
+    shape(g, c => { c.arc(0, 0, 26, Math.PI, 0); c.lineTo(34, 16); c.lineTo(-34, 16); c.closePath(); }, { fill: TONE[4] });
     g.restore();
 
     // 누르는 동안 발사 리듬 표시

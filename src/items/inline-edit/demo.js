@@ -1,4 +1,5 @@
-import { ILLO } from "../../lib/draw.js";
+import { ILLO, TONE } from "../../lib/draw.js";
+import { humaaanInner, outfit } from "../../lib/figure.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -7,9 +8,10 @@ export default function demo(api) {
     .ile-demo { position: absolute; inset: 0; display: grid; place-items: center; background: var(--board); padding: 20px; }
     .ile-card { width: min(440px, 100%); background: var(--note); border: 1px solid var(--ink-3); border-radius: 8px; padding: 28px 28px 34px; }
     .ile-top { display: flex; align-items: center; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
-    /* 아바타: 그림 키트의 face — 3px 잉크 외곽선 원에 점 두 개와 선 하나. 이름 첫 글자는 작은 배지로 */
+    /* 아바타: Humaaans 사람의 머리와 어깨를 원으로 잘라 넣는다 (외곽선 없음). 이름 첫 글자는 작은 배지로 */
     .ile-ava { flex: none; position: relative; width: 56px; height: 56px; }
-    .ile-ava svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    .ile-ava .ile-bust { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: ${TONE[1]}; }
+    .ile-ava svg { display: block; width: 100%; height: 100%; }
     .ile-ava b { position: absolute; right: -4px; bottom: -2px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 10px;
       background: var(--ink); color: var(--on-ink); font-size: 11px; font-weight: 600; display: grid; place-items: center; line-height: 1; }
     .ile-top .ids { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
@@ -61,11 +63,9 @@ export default function demo(api) {
   </div>`;
   el.appendChild(root);
   const ava = root.querySelector(".ile-ava");
-  ava.innerHTML = `<svg viewBox="0 0 56 56">
-    <circle cx="28" cy="28" r="26.5" fill="${ILLO.blue}" stroke="${ILLO.ink}" stroke-width="3"/>
-    <circle cx="17" cy="25" r="2.4" fill="${ILLO.ink}"/><circle cx="39" cy="25" r="2.4" fill="${ILLO.ink}"/>
-    <path d="M33.2 38.1 A7.3 7.3 0 0 1 22.8 38.1" fill="none" stroke="${ILLO.ink}" stroke-width="3" stroke-linecap="round"/>
-  </svg><b></b>`;
+  ava.innerHTML = `<div class="ile-bust"><svg viewBox="100 20 180 180" preserveAspectRatio="xMidYMid slice">${
+    humaaanInner({ head: "Pony", torso: "TurtleNeck", bottom: "SkinnyJeans", colors: outfit(ILLO.blue) })
+  }</svg></div><b></b>`;
   const avaInitial = ava.querySelector("b");
   FIELDS.forEach(F => {
     F.el = root.querySelector(`.ile-field[data-f="${F.f}"]`);

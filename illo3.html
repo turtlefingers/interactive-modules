@@ -47,3 +47,18 @@
 </script>
 </body>
 </html>
+<h2>Canvas: drawAnimal() — PhyloPic 실루엣 (톤 · 강조색 · 뒤집기 · 회전)</h2>
+<canvas id="an" width="1300" height="220"></canvas>
+<script type="module">
+  import { drawAnimal, ANIMAL_NAMES } from "./src/lib/animals.js";
+  import { TONE, ILLO } from "./src/lib/draw.js";
+  const cv = document.getElementById("an"), g = cv.getContext("2d"), dpr = devicePixelRatio || 1;
+  cv.width = 1300 * dpr; cv.height = 220 * dpr; cv.style.width = "1300px"; cv.style.height = "220px"; g.scale(dpr, dpr);
+  let t = 0;
+  (function loop() {
+    t += 0.03; g.clearRect(0, 0, 1300, 220);
+    g.fillStyle = "#1b1b1a"; g.fillRect(0, 190, 1300, 1.5);
+    ANIMAL_NAMES.forEach((n, i) => drawAnimal(g, n, 70 + i * 125, 190, n === "bee" || n === "ladybug" ? 60 : 110, { color: i % 3 === 1 ? ILLO.orange : TONE[5], flip: i % 2 === 1, angle: n === "sparrow-fly" ? Math.sin(t) * 0.2 : 0 }));
+    requestAnimationFrame(loop);
+  })();
+</script>

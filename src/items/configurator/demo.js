@@ -1,46 +1,52 @@
-import { ILLO } from "../../lib/draw.js";
+import { ILLO, TONE } from "../../lib/draw.js";
+import { humaaanSVG, humaaanInner, outfit } from "../../lib/figure.js";
 
 export default function demo(api) {
   const { el, S } = api;
-  const INK = ILLO.ink, PAPER = ILLO.paper;
   const BASE = 12000;
 
-  /* ---------- 옵션과 부위 그림 (viewBox 0 0 200 220 기준) ----------
-     그림 키트와 같은 규칙: 3px 검정 외곽선, 평면 단색(ILLO 팔레트), 얼굴은 점 두 개와 선 하나 */
-  const LW = 3;
-  const LINE = `stroke="${INK}" stroke-width="${LW}" stroke-linejoin="round" stroke-linecap="round"`;
-  const eye = (x, kind) => {
-    if (kind === "dot") return `<circle cx="${x}" cy="122" r="6" fill="${INK}"/>`;
-    if (kind === "sleepy") return `<path d="M${x - 9} 122 H${x + 9}" fill="none" ${LINE}/>`;
-    if (kind === "round") return `<circle cx="${x}" cy="122" r="11" fill="${PAPER}" ${LINE}/><circle cx="${x + 1.5}" cy="123" r="5" fill="${INK}"/>`;
-    return `<path d="M${x - 9} 124 L${x} 119 L${x + 9} 124" fill="none" ${LINE}/>`;   // 윙크
-  };
+  /* ---------- 옵션: Humaaans 부품을 고른다 (사람은 직접 그리지 않는다) ----------
+     머리 · 상의 · 하의는 부품 이름, 옷 색은 outfit()으로 만든 색 세트, 자세는 서기/앉기.
+     앉은 자세에는 하의 부품이 넷뿐이라 서 있는 하의마다 대응하는 앉은 하의를 둔다. */
   const GROUPS = [
-    { key: "color", name: "몸 색", type: "color", options: [
-      { name: "크림", c: PAPER, price: 0 }, { name: "파랑", c: ILLO.blue, price: 0 }, { name: "초록", c: ILLO.green, price: 0 },
-      { name: "노랑", c: ILLO.yellow, price: 0 }, { name: "주황", c: ILLO.orange, price: 1000 }] },
-    { key: "eyes", name: "눈", view: "46 98 108 52", options: [
-      { name: "점 눈", price: 0, svg: eye(78, "dot") + eye(122, "dot") },
-      { name: "졸린 눈", price: 1000, svg: eye(78, "sleepy") + eye(122, "sleepy") },
-      { name: "동그란 눈", price: 1500, svg: eye(78, "round") + eye(122, "round") },
-      { name: "윙크", price: 1000, svg: eye(78, "dot") + eye(122, "wink") }] },
-    { key: "hat", name: "모자", view: "18 22 164 82", drop: true, options: [
-      { name: "없음", price: 0, svg: "" },
-      { name: "비니", price: 3000, svg: `<path d="M56 90 C56 48 144 48 144 90 Z" fill="${ILLO.red}" ${LINE}/><rect x="50" y="82" width="100" height="14" rx="4" fill="${PAPER}" ${LINE}/><circle cx="100" cy="47" r="8" fill="${PAPER}" ${LINE}/>` },
-      { name: "왕관", price: 8000, svg: `<path d="M62 92 L64 52 L82 70 L100 42 L118 70 L136 52 L138 92 Z" fill="${ILLO.yellow}" ${LINE}/>` },
-      { name: "밀짚모자", price: 4000, svg: `<ellipse cx="100" cy="88" rx="78" ry="12" fill="${ILLO.yellow}" ${LINE}/><path d="M64 86 C64 48 136 48 136 86 Z" fill="${ILLO.yellow}" ${LINE}/><path d="M65 76 H135" stroke="${INK}" stroke-width="6"/>` },
-      { name: "프로펠러", price: 5000, svg: `<path d="M60 92 C60 56 140 56 140 92 Z" fill="${ILLO.blue}" ${LINE}/><path d="M100 57 V40" ${LINE}/><path d="M78 40 H122" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>` }] },
-    { key: "acc", name: "액세서리", view: "14 30 186 186", options: [
-      { name: "없음", price: 0, svg: "" },
-      { name: "목도리", price: 2500, svg: `<path d="M36 158 Q100 186 164 158 L166 174 Q100 202 34 174 Z" fill="${ILLO.green}" ${LINE}/><path d="M122 180 L136 176 L144 206 L130 209 Z" fill="${ILLO.green}" ${LINE}/>` },
-      { name: "안경", price: 2000, svg: `<circle cx="78" cy="122" r="15" fill="none" ${LINE}/><circle cx="122" cy="122" r="15" fill="none" ${LINE}/><path d="M93 120 Q100 115 107 120" fill="none" ${LINE}/>` },
-      { name: "나비넥타이", price: 1500, svg: `<path d="M100 172 L79 160 L79 184 Z M100 172 L121 160 L121 184 Z" fill="${ILLO.red}" ${LINE}/><rect x="95" y="166" width="10" height="12" rx="3" fill="${ILLO.red}" ${LINE}/>` },
-      { name: "풍선", price: 3000, svg: `<path d="M163 150 Q176 110 174 72" fill="none" ${LINE}/><ellipse cx="174" cy="50" rx="16" ry="20" fill="${ILLO.pink}" ${LINE}/>` }] }
+    { key: "head", name: "머리", view: "100 10 180 160", options: [
+      { name: "짧은 머리", part: "Short", price: 0 }, { name: "포니테일", part: "Pony", price: 0 }, { name: "곱슬", part: "Curly", price: 1000 },
+      { name: "아프로", part: "Afro", price: 1000 }, { name: "히잡", part: "Hijab", price: 0 }, { name: "수염", part: "ShortBeard", price: 1500 }] },
+    { key: "torso", name: "상의", view: "40 95 300 270", options: [
+      { name: "터틀넥", part: "TurtleNeck", price: 0 }, { name: "후드", part: "Hoodie", price: 3000 }, { name: "재킷", part: "Jacket", price: 4000 },
+      { name: "긴팔", part: "LongSleeve", price: 0 }, { name: "트렌치코트", part: "TrenchCoat", price: 8000 }, { name: "가운", part: "LabCoat", price: 5000 }] },
+    { key: "bottom", name: "하의", view: "20 200 340 280", options: [
+      { name: "스키니진", part: "SkinnyJeans", sit: "SkinnyJeans", price: 0 }, { name: "치마", part: "Skirt", sit: "SkinnyJeans", price: 2000 },
+      { name: "반바지", part: "Shorts", sit: "SkinnyJeans", price: 1500 }, { name: "통바지", part: "BaggyPants", sit: "BaggyPants", price: 2500 },
+      { name: "조깅복", part: "Jogging", sit: "SweatPants", price: 2000 }, { name: "트레이닝", part: "SweatPants", sit: "SweatPants", price: 1000 }] },
+    { key: "color", name: "옷 색", type: "color", options: [
+      { name: "파랑", c: ILLO.blue, price: 0 }, { name: "주황", c: ILLO.orange, price: 0 },
+      { name: "초록", c: ILLO.green, price: 0 }, { name: "라일락", c: ILLO.lilac, price: 1000 }] },
+    { key: "posture", name: "자세", type: "posture", view: "0 0 380 480", options: [
+      { name: "서기", posture: "standing", price: 0 }, { name: "앉기", posture: "sitting", price: 2000 }] }
   ];
-  const sel = { color: 0, eyes: 0, hat: 0, acc: 0 };
+  const sel = { head: 0, torso: 0, bottom: 0, color: 0, posture: 0 };
   const won = n => n.toLocaleString("ko-KR") + "원";
+  const G = key => GROUPS.find(g => g.key === key);
+  const cur = key => G(key).options[sel[key]];
   const priceOf = () => BASE + GROUPS.reduce((s, gr) => s + gr.options[sel[gr.key]].price, 0);
   const COMBOS = GROUPS.reduce((m, gr) => m * gr.options.length, 1);
+
+  /** 지금 조합으로 만든 사람 옵션 */
+  const figOpts = () => {
+    const posture = cur("posture").posture;
+    const b = cur("bottom");
+    return { head: cur("head").part, torso: cur("torso").part, bottom: posture === "sitting" ? b.sit : b.part, posture, colors: outfit(cur("color").c) };
+  };
+  /* 썸네일: 그 부위만 조립 좌표 그대로 그리고 viewBox로 잘라 본다. 색은 톤으로 두어 강조색은 결과물에만 쓴다 */
+  const THUMB = outfit(TONE[3]);
+  const NONE = "-";
+  const thumb = (gr, o) => {
+    if (gr.type === "posture") return `<svg viewBox="${gr.view}">${humaaanInner({ head: "Short", torso: "TurtleNeck", bottom: "SkinnyJeans", posture: o.posture, colors: THUMB })}</svg>`;
+    const opts = { head: NONE, torso: NONE, bottom: NONE, colors: THUMB };
+    opts[gr.key] = o.part;
+    return `<svg viewBox="${gr.view}">${humaaanInner(opts)}</svg>`;
+  };
 
   api.css(`
     .configurator-root { position: absolute; inset: 0; display: grid; gap: 22px; padding: 64px 28px 72px; }
@@ -60,16 +66,20 @@ export default function demo(api) {
       transition: border-color .15s, transform .15s; }
     .configurator-opt:hover { border-color: var(--ink-3); transform: translateY(-2px); }
     .configurator-opt.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-    .configurator-opt svg { width: 56px; height: 36px; display: block; }
+    .configurator-opt svg { width: 48px; height: 40px; display: block; }
     .configurator-opt b { font-size: 11px; font-weight: 600; white-space: nowrap; }
     .configurator-opt small { font-size: 10px; color: var(--ink-3); height: 12px; line-height: 12px; }
     .configurator-root:not(.show-price) .configurator-opt small { display: none; }
-    .configurator-swatch { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(0,0,0,.25); cursor: pointer; background: var(--sw);
+    .configurator-swatch { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); cursor: pointer; background: var(--sw);
       transition: transform .15s, box-shadow .15s; }
     .configurator-swatch:hover { transform: translateY(-2px); }
     .configurator-swatch.on { box-shadow: 0 0 0 3px var(--board), 0 0 0 4.5px var(--accent); }
     .configurator-view { position: relative; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .configurator-view > svg { width: 100%; height: 100%; min-height: 0; flex: 1 1 auto; max-height: 500px; overflow: visible; }
+    .configurator-fig { position: relative; width: 100%; flex: 1 1 auto; min-height: 0; max-height: 500px; transform-origin: 50% 100%; }
+    .configurator-layer { position: absolute; inset: 0; opacity: 0; transition: opacity .28s ease; }
+    .configurator-layer.on { opacity: 1; }
+    .configurator-root.instant .configurator-layer { transition: none; }
+    .configurator-layer svg { width: 100%; height: 100%; display: block; overflow: visible; }
     .configurator-rand { position: absolute; top: 4px; right: 4px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
       background: transparent; color: var(--ink); border: 1px solid rgba(0,0,0,.2); border-radius: var(--r-pill); padding: 7px 14px;
       transition: border-color .15s, opacity .25s, transform .25s; }
@@ -80,14 +90,6 @@ export default function demo(api) {
       padding: 8px 4px 0; text-align: center; border-top: 1px solid var(--line); min-width: 260px; }
     .configurator-sum b { font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; transition: opacity .25s; }
     .configurator-root:not(.show-price) .configurator-sum b { opacity: 0; }
-    .configurator-body { transition: fill .4s ease; }
-    .configurator-part { transform-box: fill-box; transform-origin: 50% 50%; opacity: 0; transform: scale(.6);
-      transition: opacity .22s, transform .4s cubic-bezier(.3,1.4,.5,1); pointer-events: none; }
-    .configurator-part.drop { transform: translateY(-50px); }
-    .configurator-part.on { opacity: 1; transform: none; }
-    .configurator-root.pop .configurator-part { transition: opacity .12s, transform .45s cubic-bezier(.2,2,.4,1); }
-    .configurator-root.instant .configurator-part, .configurator-root.instant .configurator-body { transition: none; }
-    .configurator-char { transform-box: fill-box; transform-origin: 50% 100%; }
   `);
 
   /* ---------- DOM ---------- */
@@ -95,49 +97,47 @@ export default function demo(api) {
   root.className = "configurator-root";
   el.appendChild(root);
 
-  const SIL = `<path d="M100 68 C148 68 170 104 170 140 C170 178 140 200 100 200 C60 200 30 178 30 140 C30 104 52 68 100 68 Z" fill="none" stroke="#c9c2b4" stroke-width="2"/>`;
   const panel = document.createElement("div");
   panel.className = "configurator-panel";
   panel.innerHTML = GROUPS.map((gr, gi) => `
     <section class="configurator-group"><h4>${gr.name}<span data-gname="${gr.key}"></span></h4><div class="configurator-opts">
       ${gr.options.map((o, i) => gr.type === "color"
         ? `<button class="configurator-swatch" data-g="${gi}" data-i="${i}" style="--sw:${o.c}" title="${o.name}${o.price ? " +" + won(o.price) : ""}"></button>`
-        : `<button class="configurator-opt" data-g="${gi}" data-i="${i}"><svg viewBox="${gr.view}">${SIL}${o.svg}</svg><b>${o.name}</b><small>${o.price ? "+" + won(o.price) : "기본"}</small></button>`
+        : `<button class="configurator-opt" data-g="${gi}" data-i="${i}">${thumb(gr, o)}<b>${o.name}</b><small>${o.price ? "+" + won(o.price) : "기본"}</small></button>`
       ).join("")}
     </div></section>`).join("");
 
   const view = document.createElement("div");
   view.className = "configurator-view";
-  const partsOf = gr => gr.options.map((o, i) => o.svg ? `<g class="configurator-part${gr.drop ? " drop" : ""}" data-part="${gr.key}" data-i="${i}">${o.svg}</g>` : "").join("");
-  const G = key => GROUPS.find(g => g.key === key);
   view.innerHTML = `
-    <svg viewBox="0 0 200 220">
-      <g class="configurator-char">
-        <ellipse class="configurator-body" cx="72" cy="201" rx="16" ry="9" ${LINE}/><ellipse class="configurator-body" cx="128" cy="201" rx="16" ry="9" ${LINE}/>
-        <path class="configurator-body" ${LINE} d="M100 68 C148 68 170 104 170 140 C170 178 140 200 100 200 C60 200 30 178 30 140 C30 104 52 68 100 68 Z"/>
-        <path d="M90 146 Q100 156 110 146" fill="none" ${LINE}/>
-        ${partsOf(G("eyes"))}${partsOf(G("acc"))}${partsOf(G("hat"))}
-      </g>
-    </svg>
+    <div class="configurator-fig"><div class="configurator-layer on"></div><div class="configurator-layer"></div></div>
     <button class="configurator-rand">무작위</button>
     <div class="configurator-sum"><span class="configurator-names"></span><b class="configurator-total"></b></div>`;
   root.append(panel, view);
-  const bodyEls = view.querySelectorAll(".configurator-body");
-  const charEl = view.querySelector(".configurator-char");
+  const figEl = view.querySelector(".configurator-fig");
+  let layers = [...view.querySelectorAll(".configurator-layer")];   // [보이는 층, 대기 층]
   const namesEl = view.querySelector(".configurator-names");
   const totalEl = view.querySelector(".configurator-total");
 
   /* ---------- 반영 ---------- */
-  let shownPrice = priceOf(), lastPick = "–", count = 0, rolling = false;
+  let shownPrice = priceOf(), lastPick = "–", count = 0, rolling = false, lastKey = "";
+  /* 부품이 통째로 바뀌므로 두 층을 겹쳐 놓고 새 그림을 넣은 층을 서서히 켠다 (크로스페이드) */
+  const swapFigure = () => {
+    const key = JSON.stringify(figOpts());
+    if (key === lastKey) return;
+    lastKey = key;
+    const [front, back] = layers;
+    back.innerHTML = humaaanSVG(figOpts());
+    back.classList.add("on"); front.classList.remove("on");
+    layers = [back, front];
+  };
   const render = changedKey => {
-    const col = G("color").options[sel.color].c;
-    bodyEls.forEach(b => b.setAttribute("fill", col));
-    view.querySelectorAll(".configurator-part").forEach(p => p.classList.toggle("on", +p.dataset.i === sel[p.dataset.part]));
+    swapFigure();
     panel.querySelectorAll("[data-g]").forEach(b => b.classList.toggle("on", sel[GROUPS[+b.dataset.g].key] === +b.dataset.i));
     GROUPS.forEach(gr => { panel.querySelector(`[data-gname="${gr.key}"]`).textContent = gr.options[sel[gr.key]].name; });
-    namesEl.textContent = GROUPS.map(gr => gr.options[sel[gr.key]].name).filter(n => n !== "없음").join(" · ");
+    namesEl.textContent = GROUPS.map(gr => gr.options[sel[gr.key]].name).join(" · ");
     if (changedKey && S.motion === "pop") {
-      charEl.animate([{ transform: "scale(1,1)" }, { transform: "scale(1.1,.88)" }, { transform: "scale(.95,1.07)" }, { transform: "scale(1,1)" }],
+      figEl.animate([{ transform: "scale(1,1)" }, { transform: "scale(1.08,.9)" }, { transform: "scale(.96,1.05)" }, { transform: "scale(1,1)" }],
         { duration: 420, easing: "ease-out" });
     }
   };
@@ -148,7 +148,7 @@ export default function demo(api) {
     root.classList.toggle("show-rand", !!S.random);
     root.classList.toggle("show-price", !!S.price);
     root.classList.toggle("pop", S.motion === "pop");
-    root.classList.toggle("instant", S.motion === "none");
+    root.classList.toggle("instant", S.motion !== "smooth");
   };
   applyModes(); render();
 
@@ -172,7 +172,7 @@ export default function demo(api) {
     rolling = true; api.hideHint();
     let n = 0;
     const tick = () => {
-      GROUPS.forEach((gr, gi) => { sel[gr.key] = Math.floor(Math.random() * gr.options.length); });
+      GROUPS.forEach(gr => { sel[gr.key] = Math.floor(Math.random() * gr.options.length); });
       n++;
       if (n < 7) { render(); api.timeout(tick, 70 + n * 12); }
       else { rolling = false; count++; lastPick = "무작위 조합"; render("rand"); api.flash("무작위 조합에서 멈췄다", "ok"); }

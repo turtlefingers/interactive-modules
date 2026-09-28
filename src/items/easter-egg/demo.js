@@ -1,7 +1,8 @@
 import { dist } from "../../lib/util.js";
-import { ILLO } from "../../lib/draw.js";
+import { ILLO, TONE, LINE } from "../../lib/draw.js";
 
 const NS = "http://www.w3.org/2000/svg";
+const ACC = ILLO.orange;   // 장면의 강조색 하나 (창문 불빛과 비밀 실루엣)
 const TRIGGER_NAME = { right: "우클릭", long: "길게 누르기", triple: "세 번 클릭" };
 const HINT_TEXT = { right: "어딘가를 우클릭해 보기", long: "어딘가를 길게 눌러 보기", triple: "어딘가를 세 번 클릭" };
 
@@ -11,10 +12,10 @@ export default function demo(api) {
   api.css(`
     .ee-demo { position: absolute; inset: 0; background: var(--board); }
     .ee-demo svg.scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-    /* 그림 키트 규칙: 균일한 3px 잉크 외곽선 + 평면 단색 채움 */
-    .ee-ink { stroke: ${ILLO.ink}; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-    .ee-line { fill: none; stroke: ${ILLO.ink}; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-    .ee-acc { fill: none; stroke: ${ILLO.orange}; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+    /* 그림 규칙: 외곽선 없는 톤 면 + 가는(1.5px) 잉크 디테일. 강조색은 창문 불빛 하나 */
+    .ee-line { fill: none; stroke: ${ILLO.ink}; stroke-width: ${LINE}; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+    .ee-ripple { fill: none; stroke: ${TONE[2]}; stroke-width: ${LINE}; vector-effect: non-scaling-stroke; }
+    .ee-acc { fill: none; stroke: ${ACC}; stroke-width: ${LINE}; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
     .ee-hit { fill: transparent; stroke: none; pointer-events: all; }
     .ee-egg { opacity: 0; }
     .ee-ring { fill: none; stroke: var(--ink-3); stroke-width: 1.2; vector-effect: non-scaling-stroke; pointer-events: none; }
@@ -34,91 +35,78 @@ export default function demo(api) {
   el.appendChild(root);
 
   // 설계 크기 600×700. 좁은 화면에서 좌우가, 넓은 화면에서 위아래가 잘리므로 비밀은 가운데 영역에 둔다.
-  const stars = [[80, 120], [210, 95], [300, 205], [335, 110], [515, 100], [555, 250], [490, 320], [228, 300], [95, 290], [380, 265], [60, 380], [545, 390]];
+  // 별자리 점 (별 도상 대신 작은 잉크 점)
   const cons = [[-40, -15], [0, -35], [40, -10], [25, 30], [-20, 25]];
-  // 별 (키트 star와 같은 열 꼭짓점 별)
-  const starD = (x, y, r) => { let d = ""; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; d += (i ? "L" : "M") + (x + Math.cos(a) * rr).toFixed(1) + " " + (y + Math.sin(a) * rr).toFixed(1); } return d + "Z"; };
-  const starEl = (x, y, r = 7, fill = ILLO.yellow) => `<path class="ee-ink" fill="${fill}" d="${starD(x, y, r)}"/>`;
   const svg = document.createElementNS(NS, "svg");
   svg.setAttribute("class", "scene");
   svg.setAttribute("viewBox", "0 0 600 700");
   svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  // 밤 풍경: 하늘 → 달 → 먼 언덕 → 가까운 언덕 순서로 겹치는 톤 면. 외곽선 없음.
   svg.innerHTML = `
-    <defs><clipPath id="ee-win"><rect x="-16" y="-14" width="32" height="28"/></clipPath></defs>
-    ${stars.map(([x, y]) => starEl(x, y, 7)).join("")}
-    <!-- 언덕: 평면 단색 + 잉크 외곽선 -->
-    <path class="ee-ink" fill="${ILLO.green}" d="M-20 470 Q90 420 190 452 T400 440 T620 446 V720 H-20 Z"/>
-    <path class="ee-line" d="M60 520h30M120 600h40M250 540h24M520 630h30M300 650h40M70 660h24"/>
+    <defs><clipPath id="ee-win"><rect x="-12" y="-11" width="24" height="22"/></clipPath></defs>
+    <rect x="-20" y="-20" width="640" height="740" fill="${TONE[2]}"/>
 
     <g data-egg="stars" transform="translate(160 190)">
       <circle class="ee-hit" r="58"/>
-      <path class="ee-acc ee-egg" style="vector-effect:none;stroke-width:3" id="ee-cons" d="M${cons.map(p => p.join(" ")).join(" L")} Z"/>
-      ${cons.map(([x, y]) => starEl(x, y, 7)).join("")}
+      <path class="ee-line ee-egg" id="ee-cons" d="M${cons.map(p => p.join(" ")).join(" L")} Z"/>
+      ${cons.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.6" fill="${ILLO.ink}"/>`).join("")}
     </g>
 
     <g data-egg="moon" transform="translate(430 190)">
       <circle class="ee-hit" r="56"/>
-      <circle class="ee-ink" fill="${ILLO.yellow}" r="48"/>
-      <g class="ee-egg" id="ee-rabbit">
-        <ellipse class="ee-ink" fill="${ILLO.paper}" cx="6" cy="16" rx="16" ry="12"/>
-        <ellipse class="ee-ink" fill="${ILLO.paper}" cx="-15" cy="-16" rx="4" ry="11" transform="rotate(-12 -15 -15)"/>
-        <ellipse class="ee-ink" fill="${ILLO.paper}" cx="-6" cy="-17" rx="4" ry="11" transform="rotate(10 -7 -16)"/>
-        <circle class="ee-ink" fill="${ILLO.paper}" cx="-10" cy="2" r="10"/>
-        <circle cx="-14" cy="0" r="1.6" fill="${ILLO.ink}"/><circle cx="-7" cy="0" r="1.6" fill="${ILLO.ink}"/>
-        <path class="ee-line" d="M-13 5h6"/>
-        <path class="ee-ink" fill="${ILLO.orange}" d="M20 16h16l-2 12h-12z"/>
-        <path class="ee-line" d="M28 16 L34 2"/>
+      <circle fill="${TONE[0]}" r="48"/>
+      <!-- 달 속 토끼: 잉크 실루엣 -->
+      <g class="ee-egg" id="ee-rabbit" fill="${ILLO.ink}">
+        <ellipse cx="6" cy="16" rx="17" ry="12"/>
+        <ellipse cx="-15" cy="-15" rx="3.6" ry="12" transform="rotate(-14 -15 -15)"/>
+        <ellipse cx="-6" cy="-16" rx="3.6" ry="12" transform="rotate(8 -6 -16)"/>
+        <circle cx="-10" cy="2" r="10"/>
+        <circle cx="22" cy="12" r="4.5"/>
       </g>
     </g>
+
+    <!-- 먼 언덕 / 가까운 땅 -->
+    <path fill="${TONE[3]}" d="M-20 430 Q110 380 230 418 T460 402 T620 420 V720 H-20 Z"/>
+    <path fill="${TONE[4]}" d="M-20 500 Q120 470 260 492 T620 484 V720 H-20 Z"/>
 
     <g data-egg="window">
-      <!-- 집: 벽과 지붕, 문 -->
-      <path class="ee-ink" fill="${ILLO.paper}" d="M92 470V392h118v78z"/>
-      <path class="ee-ink" fill="${ILLO.red}" d="M80 394 150 342 222 394z"/>
-      <rect class="ee-ink" fill="${ILLO.orange}" x="168" y="428" width="22" height="42"/>
+      <!-- 집: 톤 실루엣 사각형 + 강조색 창문 하나 -->
+      <rect fill="${TONE[5]}" x="96" y="392" width="108" height="86"/>
       <g transform="translate(128 424)">
         <rect class="ee-hit" x="-32" y="-30" width="64" height="60"/>
-        <rect id="ee-light" x="-16" y="-14" width="32" height="28" fill="${ILLO.blue}" style="transition: fill .4s"/>
-        <g clip-path="url(#ee-win)"><g id="ee-cat" style="transform: translateY(20px)">
-          <path class="ee-ink" fill="${ILLO.orange}" d="M-8 6l1-10 5 5z M8 6l-1-10-5 5z"/>
-          <rect class="ee-ink" fill="${ILLO.orange}" x="-9" y="12" width="18" height="16" rx="4"/>
-          <circle class="ee-ink" fill="${ILLO.orange}" cx="0" cy="9" r="8"/>
-          <circle cx="-3" cy="8" r="1.3" fill="${ILLO.ink}"/><circle cx="3" cy="8" r="1.3" fill="${ILLO.ink}"/>
-          <path class="ee-line" d="M-2 12h4"/>
+        <rect id="ee-light" x="-12" y="-11" width="24" height="22" fill="${ACC}"/>
+        <g clip-path="url(#ee-win)"><g id="ee-cat" style="transform: translateY(20px)" fill="${ILLO.ink}">
+          <path d="M-8 6l1-9 5 5z M8 6l-1-9-5 5z"/>
+          <rect x="-9" y="10" width="18" height="18" rx="5"/>
+          <circle cx="0" cy="8" r="7.5"/>
         </g></g>
-        <rect class="ee-line" x="-16" y="-14" width="32" height="28"/>
-        <path class="ee-line" d="M0 -14v28 M-16 0h32"/>
       </g>
     </g>
 
-    <g data-egg="tree" transform="translate(305 360)">
-      <circle class="ee-hit" r="62"/>
-      <path class="ee-ink" fill="${ILLO.orange}" d="M-7 45 V112 H7 V45z"/>
-      <circle class="ee-ink" fill="${ILLO.green}" r="56"/>
-      <circle class="ee-ink" fill="${ILLO.ink}" cy="2" r="24"/>
-      <g class="ee-egg" id="ee-owl">
-        <path class="ee-ink" fill="${ILLO.orange}" d="M-16 -8 L-12 -18 L-4 -10 M16 -8 L12 -18 L4 -10"/>
-        <ellipse class="ee-ink" fill="${ILLO.orange}" cy="4" rx="17" ry="18"/>
-        <circle class="ee-ink" fill="${ILLO.paper}" cx="-7" cy="0" r="6"/>
-        <circle class="ee-ink" fill="${ILLO.paper}" cx="7" cy="0" r="6"/>
-        <circle cx="-7" cy="0" r="2.3" fill="${ILLO.ink}"/><circle cx="7" cy="0" r="2.3" fill="${ILLO.ink}"/>
-        <path class="ee-ink" fill="${ILLO.yellow}" d="M-3 7h6l-3 6z"/>
+    <g data-egg="tree" transform="translate(305 400)">
+      <circle class="ee-hit" r="60"/>
+      <!-- 나무: 가늘고 긴 톤 실루엣 -->
+      <path fill="${TONE[5]}" d="M-24 84 Q-22 20 0 -78 Q22 20 24 84 Z"/>
+      <!-- 부엉이: 강조색 실루엣 -->
+      <g class="ee-egg" id="ee-owl" fill="${ACC}">
+        <path d="M-13 -10 L-10 -20 L-3 -12 Z M13 -10 L10 -20 L3 -12 Z"/>
+        <ellipse cy="2" rx="14" ry="16"/>
+        <circle cx="-5.5" cy="-2" r="2" fill="${TONE[5]}"/><circle cx="5.5" cy="-2" r="2" fill="${TONE[5]}"/>
       </g>
     </g>
 
     <g data-egg="pond" transform="translate(420 565)">
       <ellipse class="ee-hit" rx="112" ry="46"/>
-      <ellipse class="ee-ink" fill="${ILLO.blue}" rx="100" ry="24"/>
-      <path class="ee-line" d="M-40 -2 q10 -6 20 0 M10 6 q10 -6 20 0"/>
+      <ellipse fill="${TONE[5]}" rx="100" ry="24"/>
       <g id="ee-ripples"></g>
-      <g class="ee-egg" id="ee-fish">
-        <path class="ee-ink" fill="${ILLO.orange}" d="M-14 0q12-11 24 0q-12 11-24 0z"/>
-        <path class="ee-ink" fill="${ILLO.orange}" d="M9 0l10-8v16z"/>
-        <circle cx="-7" cy="-2" r="1.6" fill="${ILLO.ink}"/>
+      <!-- 물고기: 강조색 실루엣 -->
+      <g class="ee-egg" id="ee-fish" fill="${ACC}">
+        <path d="M-14 0q12-11 24 0q-12 11-24 0z"/>
+        <path d="M9 0l10-8v16z"/>
       </g>
     </g>
     <g id="ee-fx"></g>
-    <path id="ee-shoot" class="ee-acc" style="vector-effect:none;stroke:${ILLO.yellow}" d="M120 60 L420 150" stroke-dasharray="320" stroke-dashoffset="320" opacity="0"/>
+    <path id="ee-shoot" class="ee-acc" style="vector-effect:none" d="M120 60 L420 150" stroke-dasharray="320" stroke-dashoffset="320" opacity="0"/>
   `;
   root.appendChild(svg);
   const $ = id => svg.querySelector("#" + id);
@@ -127,7 +115,7 @@ export default function demo(api) {
   const EGGS = {
     moon: { name: "달 속의 토끼", at: [430, 190], r: 50 },
     window: { name: "창가의 고양이", at: [128, 424], r: 30 },
-    tree: { name: "나무 속 부엉이", at: [305, 355], r: 30 },
+    tree: { name: "나무 속 부엉이", at: [305, 400], r: 30 },
     pond: { name: "뛰어오르는 물고기", at: [420, 565], r: 40 },
     stars: { name: "숨은 별자리", at: [160, 190], r: 50 }
   };
@@ -187,7 +175,8 @@ export default function demo(api) {
         { transform: "translateY(-8px)", offset: .5 }, { transform: "translateY(0)", offset: .65 }, { transform: "translateY(-6px)", offset: .8 }, { opacity: 1, transform: "translateY(0)" }],
         { duration: 1300, easing: "ease-out" });
     } else if (k === "window") {
-      $("ee-light").style.fill = ILLO.yellow;
+      // 창문 불빛이 한 번 깜빡이고 고양이 실루엣이 올라온다
+      $("ee-light").animate([{ opacity: 1 }, { opacity: .35, offset: .3 }, { opacity: 1 }], { duration: 500, easing: "ease-out" });
       show($("ee-cat"), [{ transform: "translateY(20px)" }, { transform: "translateY(20px)", offset: .3 }, { transform: "translateY(-2px)", offset: .75 }, { transform: "translateY(0)" }],
         { duration: 900, easing: "ease-out" });
     } else if (k === "tree") {
@@ -205,7 +194,7 @@ export default function demo(api) {
       [[-50, 0], [50, 1150]].forEach(([x, delay]) => api.timeout(() => {
         for (let i = 0; i < 2; i++) api.timeout(() => {
           const e = document.createElementNS(NS, "ellipse");
-          e.setAttribute("class", "ee-line"); e.setAttribute("cx", x); e.setAttribute("rx", 28); e.setAttribute("ry", 7);
+          e.setAttribute("class", "ee-ripple"); e.setAttribute("cx", x); e.setAttribute("rx", 28); e.setAttribute("ry", 7);
           rp.appendChild(e);
           e.style.transformOrigin = `${x}px 0px`; e.style.transformBox = "view-box";
           const a = e.animate([{ transform: "scale(.2)", opacity: 1 }, { transform: "scale(1.2)", opacity: 0 }], { duration: 800, easing: "ease-out", fill: "forwards" });
