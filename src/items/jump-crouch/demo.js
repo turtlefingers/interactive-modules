@@ -1,5 +1,11 @@
 import { clamp, lerp, fitCanvas } from "../../lib/util.js";
-import { ILLO, person } from "../../lib/draw.js";
+import { ILLO, TONE, LINE, line as inkLine } from "../../lib/draw.js";
+import { drawHumaaan, preload, outfit } from "../../lib/figure.js";
+
+// 사람(Humaaans): 서 있을 땐 SkinnyJeans, 움직이거나 공중에 있을 땐 SkinnyJeansWalk. 왼쪽을 볼 땐 flip.
+const STAND = { head: "Short", torso: "TurtleNeck", bottom: "SkinnyJeans", colors: outfit(ILLO.blue) };
+const WALK = { ...STAND, bottom: "SkinnyJeansWalk" };
+const FIG = { stand: { R: STAND, L: { ...STAND, flip: true } }, walk: { R: WALK, L: { ...WALK, flip: true } } };
 
 export default function demo(api) {
   const { el, S } = api;
@@ -17,6 +23,7 @@ export default function demo(api) {
   `);
 
   const { g, size } = fitCanvas(api);
+  preload([STAND, WALK]);
   const C = {
     board: api.color("--board") || "#efe9dd",
     ink: api.color("--ink") || "#1b1b1a",
@@ -46,7 +53,7 @@ export default function demo(api) {
   const held = a => padDown.has(a) || [...keyDown].some(c => CODES[c] === a);
 
   /* ---------- 월드 ---------- */
-  const W = 40, H = 72, PH = 76;    // 캐릭터 폭, 키 (PH는 그림 키트에 주는 키)
+  const W = 40, H = 72, PH = 76;    // 캐릭터 폭, 키 (PH는 그림에 주는 키)
   const JUMP_H = 170;               // 가득 눌렀을 때 점프 높이
   let groundY = 0, plats = [];
   const layout = () => {
@@ -132,7 +139,6 @@ export default function demo(api) {
   });
 
   const FONT = "12px " + (getComputedStyle(el).fontFamily || "sans-serif");
-  /* ---------- 그리기 도우미 ---------- */
 
   api.frame(dt => {
     const s = dt / 1000;
@@ -210,15 +216,12 @@ export default function demo(api) {
       if (k % 2 === 0) g.fillText(`${k * 50}`, 16, y + 4);
     }
 
-    // 바닥
-    g.fillStyle = C.ink; g.fillRect(0, groundY, w, 3);
-    // 발판
-    plats.forEach(p => {
-      g.fillStyle = C.ink; g.fillRect(p.x, p.y, p.w, 3);
-      g.strokeStyle = "rgba(0,0,0,.15)"; g.lineWidth = 1; g.beginPath();
-      for (let x = p.x + 8; x < p.x + p.w; x += 10) { g.moveTo(x, p.y + 2); g.lineTo(x - 6, p.y + 10); }
-      g.stroke();
-    });
+    // 바닥: 톤 면 + 가는 잉크 선
+    g.fillStyle = TONE[1]; g.fillRect(0, groundY, w, h - groundY);
+    inkLine(g, [[0, groundY], [w, groundY]], { lw: LINE });
+    // 발판: 외곽선 없는 톤 면
+    g.fillStyle = TONE[2];
+    plats.forEach(p => { g.beginPath(); g.roundRect(p.x, p.y, p.w, 12, 3); g.fill(); });
 
     // 지난 점프 궤적
     if (lastArc) {
@@ -248,18 +251,14 @@ export default function demo(api) {
       g.beginPath(); g.ellipse(r.x, r.y, 18 + (1 - r.t) * 30, 5 + (1 - r.t) * 8, 0, 0, Math.PI * 2); g.stroke();
     }
 
-
-    // 캐릭터
-    const pose = !P.onGround ? "jump" : P.crouch > 0.5 ? "crouch" : "stand";
+    // 캐릭터: 찌그러짐(스프링 값) + 앉기(0.3)를 squash 하나로, 달리는 쪽으로 살짝 기운다
+    const moving = Math.abs(P.vx) > 20 || !P.onGround;
     const sq = S.squash ? clamp(1 - P.sy, -0.35, 0.45) : 0;
-    const crouchSq = pose === "crouch" ? 0.12 : P.crouch * 0.3;     // 앉는 도중의 낮아짐
-    person(g, P.x, P.y, {
-      h: PH, color: ILLO.blue, pose,
-      mood: pose === "crouch" ? "neutral" : !P.onGround && P.vy > 600 ? "surprised" : "happy",
-      look: { x: P.face * 0.8, y: P.vy < -60 ? -1 : P.vy > 60 ? 1 : 0 }, facing: P.face,
-      squash: sq + crouchSq
-    });
-    const bh = PH * (pose === "crouch" ? 0.84 : 1) * (1 - sq - crouchSq);
+    const squash = clamp(sq + P.crouch * 0.3, -0.35, 0.6);
+    const lean = clamp(P.vx / 300, -1, 1) * 0.05;
+    const fig = moving ? FIG.walk : FIG.stand;
+    drawHumaaan(g, P.face < 0 ? fig.L : fig.R, P.x, P.y, PH, { squash, rotate: lean });
+    const bh = PH * (1 - squash);
 
     // 코요테 타임 표시
     const coyoteLeft = !P.onGround && !P.jumpedSinceGround ? S.coyote - (now - P.leftGroundAt) : 0;

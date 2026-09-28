@@ -1,25 +1,30 @@
-import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, ellipse, dot, line as inkLine, zz, roundRect, circle } from "../../lib/draw.js";
+import { clamp, lerp, fitCanvas } from "../../lib/util.js";
+import { ILLO, TONE, LINE, line as inkLine, zz, dot, ellipse } from "../../lib/draw.js";
+import { drawHumaaan, preload, outfit } from "../../lib/figure.js";
 
 const STAGE_NAME = ["깨어 있음", "하품", "졸림", "잠", "화면보호기"];
 const SAVER_AFTER = 4; // 잠든 뒤 화면보호기까지(초)
+
+// 사람(Humaaans): 깨어 있을 땐 서 있고, 잠들면 앉은 자세 그림으로 바뀐다. 옷 색은 파랑 하나.
+const STAND = { head: "Short", torso: "TurtleNeck", bottom: "SkinnyJeans", colors: outfit(ILLO.blue) };
+const SIT = { head: "Short", torso: "Hoodie", bottom: "SweatPants", posture: "sitting", colors: outfit(ILLO.blue) };
 
 export default function demo(api) {
   const { el, S } = api;
   const { g, size } = fitCanvas(api);
   el.style.cursor = "default";
+  preload([STAND, SIT]);
   const FF = getComputedStyle(el).fontFamily || "sans-serif";
   const C = { board: api.color("--board"), note: api.color("--note"), ink: api.color("--ink"), ink3: api.color("--ink-3"), accent: api.color("--accent") };
 
   const now = () => performance.now();
   let lastInput = now(), lastKind = "–", wakes = 0;
   let stage = 0, stageT = now();
-  const ptr = { x: size.w / 2, y: size.h * .3 };
 
   // 연출용 값
-  let lid = 0, blinkUntil = 0, nextBlink = now() + 2500;
-  let startleT = -1e9, gentleT = -1e9, eyeBoost = 0;
+  let startleT = -1e9, gentleT = -1e9;
   let tilt = 0, saver = 0, slept = false;
+  let asleep = 0;            // 0 = 서 있는 그림, 1 = 앉아서 잠든 그림 (교차 페이드)
   const zs = [];
   let nextZ = 0, nagT = 0;
   const ss = { x: 60, y: 80, vx: 0.9, vy: 0.7 };
@@ -34,8 +39,7 @@ export default function demo(api) {
   };
 
   /* ---------- 입력 ---------- */
-  const onInput = kind => e => {
-    if (e.type === "pointermove") { const p = localPoint(el, e); ptr.x = p.x; ptr.y = p.y; }
+  const onInput = kind => () => {
     if (S.by === "click" && (kind === "움직임" || kind === "휠") && stage >= 3) {
       lastKind = kind + " (무시)";
       if (now() - nagT > 2500) { nagT = now(); api.flash("움직임으로는 깨지 않는다 · 클릭이나 키", "idle", 1400); }
@@ -45,7 +49,7 @@ export default function demo(api) {
     const deep = S.stages === "multi" ? stage >= 2 : stage >= 3;
     if (deep) {
       wakes++;
-      if (S.wake === "startle") { startleT = now(); eyeBoost = 1; lid = 0; }
+      if (S.wake === "startle") startleT = now();
       else gentleT = now();
       api.flash(`깨어남 · ${kind}`, "ok");
     }
@@ -57,78 +61,53 @@ export default function demo(api) {
   api.on(window, "wheel", onInput("휠"), { passive: true });
 
   /* ---------- 그리기 ---------- */
-  const LW = 3;   // 그림 선 굵기 (키트와 동일)
   const line = (x0, y0, x1, y1) => { g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); };
 
-  function drawCharacter(t, R, cx, gy) {
+  // (cx, gy)는 발바닥, H는 키
+  function drawCharacter(t, H, cx, gy) {
     const T = t / 1000;
     const st = stage;
     // 점프 (깜짝)
     const ks = (t - startleT) / 460;
     let jump = 0;
-    if (ks >= 0 && ks < 1) jump = -Math.sin(Math.PI * ks) * R * .55;
-    else if (ks >= 1 && ks < 1.5) jump = -Math.sin(Math.PI * (ks - 1) * 2) * R * .06;
-    // 기지개 (천천히)
+    if (ks >= 0 && ks < 1) jump = -Math.sin(Math.PI * ks) * H * .22;
+    else if (ks >= 1 && ks < 1.5) jump = -Math.sin(Math.PI * (ks - 1) * 2) * H * .025;
+    // 기지개 (천천히 위로 늘어난다)
     const kg = (t - gentleT) / 1400;
-    const stretch = kg >= 0 && kg < 1 ? Math.sin(Math.PI * kg) * .14 : 0;
+    const stretch = kg >= 0 && kg < 1 ? Math.sin(Math.PI * kg) * .1 : 0;
     // 숨
-    const breath = st >= 3 ? Math.sin(T * 1.7) * .045 : Math.sin(T * 3) * .012;
-    const sy = 1 + breath + stretch, sx = 1 - stretch * .5 + breath * .3;
-    // 꾸벅
-    const tiltT = st === 2 ? Math.max(0, Math.sin(T * 1.5)) * .12 : st >= 3 ? .1 : 0;
+    const breath = st >= 3 ? Math.sin(T * 1.7) * .02 : Math.sin(T * 3) * .008;
+    // 흔들림: 하품이면 살짝 뒤로, 졸리면 천천히 좌우로 (±0.03), 잠들면 앞으로 기운다
+    const tiltT = st === 2 ? Math.sin(T * 1.1) * .03 : st === 1 ? -.03 : 0;
     tilt = lerp(tilt, tiltT, .05);
+    const slump = .12 * asleep;
 
-    g.save();
-    g.translate(cx, gy + jump);
-    g.rotate(tilt);
-    // 몸: 뭉툭한 덩어리 하나 (그림 키트 규칙 — 3px 검정 외곽선, 평면 단색)
-    ellipse(g, 0, -R * sy, R * sx, R * sy, { fill: ILLO.yellow, lw: LW });
-    // 눈: 점 두 개. 눈꺼풀이 내려오면 납작해지다가 선이 된다
-    const ey = -R * sy * 1.12, ex = R * .36 * sx;
-    const r = R * .075 * (1 + eyeBoost * .7);
-    const look = lid < .8 && st < 3 ? 1 : 0;
-    const dx = clamp((ptr.x - cx) / (size.w / 2), -1, 1) * R * .08 * look;
-    const dy = clamp((ptr.y - (gy - R)) / (size.h / 2), -1, 1) * R * .06 * look;
-    [-1, 1].forEach(s => {
-      const x = s * ex + dx, y = ey + dy;
-      if (lid > .88) inkLine(g, [[x - r * 1.5, y], [x + r * 1.5, y]], { lw: LW });
-      else {
-        const h = Math.max(.12, 1 - lid);
-        if (eyeBoost > .3) circle(g, x, y, r * 1.6, { fill: ILLO.paper, lw: LW });   // 깜짝: 흰자가 보이는 눈
-        ellipse(g, x, y + r * (1 - h) * .8, r, r * h, { fill: ILLO.ink, lw: 0 });
-      }
-    });
-    // 입: 선 하나. 하품이면 세로로 벌어진 타원, 깜짝이면 작은 동그라미
-    const my = -R * sy * .72;
-    const yawnK = st === 1 ? clamp((t - stageT) / 1800, 0, 1) : 0;
-    const yawn = Math.sin(Math.PI * yawnK);
-    if (yawn > .05) ellipse(g, 0, my, R * .09 * yawn + 1, R * .16 * yawn + 1, { fill: ILLO.ink, lw: LW });
-    else if (t - startleT < 900) ellipse(g, 0, my, R * .05, R * .07, { fill: ILLO.ink, lw: LW });
-    else if (st >= 3) circle(g, 0, my, R * .035 * (1 + breath * 6), { fill: ILLO.ink, lw: LW });
-    else inkLine(g, [[-R * .08, my], [R * .08, my]], { lw: LW });
-    g.restore();
+    // 발밑 그림자 (톤)
+    ellipse(g, cx, gy + 2, H * .2 * (1 + asleep * .5), H * .025, { fill: TONE[1] });
+    // 서 있는 그림 ↔ 앉아서 잠든 그림 (같은 사람, 교차 페이드)
+    if (asleep < .995) drawHumaaan(g, STAND, cx, gy + jump, H, { alpha: 1 - asleep, rotate: tilt, squash: -(breath + stretch) });
+    if (asleep > .005) drawHumaaan(g, SIT, cx, gy, H * 400 / 480, { alpha: asleep, rotate: slump + tilt, squash: -breath });
 
-    // 느낌표 (도형으로)
+    // 느낌표 (가는 잉크 선 하나 + 점)
     if (t - startleT < 900) {
       const a = 1 - clamp((t - startleT - 600) / 300, 0, 1);
-      const bx = cx + R * .95, by = gy + jump - R * 2.1, s = R * .5;
-      g.globalAlpha = a;
-      roundRect(g, bx - s * .12, by - s, s * .24, s * .62, s * .12, { fill: ILLO.red, lw: LW });
-      circle(g, bx, by - s * .12, s * .13, { fill: ILLO.red, lw: LW });
-      g.globalAlpha = 1;
+      const bx = cx + H * .3, by = gy + jump - H * 1.06, s = H * .16;
+      g.save(); g.globalAlpha = a;
+      inkLine(g, [[bx, by - s], [bx, by - s * .35]], { lw: LINE + .5 });
+      dot(g, bx, by - s * .08, LINE);
+      g.restore();
     }
-    return yawn;
   }
 
-  function drawZ(t, R, cx, gy) {
+  function drawZ(t, H, cx, gy) {
     if (stage >= 3 && t > nextZ) {
-      zs.push({ x: cx + R * .55, y: gy - R * 2, born: t, s: R * .18 });
+      zs.push({ x: cx + H * .2, y: gy - H * .78, born: t, s: H * .07 });
       nextZ = t + 1100;
     }
     for (let i = zs.length - 1; i >= 0; i--) {
       const z = zs[i], k = (t - z.born) / 2600;
       if (k >= 1 || stage < 3) { zs.splice(i, 1); continue; }
-      zz(g, z.x + k * R * .6 + Math.sin(k * 6) * 6, z.y - k * R * .3, { size: z.s * (1 + k), lw: LW, t: k });
+      zz(g, z.x + k * H * .25 + Math.sin(k * 6) * 6, z.y - k * H * .12, { size: z.s * (1 + k), lw: LINE, t: k });
     }
     g.globalAlpha = 1;
   }
@@ -186,28 +165,20 @@ export default function demo(api) {
       if (st === 3 && !slept) { slept = true; api.hideHint(); }
       if (st === 4) { ss.x = size.w * .3; ss.y = size.h * .4; }
     }
-    // 눈꺼풀 목표
-    let lidT = 0;
-    if (stage === 0) {
-      if (t > nextBlink) { blinkUntil = t + 120; nextBlink = t + 2500 + Math.random() * 2500; }
-      lidT = t < blinkUntil ? 1 : 0;
-    } else if (stage === 1) lidT = .35;
-    else if (stage === 2) lidT = .5 + Math.max(0, Math.sin(t / 1000 * 1.5)) * .4;
-    else lidT = 1;
+    // 서 있는 그림 ↔ 잠든 그림: 잠들 땐 천천히, 깜짝 깰 땐 빠르게, 살살 깰 땐 느긋하게
     const gentle = t - gentleT < 1400;
-    const rate = lidT < lid ? (gentle ? .03 : t - startleT < 300 ? .5 : .35) : (stage === 0 ? .5 : .05);
-    lid = lerp(lid, lidT, rate);
-    eyeBoost = lerp(eyeBoost, 0, .04);
+    asleep = lerp(asleep, stage >= 3 ? 1 : 0, stage >= 3 ? .04 : gentle ? .03 : .3);
     saver = lerp(saver, stage === 4 ? 1 : 0, stage === 4 ? .03 : .25);
 
     const { w, h } = size;
     g.clearRect(0, 0, w, h);
     g.fillStyle = C.board; g.fillRect(0, 0, w, h);
-    const R = clamp(Math.min(w, h * .9) * .13, 44, 100);
-    const cx = w / 2, gy = h * .56 + R * .4;
-    inkLine(g, [[cx - R * 1.7, gy], [cx + R * 1.7, gy]], { lw: LW });
-    drawCharacter(t, R, cx, gy);
-    drawZ(t, R, cx, gy);
+    const H = clamp(Math.min(w, h * .9) * .34, 110, 230);
+    const cx = w / 2, gy = h * .56 + H * .12;
+    // 바닥: 톤 면 하나
+    g.fillStyle = TONE[0]; g.fillRect(0, gy, w, h - gy);
+    drawCharacter(t, H, cx, gy);
+    drawZ(t, H, cx, gy);
     drawTimeline(it);
     drawSaver(dt);
 

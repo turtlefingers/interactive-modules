@@ -1,5 +1,13 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, person } from "../../lib/draw.js";
+import { ILLO, TONE } from "../../lib/draw.js";
+import { drawHumaaan, preload, outfit } from "../../lib/figure.js";
+
+// 사람(Humaaans): 서기 / 걷기 / 달리기(Sprint) 자세. 왼쪽으로 갈 땐 flip.
+const STAND = { head: "Short", torso: "TurtleNeck", bottom: "SkinnyJeans", colors: outfit(ILLO.blue) };
+const WALK = { ...STAND, bottom: "SkinnyJeansWalk" };
+const RUN = { ...STAND, bottom: "Sprint" };
+const both = o => ({ R: o, L: { ...o, flip: true } });
+const FIG = { stand: both(STAND), walk: both(WALK), run: both(RUN) };
 
 export default function demo(api) {
   const { el, S } = api;
@@ -15,6 +23,7 @@ export default function demo(api) {
   root.className = "virtual-joystick-root";
   el.appendChild(root);
   const { g, size } = fitCanvas(api, { parent: root });
+  preload([STAND, WALK, RUN]);
 
   const INK = ILLO.ink, PAPER = ILLO.paper, ACC = "#ff5a36";
   const R = 58, KNOB = 24, MAX = 300;   // 받침 반지름, 손잡이 반지름, 최대 속도(px/s)
@@ -76,17 +85,15 @@ export default function demo(api) {
   });
 
   /* ---------- 그리기 ---------- */
-  // 캐릭터(키트 person, 키 60): 움직이는 방향을 바라보고, 걸을수록 위아래로 흔들린다
-  const HERO_H = 60;
-  function drawHero() {
+  // 캐릭터(키 70): 움직이는 쪽을 보고, 걸으면 위아래로 흔들리고, 세기가 0.5를 넘으면 달리는 자세
+  const HERO_H = 70;
+  function drawHero(o) {
     const sp = Math.min(1, Math.hypot(hero.vx, hero.vy) / MAX);
-    const bob = Math.sin(hero.step) * sp * 2.5;
-    const fx = Math.cos(hero.face), fy = Math.sin(hero.face);
-    person(g, hero.x, hero.y + HERO_H / 2 - Math.abs(bob), {
-      h: HERO_H, color: ILLO.blue, mood: "happy", lw: 3,
-      facing: fx >= 0 ? 1 : -1, look: { x: fx, y: fy },
-      squash: sp > 0.5 ? Math.abs(Math.sin(hero.step)) * 0.06 : 0
-    });
+    const bob = Math.abs(Math.sin(hero.step)) * sp * 3;
+    const moving = sp > 0.03;
+    const fig = moving && o.mag > 0.5 ? FIG.run : moving ? FIG.walk : FIG.stand;
+    const flip = Math.cos(hero.face) < 0;
+    drawHumaaan(g, flip ? fig.L : fig.R, hero.x, hero.y + HERO_H / 2 - bob, HERO_H, { rotate: (flip ? -1 : 1) * sp * 0.06 });
   }
   function drawJoystick(o) {
     if (joy.vis < 0.01) return;
@@ -152,8 +159,11 @@ export default function demo(api) {
     while (trail.length && now - trail[0].t > 2500) trail.shift();
 
     g.clearRect(0, 0, size.w, size.h);
-    trail.forEach(p => { g.fillStyle = `rgba(27,27,26,${0.28 * (1 - (now - p.t) / 2500)})`; g.beginPath(); g.arc(p.x, p.y, 2, 0, 7); g.fill(); });
-    drawHero();
+    // 지나온 자리: 작은 톤 점
+    g.fillStyle = TONE[3];
+    trail.forEach(p => { g.globalAlpha = 0.9 * (1 - (now - p.t) / 2500); g.beginPath(); g.arc(p.x, p.y, 2.5, 0, 7); g.fill(); });
+    g.globalAlpha = 1;
+    drawHero(o);
     drawJoystick(o);
 
     root.classList.toggle("floating", S.mode === "floating" && !joy.active);

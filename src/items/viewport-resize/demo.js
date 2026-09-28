@@ -1,9 +1,12 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, roundRect, dot, line as inkLine } from "../../lib/draw.js";
+import { TONE, LINE, line as inkLine } from "../../lib/draw.js";
+import { drawHumaaan, preload, PEOPLE } from "../../lib/figure.js";
 
 const A0 = 1.5;         // 기준 비율
 const BAR = 28;         // 제목 줄 높이
 const HINT = { handle: "창 모서리를 끌기", window: "브라우저 창 크기를 바꿔 보기" };
+// 사람 셋(Humaaans): 옷은 서로 다르되 색은 파랑·주황 둘, 나머지는 톤
+const FIGS = [PEOPLE[0], PEOPLE[1], { ...PEOPLE[3], bottom: "SkinnyJeans" }];
 
 export default function demo(api) {
   const { el, S } = api;
@@ -34,6 +37,7 @@ export default function demo(api) {
   root.appendChild(frame);
   const label = frame.querySelector(".vr-bar span");
   const { g, size } = fitCanvas(api, { parent: root });
+  preload(FIGS);
   const C = { note: api.color("--note"), ink: api.color("--ink"), ink3: api.color("--ink-3") };
 
   /* ---------- 창 크기 ---------- */
@@ -110,29 +114,16 @@ export default function demo(api) {
   const sizes = [1, .78, 1.12];
   let Rs = null;
   const chars = sizes.map(k => ({ k, d: 1, v: 0, x: null, y: null }));
+  const KH = 2.2;                                            // 키 = R × k × KH
+  const sqOf = d => clamp(1 - d, -.35, .45);                 // 세로 배율 → drawHumaaan squash (눌림 +, 늘어남 −)
+  const heightOf = (R, c) => R * c.k * KH * (1 - sqOf(c.d)); // 실제로 그려지는 키
 
   function slots(cw, ch, r) {
     const a = cw / ch;
     const n = chars.length;
     if (!S.layout || a >= 1.25) return chars.map((c, i) => ({ x: cw * (i + 1) / (n + 1), stack: -1 }));
-    if (a >= .8) return [{ x: cw * .5 - r * 1.1, stack: -1 }, { x: cw * .5, stack: "pyr" }, { x: cw * .5 + r * 1.1, stack: -1 }];
+    if (a >= .8) return [{ x: cw * .5 - r * 1.2, stack: -1 }, { x: cw * .5, stack: "pyr" }, { x: cw * .5 + r * 1.2, stack: -1 }];
     return chars.map((c, i) => ({ x: cw * .5, stack: i }));
-  }
-
-  // 그림 키트 규칙: 3px 검정 외곽선, 평면 단색, 얼굴은 점 두 개와 선 하나. 몸은 눌린 둥근 덩어리
-  const LW = 3;
-  const COLORS = [ILLO.blue, ILLO.orange, ILLO.green];
-  function drawChar(x, gy, r, sx, sy, squint, color) {
-    const rx = r * sx, ry = r * sy, cy = gy - ry;
-    const lw = Math.min(LW, r * 0.14);
-    roundRect(g, x - rx, cy - ry, rx * 2, ry * 2, Math.min(rx, ry) * 0.7, { fill: color, lw });
-    const ey = cy - ry * .15, ex = rx * .4, er = Math.max(2, r * .09);
-    [-1, 1].forEach(s => {
-      if (squint) inkLine(g, [[x + s * ex - er * 1.5, ey], [x + s * ex + er * 1.5, ey]], { lw });   // 힘든 눈: 선
-      else dot(g, x + s * ex, ey, er);
-    });
-    const my = cy + ry * .3, mw = rx * .22;
-    inkLine(g, [[x - mw, my], [x + mw, my]], { lw });
   }
 
   api.frame((dt) => {
@@ -150,36 +141,39 @@ export default function demo(api) {
     const kV = clamp(vel.h / 1400 * amt, -.45, .45) - clamp(vel.w / 2600 * amt, -.2, .2);
     const target = clamp(1 - kA + kV, .4, 1.8);
     const floor = ch - 14;
-    let R = clamp(Math.min(ch * .24, cw / 6.2), 14, 90);
-    if (S.layout && a < 1.25) R = Math.max(10, Math.min(R, a < .8 ? (ch - 24) / (6 * Math.max(1, target)) : (ch - 24) / (4.2 * Math.max(1, target)), cw / 4.8));
+    const tallest = Math.max(1, Math.min(target, 1.35));   // 늘어남은 최대 1.35배까지만 그려진다
+    let R = clamp(Math.min(ch * .22, cw / 6.2), 14, 90);
+    if (S.layout && a < 1.25) R = Math.max(10, Math.min(R, a < .8 ? (ch - 24) / (6.4 * tallest) : (ch - 24) / (4.2 * tallest), cw / 4.8));
     Rs = Rs === null || drag ? R : lerp(Rs, R, .15); R = Rs;
     const sl = slots(cw, ch, R);
 
     g.save();
     g.beginPath(); g.rect(left, top, cw, ch); g.clip();
     g.translate(left, top);
-    inkLine(g, [[12, floor], [cw - 12, floor]], { lw: LW });
+    // 바닥: 톤 면 + 가는 잉크 선
+    g.fillStyle = TONE[0]; g.fillRect(0, floor, cw, ch - floor);
+    inkLine(g, [[12, floor], [cw - 12, floor]], { lw: LINE });
 
     let stackY = floor, squashSum = 0;
     chars.forEach((c, i) => {
       if (S.jiggle) { c.v += (target - c.d) * .14; c.v *= .8; c.d += c.v; }
       else { c.v = 0; c.d = lerp(c.d, target, .18); }
       c.d = clamp(c.d, .3, 2);
-      const sy = c.d, sx = Math.pow(sy, -.7);
-      const r = R * c.k;
+      const sy = c.d;
       squashSum += sy;
+      const squash = sqOf(sy);
+      const H = R * c.k * KH, hh = H * (1 - squash);
       // 목표 자리
       const s = sl[i];
       let tx = s.x, ty = floor;
       if (s.stack === "pyr") {
-        const r0 = R * chars[0].k * chars[0].d, r2 = R * chars[2].k * chars[2].d;
-        ty = floor - Math.min(r0, r2) * 2 + r * .15;
+        ty = floor - Math.min(heightOf(R, chars[0]), heightOf(R, chars[2])) * .86;   // 양옆 사람 어깨 위
       } else if (typeof s.stack === "number" && s.stack >= 0) {
-        ty = stackY; stackY -= r * sy * 2;
+        ty = stackY; stackY -= hh * .96;
       }
       if (c.x === null) { c.x = tx; c.y = ty; }
       c.x = lerp(c.x, tx, .14); c.y = lerp(c.y, ty, .14);
-      drawChar(c.x, c.y, r, sx, sy, Math.abs(1 - sy) > .3, COLORS[i % COLORS.length]);
+      drawHumaaan(g, FIGS[i], c.x, c.y, H, { squash });
     });
     g.restore();
 

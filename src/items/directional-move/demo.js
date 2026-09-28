@@ -1,5 +1,11 @@
 import { clamp, mod, rng, fitCanvas } from "../../lib/util.js";
-import { ILLO, person, shape } from "../../lib/draw.js";
+import { ILLO, TONE } from "../../lib/draw.js";
+import { drawHumaaan, preload, outfit } from "../../lib/figure.js";
+
+// 사람(Humaaans)은 옆모습이라, 위에서 본 장면이어도 옆에서 본 사람을 가로 방향으로만 뒤집어 쓴다.
+const STAND = { head: "Curly", torso: "Hoodie", bottom: "SkinnyJeans", colors: outfit(ILLO.orange) };
+const WALK = { ...STAND, bottom: "SkinnyJeansWalk" };
+const FIG = { stand: { R: STAND, L: { ...STAND, flip: true } }, walk: { R: WALK, L: { ...WALK, flip: true } } };
 
 export default function demo(api) {
   const { el, S } = api;
@@ -27,6 +33,7 @@ export default function demo(api) {
   `);
 
   const { g, size } = fitCanvas(api);
+  preload([STAND, WALK]);
   const C = {
     board: api.color("--board") || "#efe9dd",
     ink: api.color("--ink") || "#1b1b1a",
@@ -91,7 +98,8 @@ export default function demo(api) {
 
   /* ---------- 캐릭터 ---------- */
   const R = 26, TOP = 80, BOT = 10;   // 발 위치 기준 여백 (머리가 화면 밖으로 나가지 않게)
-  const P = { x: size.w / 2, y: size.h / 2 + 30, vx: 0, vy: 0, face: -Math.PI / 2, bump: 0, walk: 0 };
+  const CH = 72;                       // 키
+  const P = { x: size.w / 2, y: size.h / 2 + 30, vx: 0, vy: 0, face: -Math.PI / 2, hface: 1, bump: 0, walk: 0 };
   const steps = [];         // 발자국
   let stepSide = 1, stepAcc = 0, lastWall = 0;
   api.onResize(() => { P.x = clamp(P.x, R, Math.max(R, size.w - R)); P.y = clamp(P.y, TOP, Math.max(TOP, size.h - BOT)); });
@@ -99,22 +107,12 @@ export default function demo(api) {
   const angDiff = (a, b) => mod(b - a + Math.PI, Math.PI * 2) - Math.PI;
   const ARROW = { up: "↑", down: "↓", left: "←", right: "→" };
 
-  // (x, y)는 발바닥. 몸 둘레의 작은 삼각형이 바라보는 방향이다
+  // (x, y)는 발바닥. 가로로 바라보는 쪽으로 뒤집고, 움직일 땐 걷는 자세 + 위아래 흔들림
   const MID = 36;   // 발에서 몸 가운데까지
   const drawChar = (x, y, moving) => {
-    const fx = Math.cos(P.face), fy = Math.sin(P.face);
     const step = moving ? Math.abs(Math.sin(P.walk)) : 0;
-    person(g, x, y - step * 3, {
-      h: 72, color: ILLO.orange, pose: "stand",
-      mood: P.bump > 0.3 ? "surprised" : "happy",
-      look: { x: fx, y: fy }, facing: fx >= 0 ? 1 : -1,
-      squash: step * 0.05 + P.bump * 0.18
-    });
-    const cx = x, cy = y - MID;
-    shape(g, c => {
-      const tx = cx + fx * 52, ty = cy + fy * 52, bx = cx + fx * 40, by = cy + fy * 40;
-      c.moveTo(tx, ty); c.lineTo(bx - fy * 8, by + fx * 8); c.lineTo(bx + fy * 8, by - fx * 8); c.closePath();
-    }, { fill: ILLO.ink, lw: 0 });
+    const fig = moving ? FIG.walk : FIG.stand;
+    drawHumaaan(g, P.hface < 0 ? fig.L : fig.R, x, y - step * 3, CH, { squash: step * 0.04 + P.bump * 0.18 });
   };
 
   api.frame(dt => {
@@ -137,6 +135,9 @@ export default function demo(api) {
       if (ix || iy) P.face += angDiff(P.face, Math.atan2(iy, ix)) * (1 - Math.exp(-16 * s));
     }
     const hasInput = tvx !== 0 || tvy !== 0;
+    // 가로로 보는 쪽: 위·아래만 볼 땐 마지막 가로 방향을 유지한다
+    const fx = Math.cos(P.face);
+    if (fx > 0.2) P.hface = 1; else if (fx < -0.2) P.hface = -1;
 
     // 가속 · 마찰
     if (S.accel) {
@@ -188,14 +189,16 @@ export default function demo(api) {
       g.setLineDash([6, 8]); g.strokeStyle = "rgba(0,0,0,.25)"; g.lineWidth = 1.5;
       g.strokeRect(2, 2, w - 4, h - 4); g.setLineDash([]);
     }
-    // 발자국
+    // 발자국: 작은 톤 점
+    g.fillStyle = TONE[3];
     for (let i = steps.length - 1; i >= 0; i--) {
       const st = steps[i];
       st.t -= s * 0.5;
       if (st.t <= 0) { steps.splice(i, 1); continue; }
-      g.fillStyle = `rgba(0,0,0,${0.13 * st.t})`;
-      g.beginPath(); g.arc(st.x, st.y, 4, 0, Math.PI * 2); g.fill();
+      g.globalAlpha = 0.8 * st.t;
+      g.beginPath(); g.arc(st.x, st.y, 3.5, 0, Math.PI * 2); g.fill();
     }
+    g.globalAlpha = 1;
     // 탱크 방식: 앞 방향 표시
     if (S.scheme === "tank") {
       g.strokeStyle = "rgba(0,0,0,.3)"; g.lineWidth = 1; g.setLineDash([4, 6]);

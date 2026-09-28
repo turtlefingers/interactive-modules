@@ -1,5 +1,6 @@
 import { rng, clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, cat, face, heart as drawHeart, circle, ellipse, shape, tube, roundRect, line as inkLine } from "../../lib/draw.js";
+import { ILLO, TONE, LINE, face, heart as drawHeart, circle, ellipse, shape, tube, roundRect, dot, line as inkLine } from "../../lib/draw.js";
+import { drawAnimal, animalRatio } from "../../lib/animals.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -26,7 +27,6 @@ export default function demo(api) {
   gauge.innerHTML = `<span class="rub-label"></span><div class="rub-bar"><div class="rub-fill"></div></div><b>0%</b>`;
   root.appendChild(gauge);
   const gLabel = gauge.querySelector(".rub-label"), gFill = gauge.querySelector(".rub-fill"), gNum = gauge.querySelector("b");
-  const LW = 3;   // 그림 선 굵기 (키트와 동일)
 
   /* ---------- 배치 ---------- */
   const L = { cx: 0, cy: 0, T: 300 };
@@ -48,22 +48,19 @@ export default function demo(api) {
     }
     win.fog = document.createElement("canvas"); win.fog.width = win.gw; win.fog.height = win.gh;
     win.fogCtx = win.fog.getContext("2d"); win.img = win.fogCtx.createImageData(win.gw, win.gh);
-    // 창밖 풍경
+    // 창밖 풍경: 종이색 하늘 위에 겹치는 톤 언덕 셋 (외곽선 없음, 도상 없음)
     const d = size.dpr, sc = document.createElement("canvas");
     sc.width = Math.round(win.w * d); sc.height = Math.round(win.h * d);
     const s = sc.getContext("2d"); s.scale(d, d);
-    // 창밖: 평면 단색 언덕, 해, 집 (그림 키트 규칙)
     s.fillStyle = ILLO.paper; s.fillRect(0, 0, win.w, win.h);
-    circle(s, win.w * 0.74, win.h * 0.3, win.h * 0.09, { fill: ILLO.yellow, lw: LW });
     const hill = (y, amp, ph, color) => shape(s, c => {
-      c.moveTo(-LW, win.h + LW); c.lineTo(-LW, y);
+      c.moveTo(-4, win.h + 4); c.lineTo(-4, y);
       for (let x = 0; x <= win.w + 6; x += 6) c.lineTo(x, y + Math.sin(x / win.w * 5 + ph) * amp);
-      c.lineTo(win.w + LW, win.h + LW); c.closePath();
-    }, { fill: color, lw: LW });
-    hill(win.h * 0.64, win.h * 0.05, 1, ILLO.green); hill(win.h * 0.8, win.h * 0.04, 3.2, ILLO.green);
-    const hx = win.w * 0.22, hy = win.h * 0.66, hw = win.w * 0.1;
-    roundRect(s, hx - hw * 0.6, hy - hw * 0.5, hw * 1.2, hw * 0.75, 2, { fill: ILLO.paper, lw: LW });
-    shape(s, c => { c.moveTo(hx - hw * 0.7, hy - hw * 0.5); c.lineTo(hx, hy - hw * 1.1); c.lineTo(hx + hw * 0.7, hy - hw * 0.5); c.closePath(); }, { fill: ILLO.red, lw: LW });
+      c.lineTo(win.w + 4, win.h + 4); c.closePath();
+    }, { fill: color });
+    hill(win.h * 0.5, win.h * 0.07, 1, TONE[1]);
+    hill(win.h * 0.66, win.h * 0.05, 3.2, TONE[2]);
+    hill(win.h * 0.82, win.h * 0.04, 5.1, TONE[3]);
     win.scene = sc;
   }
 
@@ -76,6 +73,10 @@ export default function demo(api) {
   }
   layout();
   api.onResize(layout);
+
+  // 고양이(앉은 실루엣) 크기: 발은 cy + T·0.36, 키는 T·0.7
+  const CAT = "cat-sit";
+  const catBox = T => { const h = T * 0.7, w = h * animalRatio(CAT), feet = L.cy + T * 0.06 + T * 0.36; return { h, w, feet, cy: feet - h / 2 }; };
 
   /* ---------- 상태 ---------- */
   const st = { creature: 0, lamp: 0 };
@@ -90,7 +91,11 @@ export default function demo(api) {
   const hit = (x, y) => {
     const t = S.target, T = L.T;
     if (t === "dirt") return x > win.x && x < win.x + win.w && y > win.y && y < win.y + win.h;
-    if (t === "creature") return Math.hypot(x - L.cx, y - (L.cy + T * 0.04)) < T * 0.36;
+    if (t === "creature") {
+      // 고양이 실루엣을 덮는 타원 (조금 여유 있게)
+      const c = catBox(T);
+      return ((x - L.cx) / (c.w / 2 + 12)) ** 2 + ((y - c.cy) / (c.h / 2 + 12)) ** 2 < 1;
+    }
     return Math.abs(x - L.cx) < T * 0.42 && Math.abs(y - (L.cy + T * 0.1)) < T * 0.2;
   };
 
@@ -161,8 +166,11 @@ export default function demo(api) {
   /* ---------- 그리기 ---------- */
   const INK = ILLO.ink, PAPER = ILLO.paper;
   const hex = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
-  const PAP = hex(ILLO.paper), HOT = hex(ILLO.orange);
-  const mix = t => `rgb(${PAP.map((v, i) => Math.round(v + (HOT[i] - v) * t)).join(",")})`;
+  const COLD = hex(TONE[3]), HOT = hex(ILLO.orange);
+  // 램프 색: 톤(회갈색)에서 강조색(주황)으로 달아오른다 — 장면의 색은 이것 하나
+  const mix = t => `rgb(${COLD.map((v, i) => Math.round(v + (HOT[i] - v) * t)).join(",")})`;
+  const DARK = hex(TONE[5]);
+  const mixCat = t => `rgb(${DARK.map((v, i) => Math.round(v + (HOT[i] - v) * t)).join(",")})`;
 
   function drawWindow() {
     const d = win.img.data;
@@ -175,9 +183,9 @@ export default function demo(api) {
     g.drawImage(win.fog, win.x, win.y, win.w, win.h);
     g.restore();
     // 창틀: 가는 잉크 선
-    inkLine(g, [[win.x, win.y], [win.x + win.w, win.y], [win.x + win.w, win.y + win.h], [win.x, win.y + win.h], [win.x, win.y]], { lw: LW });
-    inkLine(g, [[win.x + win.w / 2, win.y], [win.x + win.w / 2, win.y + win.h]], { lw: LW });
-    inkLine(g, [[win.x, win.y + win.h / 2], [win.x + win.w, win.y + win.h / 2]], { lw: LW });
+    inkLine(g, [[win.x, win.y], [win.x + win.w, win.y], [win.x + win.w, win.y + win.h], [win.x, win.y + win.h], [win.x, win.y]], { lw: LINE });
+    inkLine(g, [[win.x + win.w / 2, win.y], [win.x + win.w / 2, win.y + win.h]], { lw: LINE });
+    inkLine(g, [[win.x, win.y + win.h / 2], [win.x + win.w, win.y + win.h / 2]], { lw: LINE });
   }
 
   function drawCreature(t) {
@@ -188,16 +196,13 @@ export default function demo(api) {
     const cx = L.cx + jx, cy = L.cy + T * 0.06;
     const press = rubbing ? 1 : 0;
     const lean = clamp(ptr.vx * 0.012, -8, 8) * press;
-    // 기분에 따라 얼굴이 바뀐다: 무표정 → 웃음 → 눈을 감고 흡족
-    const blink = (t % 3200) < 120 && a < 0.35;
-    const mood = blink ? "sleepy" : a < 0.35 ? "neutral" : a < 0.7 ? "happy" : "sleepy";
-    const look = rubbing ? { x: clamp((ptr.x - cx) / T, -1, 1), y: clamp((ptr.y - cy) / T, -1, 1) } : { x: 0, y: 0 };
-    // 고양이(키트): 문지르면 살짝 눌리고 문지르는 방향으로 쏠린다
-    const feet = cy + T * 0.36;
+    // 고양이: 앉은 실루엣 하나. 기분이 좋아질수록 톤에서 강조색으로, 문지르면 살짝 눌리고 그쪽으로 기운다
+    const c = catBox(T);
+    const warm = clamp((a - 0.45) / 0.35, 0, 1);
     g.save();
-    g.translate(cx + lean, feet);
+    g.translate(cx + lean, c.feet);
     g.scale(1 + press * 0.03, 1 - press * 0.03 + Math.sin(t * 0.003) * 0.01);
-    cat(g, 0, 0, { size: T * 0.98, color: ILLO.orange, mood, look, lw: LW, tailT: purr ? t * 0.012 : t * 0.002 });
+    drawAnimal(g, CAT, 0, 0, c.h, { color: mixCat(warm), angle: lean * 0.006 + (purr ? Math.sin(t * 0.02) * 0.01 : 0) });
     g.restore();
     if (purr && Math.random() < 0.03) parts.push({ kind: "text", text: "그르릉", x: cx + T * (0.2 + Math.random() * 0.1), y: cy - T * 0.16, vx: 12, vy: -30, life: 0, max: 1.3, c: "#9a9790" });
   }
@@ -207,38 +212,45 @@ export default function demo(api) {
     const shake = a > 0.55 ? (a - 0.55) * 5 : 0;
     const cx = L.cx + Math.sin(t * 0.07) * shake, cy = L.cy + T * 0.16;
     const R = T * 0.26;
-    // 요정: 주둥이에서 올라오는 연기 줄기 끝의 둥근 얼굴
+    // 요정: 주둥이에서 올라오는 라일락 연기 실루엣 끝의 둥근 얼굴 (점 둘, 선 하나)
     if (genie > 0.01) {
       const sx = cx + R * 1.1, sy = cy - R * 0.44;
       const gy = sy - genie * T * 0.34, gx = sx + R * 0.1;
       g.save(); g.globalAlpha *= genie;
-      shape(g, c => { c.moveTo(sx, sy); c.bezierCurveTo(sx - 30, sy - 30, gx + 30, gy + 60, gx, gy + 26); }, { fill: null, lw: LW + 10, stroke: INK });
-      shape(g, c => { c.moveTo(sx, sy); c.bezierCurveTo(sx - 30, sy - 30, gx + 30, gy + 60, gx, gy + 26); }, { fill: null, lw: 10, stroke: ILLO.lilac });
-      circle(g, gx, gy, 26, { fill: ILLO.lilac, lw: LW });
-      face(g, gx, gy, 26, { mood: "happy", lw: LW });
+      const N = 14;
+      for (let i = 0; i <= N; i++) {
+        const k = i / N, u = 1 - k;
+        const px = u * u * sx + 2 * u * k * (sx - R * 0.35) + k * k * gx;
+        const py = u * u * sy + 2 * u * k * (sy - R * 0.5) + k * k * (gy + 22);
+        circle(g, px + Math.sin(k * 9 + t * 0.002) * 4 * k, py, 4 + 16 * k, { fill: ILLO.lilac });
+      }
+      circle(g, gx, gy, 26, { fill: ILLO.lilac });
+      face(g, gx, gy, 26, { mood: "happy", lw: LINE });
       if (genie > 0.85) {
         g.globalAlpha = (genie - 0.85) / 0.15;
         g.font = "500 15px Pretendard Variable, Pretendard, system-ui, sans-serif";
         const msg = "소원을 말해봐", tw = g.measureText(msg).width;
         const bx = Math.min(gx + 36, size.w - tw - 30), by = gy - 40;
-        roundRect(g, bx, by, tw + 22, 32, 16, { fill: PAPER, lw: LW });
+        roundRect(g, bx, by, tw + 22, 32, 16, { fill: PAPER, lw: LINE });
         g.fillStyle = INK; g.textBaseline = "middle"; g.textAlign = "left"; g.fillText(msg, bx + 11, by + 16);
       }
       g.restore();
     }
-    // 램프: 문지를수록 몸통이 달아오른다 (평면 단색이 크림에서 주황으로)
+    // 램프: 외곽선 없는 톤 실루엣. 문지를수록 톤에서 주황으로 달아오른다
     const fill = mix(a);
-    ellipse(g, cx, cy + R * 0.34, R * 0.4, R * 0.09, { fill, lw: LW });
-    tube(g, [[cx, cy + R * 0.1], [cx, cy + R * 0.3]], { color: fill, w: R * 0.26, lw: LW });
-    shape(g, c => c.ellipse(cx - R * 0.8, cy - R * 0.12, R * 0.24, R * 0.18, 0, Math.PI * 0.5, Math.PI * 1.55), { fill: null, lw: LW + 6, stroke: INK });
-    shape(g, c => c.ellipse(cx - R * 0.8, cy - R * 0.12, R * 0.24, R * 0.18, 0, Math.PI * 0.5, Math.PI * 1.55), { fill: null, lw: 6, stroke: fill });
-    shape(g, c => {
+    ellipse(g, cx, cy + R * 0.34, R * 0.4, R * 0.09, { fill });                                   // 받침
+    tube(g, [[cx, cy + R * 0.1], [cx, cy + R * 0.3]], { color: fill, w: R * 0.26 });               // 굽
+    shape(g, c => c.ellipse(cx - R * 0.8, cy - R * 0.12, R * 0.24, R * 0.18, 0, Math.PI * 0.5, Math.PI * 1.55), { fill: null, lw: 6, stroke: fill });   // 손잡이
+    shape(g, c => {                                                                                  // 주둥이
       c.moveTo(cx + R * 0.5, cy - R * 0.02);
       c.quadraticCurveTo(cx + R * 0.9, cy - R * 0.05, cx + R * 1.12, cy - R * 0.44);
       c.quadraticCurveTo(cx + R * 0.8, cy - R * 0.28, cx + R * 0.45, cy - R * 0.28); c.closePath();
-    }, { fill, lw: LW });
-    ellipse(g, cx, cy - R * 0.1, R * 0.7, R * 0.28, { fill, lw: LW });
-    shape(g, c => { c.ellipse(cx, cy - R * 0.38, R * 0.22, R * 0.14, 0, Math.PI, 0); c.closePath(); }, { fill, lw: LW });
+    }, { fill });
+    ellipse(g, cx, cy - R * 0.1, R * 0.7, R * 0.28, { fill });                                     // 몸통
+    shape(g, c => { c.ellipse(cx, cy - R * 0.38, R * 0.22, R * 0.14, 0, Math.PI, 0); c.closePath(); }, { fill });   // 뚜껑
+    // 가는 잉크 디테일 하나: 뚜껑 윤곽과 꼭지
+    shape(g, c => c.ellipse(cx, cy - R * 0.38, R * 0.22, R * 0.14, 0, Math.PI, 0), { fill: null, lw: LINE });
+    dot(g, cx, cy - R * 0.54, 2.5);
   }
 
   /* ---------- 루프 ---------- */
@@ -279,7 +291,7 @@ export default function demo(api) {
       p.x += p.vx * s; p.y += p.vy * s; p.vy -= 10 * s;
       const al = 1 - p.life / p.max;
       g.globalAlpha = al;
-      if (p.kind === "heart") drawHeart(g, p.x, p.y, { r: 9 * p.s * (1 + p.life * 0.4), color: p.c, lw: LW });
+      if (p.kind === "heart") drawHeart(g, p.x, p.y, { r: 9 * p.s * (1 + p.life * 0.4), color: p.c });   // 작은 빨강 실루엣
       else if (p.kind === "text") { g.fillStyle = p.c; g.font = "500 13px Pretendard Variable, Pretendard, system-ui, sans-serif"; g.fillText(p.text, p.x, p.y); }
       else { g.strokeStyle = "#1b1b1a"; g.lineWidth = 1.2; g.beginPath(); g.arc(p.x, p.y, 6 + p.life * 50, 0, 7); g.stroke(); }
     }
