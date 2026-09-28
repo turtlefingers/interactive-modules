@@ -68,7 +68,7 @@ export default function demo(api) {
     return Math.sin(t * Math.PI);
   };
 
-  const lwFor = r => clamp(r * 0.09, 1.5, 3);
+  const lwFor = r => clamp(r * 0.05, 1.2, 1.8);
   const drawEye = (x, y, r, p, travel, b) => {
     g.save();
     g.translate(x, y); g.scale(1, 1 - 0.92 * b);
@@ -140,7 +140,7 @@ export default function demo(api) {
         o.fx += (tfx - o.fx) * f; o.fy += (tfy - o.fy) * f; o.tilt += (tt - o.tilt) * f;
         g.save(); g.translate(o.x + o.fx * R * 0.08, o.y + o.fy * R * 0.06); g.rotate(o.tilt);
         const lw = lwFor(R);
-        circle(g, 0, 0, R, { fill: ILLO_CYCLE[o.col % ILLO_CYCLE.length], lw });
+        circle(g, 0, 0, R, { fill: [ILLO.blue, ILLO.orange, ILLO.skin, ILLO.pink][o.col % 4] });
         // 이목구비가 커서 쪽으로 쏠려 고개를 돌린 것처럼 보인다
         face(g, o.fx * R * 0.3, o.fy * R * 0.22, R, { look: { x: o.fx, y: o.fy }, mood: b > 0.5 ? "sleepy" : "happy", lw });
         g.restore();

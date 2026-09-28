@@ -1,5 +1,5 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, shape, circle } from "../../lib/draw.js";
+import { ILLO, LINE, shape, circle } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -109,9 +109,9 @@ export default function demo(api) {
       c.bezierCurveTo(cx + rx * 0.55, cy - ry, cx + rx, cy - ry * 0.75, cx + rx, cy);
       c.bezierCurveTo(cx + rx * 1.02, cy + ry * 0.55, cx + rx * 0.55, knotY - 6, cx, knotY - 4);
       c.closePath();
-    }, { fill: ILLO.red, lw: LW });
+    }, { fill: C.acc });
     // 매듭
-    shape(g, c => { c.moveTo(cx, knotY - 6); c.lineTo(cx - 6, knotY + 5); c.lineTo(cx + 6, knotY + 5); c.closePath(); }, { fill: ILLO.red, lw: LW });
+    shape(g, c => { c.moveTo(cx, knotY - 6); c.lineTo(cx - 6, knotY + 5); c.lineTo(cx + 6, knotY + 5); c.closePath(); }, { fill: C.acc });
     // 수치
     const fs = clamp(r * 0.55, 13, 64);
     g.fillStyle = ILLO.paper; g.font = `800 ${fs}px ${FONT}`;
@@ -123,7 +123,7 @@ export default function demo(api) {
   const drawButton = () => {
     const { bx, by, br, knotY } = layout;
     // 끈 (잉크 선)
-    g.save(); g.strokeStyle = ILLO.ink; g.lineWidth = LW; g.lineCap = "round";
+    g.save(); g.strokeStyle = ILLO.ink; g.lineWidth = LINE; g.lineCap = "round";
     g.beginPath(); g.moveTo(bx, knotY + 4); g.quadraticCurveTo(bx + 10, (knotY + by) / 2, bx, by - br); g.stroke();
     g.restore();
     const s = st.hold ? 0.92 : 1;
@@ -134,7 +134,7 @@ export default function demo(api) {
     g.strokeStyle = C.acc; g.lineCap = "round";
     if (st.v > 0.002) { g.beginPath(); g.arc(0, 0, br + 9, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * st.v); g.stroke(); }
     // 펌프 버튼: 외곽선 있는 평면 원
-    circle(g, 0, 0, br, { fill: st.hold ? ILLO.ink : ILLO.yellow, lw: LW / s });
+    circle(g, 0, 0, br, { fill: st.hold ? ILLO.ink : ILLO.paper, lw: LINE / s });
     g.fillStyle = st.hold ? ILLO.paper : ILLO.ink; g.font = `700 15px ${FONT}`;
     g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(st.hold ? "누르는 중" : "꾹", 0, 1);
     g.restore();

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>사람 그림 런타임 확인 · 인터랙티브 모듈들</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  body { margin: 0; background: #f4f2ee; font-family: "Pretendard Variable", sans-serif; color: #1b1b1a; padding: 28px; }
+  h2 { font-size: 15px; margin: 22px 0 8px; }
+  .row { display: flex; gap: 14px; align-items: flex-end; background: #fff; border-radius: 12px; padding: 18px; flex-wrap: wrap; }
+  .row svg { height: 220px; }
+  canvas { display: block; background: #efe9dd; border-radius: 12px; }
+</style>
+</head>
+<body>
+<h2>DOM: humaaanSVG() — PEOPLE 8명 (뒤집기 포함)</h2>
+<div class="row" id="dom"></div>
+<h2>Canvas: drawHumaaan() — 크기 · 회전 · 찌그러짐 · 앉기</h2>
+<canvas id="cv" width="1300" height="300"></canvas>
+<script type="module">
+  import { humaaanSVG, drawHumaaan, PEOPLE, preload, outfit, NAMES } from "./src/lib/figure.js";
+  import { ILLO } from "./src/lib/draw.js";
+  console.log(NAMES);
+  const dom = document.getElementById("dom");
+  dom.innerHTML = PEOPLE.map((p, i) => humaaanSVG({ ...p, flip: i % 2 === 1 })).join("");
+  preload();
+  const cv = document.getElementById("cv"), g = cv.getContext("2d"), dpr = devicePixelRatio || 1;
+  cv.width = 1300 * dpr; cv.height = 300 * dpr; cv.style.width = "1300px"; cv.style.height = "300px"; g.scale(dpr, dpr);
+  const sit = { head: "Airy", torso: "Hoodie", bottom: "SweatPants", posture: "sitting", colors: outfit(ILLO.orange) };
+  const wheel = { head: "Long", torso: "LabCoat", bottom: "Wheelchair", posture: "sitting", colors: outfit(ILLO.blue) };
+  let t = 0;
+  (function loop() {
+    t += 0.03;
+    g.clearRect(0, 0, 1300, 300);
+    g.fillStyle = "#1b1b1a"; g.fillRect(0, 262, 1300, 1.5);
+    drawHumaaan(g, PEOPLE[0], 90, 262, 240);
+    drawHumaaan(g, PEOPLE[1], 220, 262, 160);
+    drawHumaaan(g, PEOPLE[2], 330, 262, 100);
+    drawHumaaan(g, PEOPLE[3], 410, 262, 60);
+    drawHumaaan(g, PEOPLE[4], 540, 262, 200, { rotate: Math.sin(t) * 0.15 });
+    drawHumaaan(g, PEOPLE[5], 700, 262, 200, { squash: (Math.sin(t * 2) + 1) * 0.12 });
+    drawHumaaan(g, { ...PEOPLE[6], flip: true }, 860, 262, 200);
+    drawHumaaan(g, sit, 1020, 262, 190);
+    drawHumaaan(g, wheel, 1190, 262, 190);
+    requestAnimationFrame(loop);
+  })();
+</script>
+</body>
+</html>

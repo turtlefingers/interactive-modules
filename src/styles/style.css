@@ -302,6 +302,8 @@ body.index .topbar { position: sticky; top: 0; }
 .card-item .shared { font-size: var(--fs-label); color: var(--ink-3); }
 .card-item.soon { opacity: .5; pointer-events: none; box-shadow: none; border: 1px dashed var(--line); background: transparent; }
 .empty { padding: 80px 0; text-align: center; color: var(--ink-3); display: none; }
+.credits { margin-top: 96px; padding-top: 20px; border-top: 1px solid var(--line); font-size: var(--fs-label); color: var(--ink-3); line-height: 1.8; }
+.credits a { color: var(--ink-2); }
 
 @media (max-width: 900px) {
   body.detail { height: auto; display: block; overflow: auto; }

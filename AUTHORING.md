@@ -100,13 +100,21 @@ export default function demo(api) {
 - 데모 안의 버튼과 텍스트는 사이트와 같은 서체(상속)와 글자 크기(13 / 15 / 18px)를 쓴다.
 - 커서 모양을 인터랙션에 맞게 바꾼다(grab, grabbing, pointer, crosshair 등).
 
-### 그림 스타일 (사람 · 생물 · 사물을 그릴 때)
-데모 안에 사람, 동물, 구름, 식물, 손 같은 **그림**이 들어가면 반드시 `src/lib/draw.js`의 그림 키트를 쓴다. 키트가 없는 그림은 키트와 같은 규칙으로 직접 그린다. 기본 도형(원, 사각형, 선)만 있는 데모는 해당 없다.
-- 그림체: **굵기가 균일한 검정 외곽선(3px)**, 안은 **평면 단색**. 그라데이션, 그림자, 광택 없음. 얼굴은 점 두 개와 선 하나, 몸은 뭉툭한 덩어리. 유치하지 않고 단순한 인쇄 일러스트 느낌이다(레퍼런스: 굵은 선의 플랫 벡터 일러스트).
-- 색: `ILLO` 팔레트(ink, blue, orange, yellow, green, pink, red, lilac, skin, paper, grey)에서만 고른다. 한 장면에 3~4색 이내.
-- 키트 함수: `person`(stand/wave/sit/crouch/jump, mood, look, squash), `face`, `eye`, `zz`, `bird`, `bug`, `cat`, `cloud`, `drop`, `sprout`, `leaf`, `star`, `heart`, `flag`, `mug`, `hand`(open/grab/point). 기본 도구 `shape`, `tube`, `circle`, `ellipse`, `roundRect`, `line`, `dot`.
-- 3D 장면은 `keyboard-orbit` 데모처럼 그린다: 납작한 면 채움, 가는 검정 외곽선, 강조면 하나, 회색 격자 바닥.
-- 개발 서버에서 `/illo.html`을 열면 키트 전체를 한눈에 볼 수 있다.
+### 그림 스타일 (사람 · 생물 · 사물 · 풍경)
+기준은 **"외곽선 없는 평면 실루엣 + 가는 잉크 디테일"**이다. 검정 테두리를 두른 원색 그림(색칠공부 느낌)은 금지다.
+
+- **사람은 직접 그리지 않는다.** `src/lib/figure.js`의 Humaaans(Pablo Stanley, CC BY 4.0) 조합을 쓴다.
+  - DOM/SVG: `humaaanSVG({ head, torso, bottom, posture, colors, flip })` 문자열을 넣는다.
+  - Canvas: `drawHumaaan(g, opts, x, y, h, { rotate, squash, alpha })` — (x, y)는 발바닥 가운데, h는 높이. 이미지가 준비되기 전에는 false를 돌려주므로 첫 프레임은 비어 있을 수 있다. 시작할 때 `preload()`를 부른다.
+  - 사람 목록은 `PEOPLE`, 옷 색은 `outfit(색)`으로 만든다. 한 사람에 색은 옷 한 가지만 쓰고 나머지는 톤이다.
+  - 포즈는 부품 조합으로 바꾼다(걷기 `SkinnyJeansWalk`/`Jogging`/`Sprint`, 앉기 `posture: "sitting"`). 점프·웅크림은 `rotate`/`squash`와 y 이동으로 표현한다.
+  - 사이트 어딘가에 출처 표기가 있어야 한다(메인 페이지 푸터에 있음).
+- **풍경과 구조물은 톤 면으로만** 그린다: `TONE` 배열(밝은 베이지 → 어두운 회갈색)로 겹치는 면을 만들고, 외곽선은 두르지 않는다. 강조색(`--accent` 또는 ILLO 한 색)은 장면에 하나만 쓴다. 세모 지붕 집, 노란 원 해, 별 같은 아이콘 도상은 쓰지 않는다. 기준 예: `mouse-parallax`.
+- **작은 사물**(풍선, 컵, 구름, 새싹)은 실루엣 채움이 기본이고, 필요한 곳(풍선 끈, 구름 윤곽, 줄기)에만 1.5px 가는 잉크 선을 쓴다. `src/lib/draw.js`의 `shape/line/curve/cloud/drop/sprout/leaf/flag`를 쓴다. 기준 예: `press-and-hold`의 풍선.
+- **생물**(새, 벌레, 고양이)은 당분간 `draw.js`의 실루엣 함수를 쓰되 색은 톤이나 강조색 한 가지로 제한한다.
+- **얼굴**은 점 두 개와 가는 선 하나(`face()`), 외곽선 없는 색 원 위에 그린다. 기준 예: `look-at`.
+- 3D 장면은 `keyboard-orbit`처럼 그린다: 납작한 면 채움, 가는 외곽선, 강조면 하나, 회색 격자 바닥.
+- 개발 서버에서 `/illo3.html`(사람), `/styles.html`(그림체 비교)을 열어 기준을 확인할 수 있다.
 
 ### 읽는 값과 상태
 - readouts는 이 인터랙션이 **실제로 읽는 입력값**을 보여준다(위치, 거리, 속도, 각도, 누른 시간, 횟수 등). 숫자는 정수나 소수 1자리로 짧게.

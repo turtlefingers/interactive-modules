@@ -1,5 +1,5 @@
 import { rng, clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, shape, tube, circle } from "../../lib/draw.js";
+import { shape, circle } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -24,8 +24,7 @@ export default function demo(api) {
   const { g, size } = fitCanvas(api, { parent: scene });
   const C = { ink: api.color("--ink"), ink3: api.color("--ink-3"), accent: api.color("--accent"), board: api.color("--board") };
   // 층 색 (그림 키트 팔레트): 해, 먼 산, 가까운 산, 언덕, 땅, 풀잎
-  const TONE = [ILLO.yellow, ILLO.grey, ILLO.lilac, ILLO.green, ILLO.orange, ILLO.green];
-  const LW = 3;
+  const TONE = [C.accent, "#e2dccf", "#cfc7b6", "#b3aa96", "#8a8273", C.ink];
 
   /* ---------- 층 모양 (정규화 좌표로 한 번만 만든다) ---------- */
   const rand = rng(3);
@@ -39,13 +38,13 @@ export default function demo(api) {
   });
   const hillY = (x, w, h) => h * 0.8 - (Math.sin(x / w * 5.2 + hillPh[0]) * 0.035 + Math.sin(x / w * 11 + hillPh[1]) * 0.015 + 0.03) * h;
 
-  // 모든 층은 평면 단색 + 3px 잉크 외곽선으로 그린다 (그림 키트 규칙)
+  // 모든 층은 외곽선 없는 톤 면으로 그린다. 색은 해(강조색) 하나뿐이다
   const drawLayer = (i, w, h, ox, oy) => {
     g.save(); g.translate(ox, oy);
     const fill = TONE[i];
     const X0 = -w * 0.5, X1 = w * 1.5, BOT = h + 200;
     if (i === 0) {
-      circle(g, w * 0.7, h * 0.27, Math.min(w, h) * 0.06, { fill, lw: LW });
+      circle(g, w * 0.7, h * 0.27, Math.min(w, h) * 0.06, { fill });
     } else if (i === 1 || i === 2) {
       const pk = i === 1 ? far : mid, base = i === 1 ? 0.64 : 0.74;
       shape(g, c => {
@@ -55,28 +54,27 @@ export default function demo(api) {
           if (k < pk.length - 1) c.lineTo((p.x + pk[k + 1].x) / 2 * w, h * (base - 0.02));
         });
         c.lineTo(X1, h * base); c.lineTo(X1, BOT); c.closePath();
-      }, { fill, lw: LW });
+      }, { fill });
     } else if (i === 3) {
       shape(g, c => {
         c.moveTo(X0, BOT);
         for (let x = X0; x <= X1; x += 10) c.lineTo(x, hillY(x, w, h));
         c.lineTo(X1, BOT); c.closePath();
-      }, { fill, lw: LW });
-      // 나무: 줄기 + 둥근 수관
+      }, { fill });
+      // 나무: 언덕과 같은 톤의 가늘고 긴 실루엣
       for (const t of trees) {
-        const x = t.x * w, y = hillY(x, w, h) + 4, th = h * 0.09 * t.s, r = th * 0.42;
-        tube(g, [[x, y], [x, y - th + r]], { color: ILLO.orange, w: Math.max(4, th * 0.16), lw: LW });
-        circle(g, x, y - th + r * 0.6, r, { fill: ILLO.green, lw: LW });
+        const x = t.x * w, y = hillY(x, w, h) + 4, th = h * 0.1 * t.s, tw = th * 0.3;
+        shape(g, c => { c.moveTo(x - tw, y); c.quadraticCurveTo(x - tw * 0.9, y - th * 0.55, x, y - th); c.quadraticCurveTo(x + tw * 0.9, y - th * 0.55, x + tw, y); c.closePath(); }, { fill: TONE[4] });
       }
     } else if (i === 4) {
       shape(g, c => {
         c.moveTo(X0, BOT); c.lineTo(X0, h * 0.9);
         c.quadraticCurveTo(w * 0.5, h * 0.86, X1, h * 0.91); c.lineTo(X1, BOT); c.closePath();
-      }, { fill, lw: LW });
+      }, { fill });
     } else {
       for (const b of blades) {
-        const x = b.x * w, bh = h * b.h, bw = Math.max(6, w * 0.014);
-        shape(g, c => { c.moveTo(x - bw, h + 60); c.quadraticCurveTo(x - bw * 0.3, h - bh * 0.5, x + b.lean * w, h - bh); c.quadraticCurveTo(x + bw * 0.3, h - bh * 0.5, x + bw, h + 60); c.closePath(); }, { fill, lw: LW });
+        const x = b.x * w, bh = h * b.h, bw = Math.max(4, w * 0.01);
+        shape(g, c => { c.moveTo(x - bw, h + 60); c.quadraticCurveTo(x - bw * 0.3, h - bh * 0.5, x + b.lean * w, h - bh); c.quadraticCurveTo(x + bw * 0.3, h - bh * 0.5, x + bw, h + 60); c.closePath(); }, { fill });
       }
     }
     g.restore();
