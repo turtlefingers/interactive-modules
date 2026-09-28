@@ -1,5 +1,5 @@
 import { clamp, dist, rng, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, face, circle as inkCircle } from "../../lib/draw.js";
+import { ILLO, TONE, circle as tonePlane, shape } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -14,9 +14,8 @@ export default function demo(api) {
   el.appendChild(root);
   const { g, size } = fitCanvas(api, { parent: root });
   const C = { ink: ILLO.ink, ink3: api.color("--ink-3") || "#9a9790" };
-  const LW = 3;   // 그림 선 굵기 (화면 px 기준, 키트와 동일)
-  // 대상별 평면 단색: [기본, 집었을 때]
-  const FILLS = { bar: [ILLO.orange, ILLO.yellow], pizza: [ILLO.yellow, ILLO.orange], character: [ILLO.blue, ILLO.yellow] };
+  // 대상별 톤 면: [기본, 집었을 때]. 외곽선은 두르지 않고, 강조색(주황)은 장면에 하나만 쓴다
+  const FILLS = { bar: [TONE[4], ILLO.orange], pizza: [TONE[2], TONE[3]], sticker: [TONE[4], ILLO.orange] };
   const rand = rng(11);
 
   /* ---------- 좌표: 가운데 기준 설계 좌표(약 640×480)를 화면에 맞춘다 ---------- */
@@ -41,6 +40,7 @@ export default function demo(api) {
     kind = S.target;
     pieces = [];
     if (kind === "bar") {
+      // 초콜릿: TONE[4] 칸, 칸 사이 틈으로 TONE[5] 판이 홈처럼 비친다
       const CW = 86, CH = 66, cols = 4, rows = 3;
       for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
         const path = new Path2D(); roundRect(path, -CW / 2 + 3, -CH / 2 + 3, CW - 6, CH - 6, 5);
@@ -50,9 +50,10 @@ export default function demo(api) {
         if (r > 0) anchors.push([-16, -CH / 2 + 3], [16, -CH / 2 + 3]);
         if (r < rows - 1) anchors.push([-16, CH / 2 - 3], [16, CH / 2 - 3]);
         pieces.push(piece({ path, hx: (c - (cols - 1) / 2) * CW, hy: (r - (rows - 1) / 2) * CH, anchors,
-          deco: gg => { gg.strokeStyle = C.ink; gg.lineWidth = LW / V.sc; gg.lineJoin = "round"; gg.beginPath(); gg.roundRect(-CW / 2 + 15, -CH / 2 + 15, CW - 30, CH - 30, 3); gg.stroke(); } }));
+          deco: gg => { gg.fillStyle = TONE[5]; gg.beginPath(); gg.roundRect(-CW / 2 + 16, -CH / 2 + 16, CW - 32, CH - 32, 3); gg.fill(); } }));
       }
     } else if (kind === "pizza") {
+      // 피자: TONE[1] 접시 위에 TONE[2] 조각, 안쪽은 TONE[3], 페퍼로니는 주황 실루엣
       const R = 170, N = 8;
       for (let i = 0; i < N; i++) {
         const a0 = i / N * Math.PI * 2 - Math.PI / 2, a1 = (i + 1) / N * Math.PI * 2 - Math.PI / 2, am = (a0 + a1) / 2;
@@ -61,27 +62,32 @@ export default function demo(api) {
         const anchors = [0.3, 0.6, 0.85].flatMap(k => [[Math.cos(a0 + 0.04) * R * k - hx, Math.sin(a0 + 0.04) * R * k - hy], [Math.cos(a1 - 0.04) * R * k - hx, Math.sin(a1 - 0.04) * R * k - hy]]);
         const tops = [0.4, 0.72].map((k, j) => { const a = am + (j ? -0.12 : 0.14); return [Math.cos(a) * R * k - hx, Math.sin(a) * R * k - hy]; });
         pieces.push(piece({ path, hx, hy, anchors,
-          deco: gg => {
-            // 가장자리 빵 테두리 선과 페퍼로니 (평면 단색 + 외곽선)
-            gg.strokeStyle = C.ink; gg.lineWidth = LW / V.sc; gg.lineCap = "round";
-            gg.beginPath(); gg.arc(-hx, -hy, R - 18, a0 + 0.04, a1 - 0.04); gg.stroke();
-            tops.forEach(([x, y]) => inkCircle(gg, x, y, 10, { fill: ILLO.red, lw: LW / V.sc }));
+          deco: (gg, hot) => {
+            // 빵 테두리(바깥 띠)만 남기고 안쪽 면을 한 톤 어둡게 칠한 뒤 페퍼로니를 얹는다
+            gg.fillStyle = hot ? TONE[4] : TONE[3];
+            gg.beginPath(); gg.moveTo(-hx, -hy); gg.arc(-hx, -hy, R - 18, a0 + 0.03, a1 - 0.03); gg.closePath(); gg.fill();
+            tops.forEach(([x, y]) => tonePlane(gg, x, y, 11, { fill: ILLO.orange }));
           } }));
       }
     } else {
-      // 캐릭터: 몸통은 떨어지지 않고, 귀, 팔, 다리, 코를 떼어낼 수 있다
-      // 부위는 키트의 tube/도형처럼 뭉툭한 캡슐과 원 (3px 외곽선, 평면 단색)
-      const part = (hx, hy, make, joint, fill) => {
-        const path = new Path2D(); make(path);
-        pieces.push(piece({ path, hx, hy, anchors: [[joint[0] - 5, joint[1]], [joint[0] + 5, joint[1]]], joint, fill }));
-      };
-      part(-62, -118, p => p.arc(0, 0, 28, 0, Math.PI * 2), [8, 22]);
-      part(62, -118, p => p.arc(0, 0, 28, 0, Math.PI * 2), [-8, 22]);
-      part(-132, 10, p => roundRect(p, -38, -15, 76, 30, 15), [30, 0]);
-      part(132, 10, p => roundRect(p, -38, -15, 76, 30, 15), [-30, 0]);
-      part(-44, 142, p => roundRect(p, -17, -36, 34, 72, 16), [0, -28], ILLO.ink);
-      part(44, 142, p => roundRect(p, -17, -36, 34, 72, 16), [0, -28], ILLO.ink);
-      part(0, -10, p => p.arc(0, 0, 13, 0, Math.PI * 2), [0, 0], ILLO.red);
+      // 스티커 시트: 시트는 떨어지지 않고, 붙어 있는 실루엣 스티커를 한 장씩 떼어낸다
+      const cols = 4, rows = 2, CW = 118, CH = 118;
+      const star = (p, r) => { for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; p[i ? "lineTo" : "moveTo"](Math.cos(a) * rr, Math.sin(a) * rr); } p.closePath(); };
+      const heart = (p, r) => { p.moveTo(0, r); p.bezierCurveTo(-r * 1.3, r * 0.1, -r * 0.9, -r, 0, -r * 0.45); p.bezierCurveTo(r * 0.9, -r, r * 1.3, r * 0.1, 0, r); p.closePath(); };
+      const drop = (p, r) => { p.moveTo(0, -r * 1.1); p.bezierCurveTo(r * 0.9, r * 0.1, r * 0.8, r * 0.9, 0, r * 0.9); p.bezierCurveTo(-r * 0.8, r * 0.9, -r * 0.9, r * 0.1, 0, -r * 1.1); p.closePath(); };
+      const leaf = (p, r) => { p.moveTo(-r, r); p.quadraticCurveTo(-r, -r * 0.9, r * 0.9, -r); p.quadraticCurveTo(r, r * 0.9, -r, r); p.closePath(); };
+      const cloud = (p, r) => { p.arc(-r * 0.5, r * 0.2, r * 0.5, 0, Math.PI * 2); p.arc(r * 0.1, -r * 0.2, r * 0.62, 0, Math.PI * 2); p.arc(r * 0.6, r * 0.25, r * 0.45, 0, Math.PI * 2); p.rect(-r * 0.5, r * 0.2, r * 1.1, r * 0.5); };
+      const tri = (p, r) => { p.moveTo(0, -r); p.lineTo(r, r * 0.8); p.lineTo(-r, r * 0.8); p.closePath(); };
+      const SHAPES = [
+        (p, r) => p.arc(0, 0, r, 0, Math.PI * 2), star, heart, (p, r) => roundRect(p, -r, -r, r * 2, r * 2, r * 0.3),
+        drop, leaf, cloud, tri
+      ];
+      SHAPES.forEach((make, i) => {
+        const c = i % cols, r = Math.floor(i / cols);
+        const path = new Path2D(); make(path, 40);
+        const anchors = [[-30, -30], [30, -30], [-30, 30], [30, 30]];
+        pieces.push(piece({ path, hx: (c - (cols - 1) / 2) * CW, hy: (r - (rows - 1) / 2) * CH - 6, anchors, fill: i % 2 ? TONE[5] : TONE[4] }));
+      });
     }
     held = null;
   };
@@ -101,7 +107,7 @@ export default function demo(api) {
   const pick = d => { const o = order(); for (let i = o.length - 1; i >= 0; i--) if (hitTest(o[i], d)) return o[i]; return null; };
   const breakOff = (h, d) => {
     h.broken = true; h.p.free = true;
-    h.p.trot = kind === "character" ? 0 : (rand() - 0.5) * 0.35;
+    h.p.trot = (rand() - 0.5) * 0.35;
     h.p.tx = d.x + h.ox; h.p.ty = d.y + h.oy;
     api.flash("떼어냈다", "ok", 900);
   };
@@ -154,8 +160,7 @@ export default function demo(api) {
   const drawPiece = (p, hot) => {
     g.save(); g.translate(p.x, p.y); g.rotate(p.rot);
     g.fillStyle = hot ? FILLS[kind][1] : (p.fill || FILLS[kind][0]); g.fill(p.path);
-    g.strokeStyle = C.ink; g.lineWidth = LW / V.sc; g.lineJoin = "round"; g.stroke(p.path);
-    if (p.deco) p.deco(g);
+    if (p.deco) p.deco(g, hot);
     g.restore();
   };
   const drawHole = p => {
@@ -178,18 +183,13 @@ export default function demo(api) {
     g.clearRect(0, 0, w, h);
     g.translate(V.cx, V.cy); g.scale(V.sc, V.sc);
 
-    // 떼어낼 수 없는 바탕: 접시, 몸통
-    if (kind === "pizza") inkCircle(g, 0, 0, 192, { fill: ILLO.paper, lw: LW / V.sc });
-    if (kind === "character") inkCircle(g, 0, 10, 100, { fill: FILLS.character[0], lw: LW / V.sc });
+    // 떼어낼 수 없는 바탕(톤 면): 초콜릿 판, 접시, 스티커 시트
+    if (kind === "bar") shape(g, c => c.roundRect(-182, -109, 364, 218, 10), { fill: TONE[5] });
+    if (kind === "pizza") tonePlane(g, 0, 0, 192, { fill: TONE[1] });
+    if (kind === "sticker") shape(g, c => c.roundRect(-266, -150, 532, 300, 14), { fill: TONE[1] });
 
     const moved = p => p.free || Math.hypot(p.x - p.hx, p.y - p.hy) > 1;
     pieces.forEach(p => { if (moved(p)) drawHole(p); });
-
-    // 캐릭터 얼굴(키트): 무언가를 떼어내는 중이면 놀란 얼굴
-    if (kind === "character") {
-      const pulling = held && !held.broken && held.pull > 4;
-      face(g, 0, 10, 100, { mood: pulling ? "surprised" : "happy", lw: LW / V.sc, eyeGap: 0.36 });
-    }
 
     const o = order();
     o.forEach(p => { if (!p.free) drawPiece(p, held && held.p === p); });

@@ -1,4 +1,5 @@
 import { rng, clamp, localPoint, fitCanvas } from "../../lib/util.js";
+import { TONE } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -215,14 +216,13 @@ export default function demo(api) {
           const t = (now - c.jig) / 380;
           if (t < 1) jx = Math.sin(t * Math.PI * 7) * 6 * (1 - t);
         }
+        // 카드: 외곽선 없는 톤 면. 선택되면 가는 강조색 테두리와 점이 생긴다
         g.save(); g.globalAlpha = ma; g.translate(c.x + jx, c.y);
-        g.fillStyle = C.note; g.beginPath();
+        g.fillStyle = TONE[1]; g.beginPath();
         g.roundRect ? g.roundRect(0, 0, c.w, c.h, 8) : g.rect(0, 0, c.w, c.h);
         g.fill();
-        g.lineWidth = 1 + c.sel * 1.5; g.strokeStyle = c.sel > 0.02 ? C.accent : C.ink;
-        if (c.sel < 0.02) g.lineWidth = 1;
-        g.stroke();
         if (c.sel > 0.02) {
+          g.globalAlpha = ma * c.sel; g.lineWidth = 1.5; g.strokeStyle = C.accent; g.stroke(); g.globalAlpha = ma;
           g.fillStyle = C.accent;
           g.beginPath(); g.arc(c.w - 10, 10, 4.5 * c.sel, 0, TAU); g.fill();
         }

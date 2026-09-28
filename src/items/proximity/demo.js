@@ -1,4 +1,5 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
+import { TONE } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -84,9 +85,10 @@ export default function demo(api) {
     o.s += (ts - o.s) * e; o.dx += (tx - o.dx) * e; o.dy += (ty - o.dy) * e;
     return d;
   };
-  const colorOf = o => {
+  const TONE2 = hex(TONE[2]);
+  const colorOf = (o, from = INK) => {
     const k = clamp(o.heat, 0, 1);
-    return `rgb(${lerp(INK[0], ACC[0], k) | 0},${lerp(INK[1], ACC[1], k) | 0},${lerp(INK[2], ACC[2], k) | 0})`;
+    return `rgb(${lerp(from[0], ACC[0], k) | 0},${lerp(from[1], ACC[1], k) | 0},${lerp(from[2], ACC[2], k) | 0})`;
   };
 
   api.frame(dt => {
@@ -132,9 +134,10 @@ export default function demo(api) {
       for (const o of icons) {
         const sz = base * o.s;
         const ix = x + o.dx, iy = yb - sz + o.dy;
-        g.fillStyle = o.heat > 0.01 ? colorOf(o) : C.note;
+        // 아이콘: 외곽선 없는 톤 면. 달아오르면 강조색으로
+        g.fillStyle = o.heat > 0.01 ? colorOf(o, TONE2) : TONE[2];
         g.beginPath(); g.roundRect ? g.roundRect(ix, iy, sz, sz, sz * 0.22) : g.rect(ix, iy, sz, sz);
-        g.fill(); g.lineWidth = 1.5; g.strokeStyle = C.ink; g.stroke();
+        g.fill();
         x += sz + gap;
       }
       g.globalAlpha = 1;

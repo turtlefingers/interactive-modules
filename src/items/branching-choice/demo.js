@@ -1,5 +1,3 @@
-import { cat, ILLO } from "../../lib/draw.js";
-
 export default function demo(api) {
   const { el, S } = api;
 
@@ -27,10 +25,6 @@ export default function demo(api) {
     e_promise: { end: "내일의 약속", t: "연탄은 고개를 끄덕이고 어둠 속으로 사라졌다. 두부는 내일 밤이 벌써 기다려진다." }
   };
   const ENDS = Object.keys(N).filter(k => N[k].end);
-  // 장면마다 두부의 표정 (그림 키트 cat의 mood)
-  const MOOD = { start: "neutral", shiny: "surprised", roof: "happy", cap: "happy", mouse: "neutral", friend: "happy",
-    e_home: "sleepy", e_moon: "sad", e_fish: "happy", e_treasure: "happy", e_party: "happy", e_polite: "neutral", e_tower: "happy", e_promise: "happy" };
-
   /* ---------- 지도 배치: 깊이는 가로, 결말은 오른쪽 끝에 세로로 ---------- */
   const MAXD = 3;
   let row = 0;
@@ -50,7 +44,6 @@ export default function demo(api) {
       padding: 64px 32px 72px; }
     .branching-choice-card { width: 440px; max-width: 100%; display: flex; flex-direction: column; gap: 18px; }
     .branching-choice-meta { font-size: 13px; color: var(--ink-3); display: flex; justify-content: space-between; }
-    .branching-choice-cat { display: block; width: 96px; height: 80px; margin-bottom: 4px; }
     .branching-choice-text { font-size: 18px; line-height: 1.65; color: var(--ink); min-height: 5.2em; word-break: keep-all; cursor: default; }
     .branching-choice-text .caret { display: inline-block; width: 2px; height: 1em; background: var(--ink); vertical-align: -2px; margin-left: 2px;
       animation: branching-choice-blink 1s steps(1) infinite; }
@@ -100,7 +93,7 @@ export default function demo(api) {
   root.innerHTML = `
     <div class="branching-choice-card">
       <div class="branching-choice-meta"><span class="step"></span><span class="found"></span></div>
-      <div class="branching-choice-body"><canvas class="branching-choice-cat"></canvas><div class="branching-choice-endtag"></div><div class="branching-choice-text"></div></div>
+      <div class="branching-choice-body"><div class="branching-choice-endtag"></div><div class="branching-choice-text"></div></div>
       <div class="branching-choice-choices"></div>
       <button class="branching-choice-back">← 한 단계 뒤로</button>
     </div>
@@ -109,18 +102,6 @@ export default function demo(api) {
   const card = $(".branching-choice-card"), body = $(".branching-choice-body"), textEl = $(".branching-choice-text");
   const endTag = $(".branching-choice-endtag"), choicesEl = $(".branching-choice-choices"), backBtn = $(".branching-choice-back");
   const stepEl = $(".step"), foundEl = $(".found"), mapWrap = $(".branching-choice-mapwrap"), svg = $(".branching-choice-map");
-
-  /* ---------- 두부 그림 (그림 키트 cat) ---------- */
-  const catCv = $(".branching-choice-cat");
-  const CW = 96, CH = 80, dpr = window.devicePixelRatio || 1;
-  catCv.width = CW * dpr; catCv.height = CH * dpr;
-  const cg = catCv.getContext("2d");
-  const drawCat = t => {
-    cg.setTransform(dpr, 0, 0, dpr, 0, 0);
-    cg.clearRect(0, 0, CW, CH);
-    const id = path[path.length - 1];
-    cat(cg, 40, CH - 6, { size: 68, color: ILLO.paper, mood: MOOD[id] || "neutral", look: { x: 0.4, y: 0 }, tailT: t / 500 });
-  };
 
   /* ---------- 지도 그리기 ---------- */
   const MW = 400, ROWH = 34, MH = ROWS * ROWH + 16;
@@ -254,8 +235,7 @@ export default function demo(api) {
   applyModes();
   renderScene();
 
-  api.frame((dt, t) => {
-    drawCat(t);
+  api.frame(dt => {
     if (typing) {
       const full = cur().t;
       typed += dt / S.speed;

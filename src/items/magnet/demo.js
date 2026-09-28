@@ -1,4 +1,5 @@
 import { rng, clamp, dist, localPoint, fitCanvas } from "../../lib/util.js";
+import { TONE } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -142,7 +143,7 @@ export default function demo(api) {
   const drawShape = (o, x, y) => {
     g.save();
     g.translate(x, y); g.rotate(o.rot);
-    const col = o.state === "stuck" ? C.accent : C.ink3; // 바닥에 있으면 회색, 붙으면 강조색
+    const col = o.state === "stuck" ? C.accent : TONE[3]; // 바닥에 있으면 톤, 붙으면 강조색 (외곽선 없는 실루엣)
     g.fillStyle = col; g.strokeStyle = col;
     const r = o.r;
     if (o.shape === "circle") { g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill(); }

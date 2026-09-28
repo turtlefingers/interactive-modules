@@ -36,7 +36,7 @@ export default {
     { name: "Picrew", url: "https://picrew.me/", note: "부위별 버튼을 눌러 캐릭터를 만드는 아바타 메이커 모음이다." }
   ],
   tags: ["Mouse", "Click", "Select", "Morph", "UI"],
-  reads: "그룹마다 고른 옵션 하나 — 네 그룹의 선택값 조합으로 결과물과 가격이 정해진다.",
+  reads: "그룹마다 고른 옵션 하나 — 다섯 그룹의 선택값 조합으로 결과물과 가격이 정해진다.",
   readouts: [
     { key: "pick", label: "방금 고른 옵션" },
     { key: "count", label: "바꾼 횟수" },

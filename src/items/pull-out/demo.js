@@ -1,5 +1,5 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, shape, tube, ellipse, leaf, line } from "../../lib/draw.js";
+import { ILLO, TONE, LINE, shape, ellipse, leaf, line } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -14,7 +14,7 @@ export default function demo(api) {
   el.appendChild(root);
   const { g, size } = fitCanvas(api, { parent: root });
 
-  const INK = ILLO.ink, ACC = "#ff5a36", SOIL = "#e3dccd", LW = 3;
+  const INK = ILLO.ink, ACC = "#ff5a36", SOIL = TONE[3], SOIL_EDGE = TONE[4];
   const KINDS = {
     weed: { root: 46, resist: 0.6, name: "잡초", obj: "잡초를", half: 8 },
     carrot: { root: 78, resist: 1, name: "당근", obj: "당근을", half: 14 },
@@ -41,41 +41,43 @@ export default function demo(api) {
 
   const need = o => S.threshold * (S.perObject ? KINDS[o.kind].resist : 1);
 
-  /* ---------- 그리기 (그림 키트 스타일: 3px 외곽선 + 평면 단색) ---------- */
+  /* ---------- 그리기 (외곽선 없는 실루엣: 당근 주황, 무 분홍, 잡초 초록 + 1.5px 잉크 줄기) ---------- */
   function drawPlant(o, x, y, rot, jit = 0) {
     const k = KINDS[o.kind], L = k.root;
     g.save(); g.translate(x, y); g.rotate(rot + jit);
-    // 잎
+    // 잎: 줄기는 가는 잉크 선, 잎은 초록 실루엣
     if (o.kind === "weed") {
       [-0.55, -0.1, 0.4].forEach((a, j) => {
         const ex = Math.sin(a) * 22, ey = -30 + j * 3;
-        tube(g, [[0, 0], [Math.sin(a) * 8, -16], [ex, ey]], { color: ILLO.green, w: 4, lw: LW });
-        leaf(g, ex + Math.sin(a) * 6, ey - 6, { size: 18, angle: a - Math.PI / 2, lw: LW });
+        line(g, [[0, 0], [Math.sin(a) * 8, -16], [ex, ey]]);
+        leaf(g, ex + Math.sin(a) * 6, ey - 6, { size: 18, angle: a - Math.PI / 2 });
       });
     } else if (o.kind === "carrot") {
       [-0.45, 0, 0.45].forEach(a => {
         const ex = Math.sin(a) * 26, ey = -Math.cos(a) * 38;
-        tube(g, [[0, 0], [ex, ey]], { color: ILLO.green, w: 4, lw: LW });
-        leaf(g, ex + Math.sin(a) * 8, ey - Math.cos(a) * 8, { size: 20, angle: a - Math.PI / 2, lw: LW });
+        line(g, [[0, 0], [ex, ey]]);
+        leaf(g, ex + Math.sin(a) * 8, ey - Math.cos(a) * 8, { size: 20, angle: a - Math.PI / 2 });
       });
     } else {
       [-0.5, 0, 0.5].forEach(a => {
         const ex = Math.sin(a) * 14, ey = -Math.cos(a) * 12;
-        leaf(g, ex + Math.sin(a) * 18, ey - Math.cos(a) * 18, { size: 44, angle: a - Math.PI / 2, lw: LW });
+        line(g, [[0, 0], [ex, ey]]);
+        leaf(g, ex + Math.sin(a) * 18, ey - Math.cos(a) * 18, { size: 44, angle: a - Math.PI / 2 });
       });
     }
     // 뿌리
     if (o.kind === "weed") {
+      // 잡초 뿌리: 가는 잉크 선 다발
       const pts = [];
       for (let s = 0; s <= L; s += 6) pts.push([Math.sin(s * 0.25) * 3, s]);
-      tube(g, pts, { color: ILLO.yellow, w: 4, lw: LW });
-      [[10, -1], [22, 1], [32, -1]].forEach(([yy, d]) => tube(g, [[0, yy], [d * 8, yy + 6], [d * 12, yy + 12]], { color: ILLO.yellow, w: 3, lw: LW }));
+      line(g, pts, { lw: LINE + 0.5 });
+      [[10, -1], [22, 1], [32, -1]].forEach(([yy, d]) => line(g, [[0, yy], [d * 8, yy + 6], [d * 12, yy + 12]]));
     } else if (o.kind === "carrot") {
-      shape(g, c => { c.moveTo(-13, 0); c.quadraticCurveTo(-12, L * 0.5, 0, L); c.quadraticCurveTo(12, L * 0.5, 13, 0); c.closePath(); }, { fill: ILLO.orange, lw: LW });
-      [0.3, 0.55].forEach((s, j) => line(g, [[j % 2 ? 6 : -8, L * s], [j % 2 ? 1 : -3, L * s + 3]], { lw: LW * 0.7 }));
+      shape(g, c => { c.moveTo(-13, 0); c.quadraticCurveTo(-12, L * 0.5, 0, L); c.quadraticCurveTo(12, L * 0.5, 13, 0); c.closePath(); }, { fill: ILLO.orange });
+      [0.3, 0.55].forEach((s, j) => line(g, [[j % 2 ? 6 : -8, L * s], [j % 2 ? 1 : -3, L * s + 3]], { lw: LINE * 0.8 }));
     } else {
-      shape(g, c => { c.moveTo(-10, 0); c.bezierCurveTo(-30, 8, -28, L * 0.75, 0, L * 0.85); c.bezierCurveTo(28, L * 0.75, 30, 8, 10, 0); c.closePath(); }, { fill: ILLO.pink, lw: LW });
-      tube(g, [[0, L * 0.85], [1, L * 0.98], [-2, L * 1.1]], { color: ILLO.pink, w: 3, lw: LW });
+      shape(g, c => { c.moveTo(-10, 0); c.bezierCurveTo(-30, 8, -28, L * 0.75, 0, L * 0.85); c.bezierCurveTo(28, L * 0.75, 30, 8, 10, 0); c.closePath(); }, { fill: ILLO.pink });
+      line(g, [[0, L * 0.85], [1, L * 0.98], [-2, L * 1.1]]);
     }
     g.restore();
   }
@@ -177,13 +179,13 @@ export default function demo(api) {
       }
     }
 
-    // 흙
+    // 흙: 톤 띠. 윗면은 한 단계 어두운 톤 (잉크 선 없음)
     g.fillStyle = SOIL; g.fillRect(0, groundY, size.w, size.h - groundY);
-    g.strokeStyle = INK; g.lineWidth = LW; g.beginPath(); g.moveTo(0, groundY); g.lineTo(size.w, groundY); g.stroke();
+    g.fillStyle = SOIL_EDGE; g.fillRect(0, groundY, size.w, 5);
     // 뽑힌 자리 구멍
     for (const o of objs) {
       if (o.state === "planted" || o.state === "tug") continue;
-      ellipse(g, o.hx, groundY + 2, 16, 5, { fill: ILLO.grey, lw: LW });
+      ellipse(g, o.hx, groundY + 3, 16, 5, { fill: TONE[5] });
     }
 
     // 뽑힌 것들

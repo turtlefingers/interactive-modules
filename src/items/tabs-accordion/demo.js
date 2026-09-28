@@ -1,17 +1,17 @@
-import { ILLO } from "../../lib/draw.js";
+import { ILLO, TONE, LINE } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
   const INK = ILLO.ink;
   const DATA = [
-    // 행성 그림: 외곽선 있는 평면 원 + 잉크 디테일 한두 개 (그림 키트 규칙)
-    { name: "수성", r: 14, fill: ILLO.grey, orbit: "88일", moons: "0개", detail: `<circle cx="26" cy="27" r="2.5"/><circle cx="34" cy="34" r="1.8"/>`,
+    // 행성 그림: 외곽선 없는 톤 원판 + 가는(1.5px) 잉크 호 한두 개. 강조색은 화성 하나
+    { name: "수성", r: 14, fill: TONE[3], orbit: "88일", moons: "0개", detail: `<path d="M23 25 a3 3 0 1 0 6 0 M31 32 a2 2 0 1 0 4 0"/>`,
       t: "태양에 가장 가까운 행성이다. 대기가 거의 없어서 낮과 밤의 온도 차가 매우 크다." },
-    { name: "금성", r: 22, fill: ILLO.yellow, orbit: "225일", moons: "0개", detail: `<path d="M14 26 q10 -6 20 0 t16 2"/>`,
+    { name: "금성", r: 22, fill: TONE[1], orbit: "225일", moons: "0개", detail: `<path d="M14 26 q10 -6 20 0 t16 2 M18 36 q8 -5 16 0"/>`,
       t: "두꺼운 이산화탄소 대기 때문에 표면이 약 460°C로, 태양계 행성 중 가장 뜨겁다. 대부분의 행성과 반대 방향으로 자전한다." },
-    { name: "지구", r: 23, fill: ILLO.blue, orbit: "365일", moons: "1개", detail: `<path d="M20 20 q8 -6 14 0 q6 6 -2 10 q-8 4 -12 -2 q-4 -4 0 -8z" style="fill:${ILLO.green}"/>`,
+    { name: "지구", r: 23, fill: TONE[4], orbit: "365일", moons: "1개", detail: `<path d="M20 20 q8 -6 14 0 q6 6 -2 10 q-8 4 -12 -2 q-4 -4 0 -8" style="stroke:${TONE[0]}"/>`,
       t: "표면의 약 71%가 물로 덮여 있다. 지금까지 알려진 행성 중 생명이 사는 유일한 곳이다." },
-    { name: "화성", r: 17, fill: ILLO.red, orbit: "687일", moons: "2개", detail: `<circle cx="33" cy="26" r="2.5"/><path d="M22 36 q6 3 12 0"/>`,
+    { name: "화성", r: 17, fill: "var(--accent)", orbit: "687일", moons: "2개", detail: `<path d="M30 25 a3 3 0 1 0 6 0 M22 36 q6 3 12 0"/>`,
       t: "흙 속의 산화철 때문에 붉게 보인다. 태양계에서 가장 높은 화산인 올림푸스 산이 있다." }
   ];
   const EASE = { smooth: "cubic-bezier(.2,.8,.2,1)", elastic: "cubic-bezier(.3,1.35,.5,1)", none: "linear" };
@@ -33,8 +33,8 @@ export default function demo(api) {
     .tabs-accordion-panelwrap { position: relative; overflow: hidden; }
     .tabs-accordion-panel { display: grid; grid-template-columns: 72px 1fr; gap: 20px; padding: 22px 4px; align-items: start; }
     .tabs-accordion-panel svg { width: 72px; height: 72px; }
-    .tabs-accordion-planet * { stroke: ${INK}; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-    .tabs-accordion-planet path, .tabs-accordion-planet circle:not(:first-child) { fill: none; }
+    .tabs-accordion-planet circle { stroke: none; }
+    .tabs-accordion-planet path { fill: none; stroke: ${INK}; stroke-width: ${LINE}; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
     .tabs-accordion-panel p { margin: 0 0 12px; font-size: 15px; line-height: 1.65; color: var(--ink); word-break: keep-all; }
     .tabs-accordion-facts { display: flex; gap: 22px; font-size: 13px; color: var(--ink-3); }
     .tabs-accordion-facts b { color: var(--ink); font-weight: 600; margin-left: 5px; }

@@ -1,5 +1,6 @@
 import { rng, clamp, dist, localPoint, fitCanvas } from "../../lib/util.js";
-import { bird, ILLO } from "../../lib/draw.js";
+import { TONE } from "../../lib/draw.js";
+import { drawAnimal } from "../../lib/animals.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -29,7 +30,7 @@ export default function demo(api) {
       if (x < 240 && y < 64) continue;
       birds.push({
         x, y, vx: 0, vy: 0, hx: x / w, hy: y / h, a: rand() * Math.PI * 2, fear: 0,
-        s: 6 + rand() * 3, ph: rand() * 10, peck: rand() * 10, col: rand() < 0.5 ? ILLO.blue : ILLO.green
+        s: 6 + rand() * 3, ph: rand() * 10, peck: rand() * 10
       });
     }
   };
@@ -59,11 +60,20 @@ export default function demo(api) {
 
   let homeVis = S.returnHome ? 1 : 0;
 
-  /* ---------- 새 그리기: 진행 방향을 가리키는 납작한 화살촉 ---------- */
+  /* ---------- 새 그리기: 참새 실루엣(animals.js, CC0). 평소에는 톤, 놀라면 강조색 ----------
+     앉아 있을 때는 옆모습(sparrow, 오른쪽을 본다 → 왼쪽을 보면 뒤집는다), 날 때는 위에서 본 모습(sparrow-fly, 머리가 위쪽 → 진행 방향으로 돌린다) */
   const drawBird = (b, flying) => {
-    // 날 때는 날개를 퍼덕이고, 앉아 있을 때는 접고 모이를 쪼듯 고개를 끄덕인다
-    const flap = flying ? Math.sin(b.ph) : 0.35 + Math.max(0, Math.sin(b.peck)) * 0.15;
-    bird(g, b.x, b.y, { size: b.s * 3.4, color: b.fear > 0.12 ? ILLO.orange : b.col, angle: b.a, flap, lw: 2 });
+    const color = b.fear > 0.12 ? ACC : TONE[5];
+    if (flying) {
+      // 날갯짓: 위아래로 살짝 출렁이고 ±0.15rad 흔들린다
+      const flap = Math.sin(b.ph);
+      drawAnimal(g, "sparrow-fly", b.x, b.y + flap * 1.5, b.s * 3, { color, angle: b.a + Math.PI / 2 + flap * 0.15, anchor: "center" });
+    } else {
+      // 앉아서 모이를 쪼듯 고개를 끄덕인다
+      const flip = Math.cos(b.a) < 0;
+      const nod = Math.max(0, Math.sin(b.peck)) * 0.12 * (flip ? -1 : 1);
+      drawAnimal(g, "sparrow", b.x, b.y, b.s * 3.4, { color, flip, angle: nod, anchor: "center" });
+    }
   };
 
   /* ---------- 루프 ---------- */
