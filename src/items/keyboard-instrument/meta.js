@@ -1,0 +1,56 @@
+export default {
+  name: "키보드 악기", nameEn: "Keyboard Instrument",
+  aliases: ["악기 연주", "비주얼 신스", "Visual Synth", "Typing Sound", "타자 악기"],
+  input: "글자 키 누르기",
+  effect: "키마다 다른 소리와 그래픽",
+  definition: "키보드의 글자 키를 건반처럼 연주하기",
+  hint: "아무 글자 키나 눌러 연주하기",
+  description: [
+    "글자 키 하나하나에 서로 다른 음과 짧은 그래픽 애니메이션이 붙어 있다. 누르는 순간 소리가 나고 그 키 자리에서 도형이 터져 나온다. 타자를 치듯 두드리기만 해도 음악과 그림이 함께 만들어진다.",
+    "화면 배치를 실제 키보드와 똑같이 두면 <strong>손의 위치가 곧 화면의 위치</strong>가 된다. 아래 줄은 낮은 음, 위 줄은 높은 음이라 몇 번만 눌러봐도 규칙을 몸으로 익힌다. 무엇을 쓰는지가 아니라 <strong>어떻게 두드리는지</strong>가 결과가 되는 타이핑이다."
+  ],
+  uses: [
+    "패타탭(Patatap)처럼 키마다 소리와 애니메이션이 붙은 인터랙티브 작업",
+    "크롬 뮤직 랩 같은 음악 교육용 웹 실험",
+    "개러지밴드의 '키보드로 연주하기(Musical Typing)'",
+    "전시장과 공연의 라이브 비주얼 퍼포먼스"
+  ],
+  designPoints: [
+    "펜타토닉(5음) 음계를 쓰면 아무 키나 마구 눌러도 불협화음이 거의 나지 않는다. 처음 만지는 사람도 '잘 친다'는 기분을 느낀다.",
+    "소리는 브라우저 정책 때문에 사용자의 첫 입력 이후에만 켤 수 있다. 첫 키를 누를 때 오디오를 만들고, 소리는 작게 시작한다.",
+    "키는 글자가 아니라 키의 위치(<code>KeyboardEvent.code</code>)로 읽는다. 한글 입력 상태에서도 같은 키가 같은 음을 낸다.",
+    "소리의 성질과 그림의 성질을 짝지으면 기억하기 쉽다. 높은 음은 작고 빠른 그림, 낮은 음은 크고 느린 그림처럼 맞춘다."
+  ],
+  prompts: {
+    simple: "키보드 악기(Keyboard Instrument) 인터랙션을 만든다. 키보드의 알파벳 키 26개가 각각 다른 음과 다른 도형 애니메이션을 가지고 있어서, 키를 누르는 순간 그 음이 짧게 울리고 화면의 그 키 자리에서 도형이 퍼졌다 사라진다. 글자를 입력하는 것이 아니라 키를 건반처럼 연주하는 것이다.",
+    detailed: "키보드 악기(Keyboard Instrument) 인터랙션을 만든다. 화면 가운데에 실제 키보드와 같은 배치로 Q~P, A~L, Z~M 세 줄의 네모 칸을 옅게 그리고 칸마다 왼쪽 위에 글자를 작게 적는다. 키를 글자가 아닌 키 위치로 읽어, 입력 언어와 상관없이 같은 키가 같은 음을 내게 한다. 아래 줄은 도3, 가운데 줄은 도4, 위 줄은 도5에서 시작해 왼쪽에서 오른쪽으로 펜타토닉 음계(도 레 미 솔 라)를 따라 올라간다. 키를 누르는 순간 그 음이 짧게(0.3~0.9초, 낮은 음일수록 길게) 울리며 부드럽게 사라지고, 화면의 그 키 칸이 잠깐 칠해지며 칸 가운데에서 도형 애니메이션이 퍼졌다 투명해진다. 도형은 열마다 다르게(원, 도는 사각형, 삼각형, 가로선, 방사선, 겹 물결) 하고, 색은 줄마다 다르게 한다. 키를 누르고 있을 때의 자동 반복은 무시하고, ⌘나 Ctrl과 함께 누른 키는 연주하지 않는다. 소리는 첫 키 입력 때 켜고 전체 음량은 작게 한다. 스페이스를 누르면 화면의 애니메이션을 모두 지운다. 터치 화면에서는 칸을 눌러 연주한다. 녹음, 반주, 박자 맞추기 같은 추가 기능은 넣지 않는다."
+  },
+  related: [
+    { label: "입력만 다른 같은 효과", items: [{ id: "step-sequencer", text: "스텝 시퀀서 (버튼으로 박자 찍기)" }, { id: "cursor-emitter", text: "커서 이미터 (움직임으로 그리기)" }] },
+    { label: "헷갈리는 개념", items: [{ id: "chat", text: "대화형 인터페이스 (쓴 문장을 읽음)" }] },
+    { label: "함께 쓰이는 것", items: [{ id: "shortcut", text: "단축키" }] }
+  ],
+  references: [
+    { name: "Patatap", url: "https://patatap.com/", note: "키마다 소리와 애니메이션이 붙은 대표 작업이다. Space로 배경과 소리 묶음이 바뀐다." },
+    { name: "Chrome Music Lab", url: "https://musiclab.chromeexperiments.com/", note: "누구나 두드려서 음악을 배우는 웹 실험 모음이다." },
+    { name: "Web Audio API — MDN", url: "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API", note: "브라우저에서 음을 직접 만드는 방법이다." }
+  ],
+  tags: ["Keyboard", "Type", "Sound", "Spawn", "Scale"],
+  reads: "어떤 키를 눌렀는지(키의 위치) — 키마다 정해진 음 높이와 도형이 있고, 누른 순간 한 번 울리고 그린다.",
+  readouts: [
+    { key: "key", label: "누른 키" },
+    { key: "note", label: "음 이름" },
+    { key: "freq", label: "주파수" },
+    { key: "count", label: "누른 횟수" }
+  ],
+  variations: [
+    { name: "음계", desc: "펜타토닉은 5음이라 아무렇게나 눌러도 어울린다. 장음계는 7음이라 멜로디는 풍부하지만 부딪히는 음이 생긴다.",
+      control: { type: "seg", key: "scale", default: "penta", options: [["penta", "펜타토닉"], ["major", "장음계"]] } },
+    { name: "그래픽", desc: "도형은 열마다 다른 모양, 물결은 음 높이만큼 촘촘한 선, 글자는 누른 글자 자체가 커진다.",
+      control: { type: "seg", key: "style", default: "shape", options: [["shape", "도형"], ["wave", "물결"], ["letter", "글자"]] } },
+    { name: "소리", desc: "끄면 그래픽만 나온다. 소리가 있을 때와 없을 때 두드리는 재미가 얼마나 다른지 비교한다.",
+      control: { type: "toggle", key: "sound", default: true } },
+    { name: "키 이름 보이기", desc: "끄면 칸이 사라지고 누를 때만 잠깐 보인다. 배치를 외운 뒤의 화면이다.",
+      control: { type: "toggle", key: "labels", default: true } }
+  ]
+};

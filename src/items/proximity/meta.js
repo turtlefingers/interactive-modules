@@ -1,0 +1,57 @@
+export default {
+  name: "근접 반응", nameEn: "Proximity Effect",
+  aliases: ["근처로 갈수록 영향 미치기", "Dock Magnification", "Fisheye", "근처 왜곡", "불붙이기"],
+  input: "마우스 움직임 · 누르고 움직이기",
+  effect: "거리에 따라 세기가 달라지는 변형",
+  definition: "커서에 가까울수록 더 크게 반응하는 개체들",
+  hint: "점들 위로 커서를 지나가보기",
+  description: [
+    "화면에 고정된 여러 개체가 커서와의 <strong>거리</strong>를 재서, 가까울수록 강하게 반응한다. 커지거나, 작아지거나, 커서 쪽으로 끌리거나, 렌즈처럼 휘거나, 불이 붙듯 색이 달아오른다. 커서 둘레에 보이지 않는 영향권이 생겨, 커서가 주변을 건드리며 지나가는 감각을 준다.",
+    "개체가 커서에 달라붙는 자석이나 멀리 달아나는 도망가기와 달리, 근접 반응은 <strong>제자리에서 거리만큼만</strong> 변했다가 커서가 멀어지면 원래대로 돌아온다. 누르고 있을 때만 반응하게 하면 누르고 움직이기 입력이 된다."
+  ],
+  uses: [
+    "macOS 독에서 커서 근처의 아이콘이 커지는 확대 효과",
+    "커서에 살짝 끌려오는 마그네틱 버튼 (포트폴리오 사이트에서 흔하다)",
+    "점이나 글자가 커서 둘레에서 부풀거나 비켜나는 인터랙티브 타이포그래피와 배경",
+    "게임에서 캐릭터가 지나간 자리의 풀이 눕거나 불이 옮겨붙는 연출"
+  ],
+  designPoints: [
+    "세기는 <code>1 − 거리 ÷ 반경</code>처럼 거리를 0~1 값으로 바꿔 정한다. 이 값을 어떤 곡선으로 바꾸는지(감쇠 곡선)에 따라 경계가 부드럽거나 또렷해진다.",
+    "거리는 개체의 원래 자리에서 잰다. 움직인 뒤의 자리에서 재면 개체가 커서를 쫓거나 떨리는 되먹임이 생긴다.",
+    "독처럼 한 줄로 놓인 개체가 커지면 이웃을 옆으로 밀어내야 겹치지 않는다.",
+    "반응이 즉시 바뀌지 않고 조금씩 따라가게 하면, 커서가 빠르게 지나갈 때 물결처럼 번진다."
+  ],
+  prompts: {
+    simple: "근접 반응(Proximity Effect) 인터랙션을 만든다. 화면 가득 점이 격자로 놓여 있고, 누르지 않고 커서를 움직이면 커서에서 반경 140px 안의 점들이 가까울수록 크게 커지고, 멀어지면 원래 크기로 돌아온다. 점들은 자리를 떠나 커서를 따라가지 않고 제자리에서 거리만큼만 변한다.",
+    detailed: "근접 반응(Proximity Effect) 인터랙션을 만든다. 크림색 화면에 지름 6px의 먹색 점이 34px 간격 격자로 화면을 채운다. 사용자가 누르지 않고 커서를 움직이면, 각 점은 자기 원래 자리에서 커서까지의 거리를 재서 반경 140px 안에 있을 때만 반응한다. 세기는 1 − (거리 ÷ 140)을 부드러운 곡선(가운데는 평평하고 경계로 갈수록 완만하게 0이 되는 곡선)으로 바꾼 0~1 값이고, 점의 크기는 1 + 세기 × 2배가 된다. 크기는 목표값으로 즉시 바뀌지 않고 매 프레임 남은 차이의 20%씩 따라가서, 커서가 빠르게 지나가면 물결처럼 번진다. 반경 밖의 점과 커서가 화면 밖으로 나간 뒤의 점은 원래 크기로 부드럽게 돌아온다. 점의 위치는 절대 바뀌지 않는다. 커서는 십자 모양으로 두고, 터치에서는 손가락이 닿아 움직이는 위치를 쓴다. 끌림, 색 변화, 반경 표시 같은 추가 효과는 넣지 않는다."
+  },
+  related: [
+    { label: "헷갈리는 개념", items: [{ id: "magnet", text: "자석 (가까우면 끌려와 붙음)" }, { id: "flee", text: "도망가기 (멀리 달아남)" }, { id: "cursor-morph", text: "커서 모핑 (올린 대상 하나만 반응)" }] },
+    { label: "함께 쓰이는 것", items: [{ id: "look-at", text: "바라보기" }, { id: "cursor-trail", text: "커서 궤적" }, { id: "scratch-off", text: "스크래치" }] }
+  ],
+  references: [
+    { name: "Wikipedia — Dock (macOS)", url: "https://en.wikipedia.org/wiki/Dock_(macOS)", note: "커서 근처 아이콘이 커지는 확대(magnification)의 대표 사례다." }
+  ],
+  tags: ["Mouse", "Move", "Scale", "Attract", "Deform"],
+  reads: "개체마다 자기 원래 자리에서 커서까지의 거리. 반경 안이면 거리를 0~1 세기로 바꿔 반응 크기를 정한다. 누르고 있을 때만 모드에서는 누름 여부도 읽는다.",
+  readouts: [
+    { key: "cursor", label: "커서 위치" },
+    { key: "nearest", label: "가장 가까운 개체까지 px" },
+    { key: "affected", label: "반경 안의 개체 수" },
+    { key: "peak", label: "가장 큰 세기 0~1" }
+  ],
+  variations: [
+    { name: "반응", desc: "가까울수록 커지거나, 작아지거나, 커서 쪽으로 끌리거나, 렌즈처럼 밀려나 휘거나, 불붙듯 달아올랐다가 천천히 식는다.",
+      control: { type: "seg", key: "effect", default: "scale", options: [["scale", "커짐"], ["shrink", "작아짐"], ["attract", "끌림"], ["distort", "왜곡"], ["ignite", "불붙이기"]] } },
+    { name: "반경", desc: "커서가 영향을 미치는 거리다.",
+      control: { type: "range", key: "radius", min: 40, max: 320, step: 1, default: 140, ends: ["좁게", "넓게"], unit: "px" } },
+    { name: "감쇠 곡선", desc: "거리에 따라 세기가 줄어드는 모양이다. 직선은 고르게, 부드럽게는 경계가 흐리게, 급하게는 커서 바로 곁만 세게 반응한다.",
+      control: { type: "seg", key: "falloff", default: "smooth", options: [["linear", "직선"], ["smooth", "부드럽게"], ["sharp", "급하게"]] } },
+    { name: "배치", desc: "화면 가득한 점 격자, 또는 macOS 독처럼 한 줄로 놓인 아이콘이다. 독에서는 커진 아이콘이 이웃을 밀어낸다.",
+      control: { type: "seg", key: "layout", default: "grid", options: [["grid", "점 격자"], ["dock", "한 줄 (독)"]] } },
+    { name: "누르고 있을 때만", desc: "누른 채 움직일 때만 반응한다. 붓이나 불씨처럼 쓸 때 어울린다.",
+      control: { type: "toggle", key: "pressOnly", default: false } },
+    { name: "가이드선", desc: "커서 둘레에 영향 반경을 원으로 보여준다.",
+      control: { type: "toggle", key: "guide", default: false } }
+  ]
+};

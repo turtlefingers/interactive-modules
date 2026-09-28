@@ -1,0 +1,61 @@
+export default {
+  name: "드래그 앤 드롭", nameEn: "Drag and Drop",
+  aliases: ["옮기기", "스냅", "Snap to Grid", "끌어다 놓기", "파츠 부착"],
+  input: "집어서 옮기고 놓기",
+  effect: "개체 위치 이동",
+  definition: "개체를 집어 원하는 곳에 옮겨 놓기",
+  hint: "파츠를 끌어 붙이기",
+  description: [
+    "개체를 누르면 집어 들고, 누른 채 움직이면 개체가 포인터를 따라오고, 떼면 그 자리에 놓인다. 집은 개체가 살짝 떠오르고, 놓을 수 있는 자리가 미리 표시되고, 놓는 순간 제자리에 딸깍 맞춰지면서 사용자는 물건을 손으로 옮기는 감각을 느낀다.",
+    "보이는 영역 전체를 옮기는 <strong>팬</strong>과 달리, 드래그 앤 드롭은 <strong>개체 하나</strong>를 옮긴다. 놓는 위치를 격자에 맞추면 정리가 되고(스냅), 정해진 자리에 맞추면 캐릭터에 파츠를 붙이거나 퍼즐을 맞추는 놀이가 된다."
+  ],
+  uses: [
+    "Figma, Keynote 같은 편집 툴에서 도형을 옮기고 격자나 안내선에 맞추기",
+    "캐릭터 꾸미기 게임과 아바타 편집기에서 모자, 안경 같은 파츠를 끌어다 붙이기",
+    "직소 퍼즐, 칠교놀이처럼 조각을 제자리에 맞추는 게임",
+    "파일을 폴더나 업로드 영역으로 끌어다 놓기",
+    "셀로판 조각을 겹쳐 새 색을 만드는 인터랙티브 놀이"
+  ],
+  designPoints: [
+    "집는 순간 개체를 <strong>들어 올린다</strong>(그림자, 확대, 살짝 기울임). 지금 무엇을 들고 있는지와, 놓으면 내려앉는다는 것을 알려준다.",
+    "스냅은 두 가지다. <strong>격자 스냅</strong>은 일정 간격으로 끊어 움직여 정렬을 돕고, <strong>자리 스냅</strong>은 가까워지면 목표 자리가 먼저 반응해 놓으면 붙는다는 것을 미리 알려준다.",
+    "집은 개체는 맨 앞으로 올려야 다른 개체 뒤로 숨지 않는다. 끄면 겹친 순서가 그대로 남아 레이어를 쌓는 표현이 된다.",
+    "잡은 지점과 개체 중심의 간격을 유지한다. 누르자마자 개체 중심이 포인터로 튀면 어색하다."
+  ],
+  prompts: {
+    simple: "드래그 앤 드롭(Drag and Drop) 인터랙션을 만든다. 개체를 누른 채 움직이면 개체가 포인터를 따라오고, 떼면 그 자리에 놓이며, 정해진 자리 근처에 놓으면 그 자리에 딱 붙는다. 화면 전체를 옮기는 팬과 달리 개체 하나만 옮긴다.",
+    detailed: "드래그 앤 드롭(Drag and Drop) 인터랙션을 만든다. 화면 왼쪽에 얇은 선으로 그린 달걀 모양 캐릭터가 있고, 오른쪽 파츠 상자에 모자, 안경, 콧수염, 나비넥타이, 꽃, 별 스티커 여섯 개가 놓여 있다. 별을 뺀 다섯 파츠는 캐릭터에 저마다 정해진 자리가 있다. 파츠를 누르면 집어 들어 살짝 커지고 기울어지며 그림자가 생기고, 맨 앞으로 올라온다. 누른 채 움직이면 누른 지점과 파츠 중심의 간격을 유지한 채 포인터를 1:1로 따라온다. 집는 동안 캐릭터 위의 빈 자리가 점선 원으로 나타나고, 들고 있는 파츠의 자리에서 일정 거리 안으로 들어가면 그 원이 강조색으로 바뀌며 파츠가 자리 쪽으로 살짝 끌려간다. 그 상태에서 떼면 파츠가 탄력 있게 자리에 맞춰 붙고, 붙은 수가 올라간다. 붙은 파츠를 다시 집으면 떨어진다. 격자 스냅을 켜면 일정 간격의 격자선이 나타나고, 파츠가 격자 교차점 단위로 끊어서 움직이며 놓일 칸을 점선 상자로 보여준다. 자리 스냅이 격자 스냅보다 먼저다. 파츠는 화면 밖으로 나가지 않는다. 커서는 파츠 위에서 grab, 드는 동안 grabbing이고, 마우스와 터치에서 같게 동작한다. 던지기 관성, 회전, 크기 조절 같은 추가 효과는 넣지 않는다."
+  },
+  related: [
+    { label: "헷갈리는 개념", items: [{ id: "pan", text: "팬 (보이는 영역을 옮김)" }, { id: "drop-zone", text: "드롭 존 (놓는 영역이 반응함)" }] },
+    { label: "같은 동작의 다른 쓰임", items: [{ id: "reorder", text: "순서 바꾸기" }, { id: "merge", text: "합치기" }, { id: "break-apart", text: "떼어내기" }] },
+    { label: "함께 쓰이는 것", items: [{ id: "fling", text: "던지기 (놓을 때 관성)" }, { id: "configurator", text: "컨피규레이터" }] }
+  ],
+  references: [
+    { name: "Apple HIG — Drag and drop", url: "https://developer.apple.com/design/human-interface-guidelines/drag-and-drop", note: "들어 올림, 놓을 수 있는 곳 표시, 놓기 취소 같은 피드백의 기준이다." },
+    { name: "MDN — HTML Drag and Drop API", url: "https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API", note: "웹에서 끌어다 놓기를 다루는 기본 개념을 정리한다." },
+    { name: "Mr. Potato Head (Wikipedia)", url: "https://en.wikipedia.org/wiki/Mr._Potato_Head", note: "몸에 파츠를 끼워 꾸미는 장난감이다. 자리 스냅 놀이의 원형이다." }
+  ],
+  tags: ["Mouse", "Drag", "Translate", "Snap"],
+  reads: "누른 지점과 개체의 간격, 움직이는 포인터 위치, 그리고 놓는 순간의 위치가 어느 자리나 격자 칸에 해당하는지.",
+  readouts: [
+    { key: "pos", label: "개체 위치 x, y" },
+    { key: "moved", label: "집은 곳에서 거리 px" },
+    { key: "drop", label: "놓일 자리" },
+    { key: "attached", label: "붙은 파츠" }
+  ],
+  variations: [
+    { name: "격자 스냅", desc: "격자 교차점 단위로 끊어서 움직이고, 놓을 칸을 미리 보여준다.",
+      control: { type: "toggle", key: "snapGrid", default: false } },
+    { name: "격자 간격", desc: "격자 스냅의 칸 크기다. 작으면 섬세하게, 크면 뚝뚝 끊어 움직인다.",
+      control: { type: "range", key: "gridSize", min: 20, max: 120, step: 5, default: 50, ends: ["촘촘하게", "넓게"], unit: "px" } },
+    { name: "자리 스냅", desc: "파츠가 자기 자리에 가까워지면 자리가 반응하고, 놓으면 딱 붙는다. 끄면 어디든 놓인 그대로다.",
+      control: { type: "toggle", key: "snapSlots", default: true } },
+    { name: "들어 올림", desc: "집은 개체를 키우고 기울이고 그림자를 줘서 손에 들렸다는 것을 보여준다.",
+      control: { type: "toggle", key: "lift", default: true } },
+    { name: "맨 앞으로", desc: "집은 개체를 맨 위 레이어로 올린다. 끄면 원래 겹침 순서를 지킨다.",
+      control: { type: "toggle", key: "front", default: true } },
+    { name: "겹쳐 비치기", desc: "파츠를 셀로판처럼 반투명하게 만들어, 겹친 부분이 더 진해지는 겹침 효과를 만든다.",
+      control: { type: "toggle", key: "blend", default: false } }
+  ]
+};

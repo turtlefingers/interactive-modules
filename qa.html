@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><title>QA</title>
+<style>body{font-family:sans-serif;font-size:13px;padding:16px} iframe{width:980px;height:600px;border:1px solid #ccc;display:block} pre{white-space:pre-wrap}</style></head>
+<body>
+<pre id="log"></pre>
+<iframe id="f"></iframe>
+<script type="module">
+  import { order } from "./src/catalog.js";
+  const f = document.getElementById("f"), log = document.getElementById("log");
+  const results = [];
+  for (const id of order) {
+    const errs = [];
+    await new Promise(res => {
+      f.onload = () => {
+        const w = f.contentWindow;
+        w.addEventListener("error", e => errs.push(e.message));
+        w.addEventListener("unhandledrejection", e => errs.push(String(e.reason)));
+        setTimeout(res, 1500);
+      };
+      f.src = `/${id}/`;
+    });
+    const d = f.contentDocument;
+    const demo = d.querySelector(".demo");
+    const fail = d.body.innerText.includes("데모를 불러오지 못했다") || d.body.innerText.includes("준비 중이다");
+    const sidebarOk = !!d.querySelector("#sidebar h1");
+    const r = { id, mounted: !!demo && demo.children.length > 0, fail, sidebarOk, errs };
+    results.push(r);
+    log.textContent += `${r.mounted && !r.fail && r.sidebarOk && !errs.length ? "OK " : "!! "} ${id}${errs.length ? " " + errs.join(" | ") : ""}${fail ? " FAIL-TEXT" : ""}${!sidebarOk ? " NO-SIDEBAR" : ""}\n`;
+  }
+  window.__QA = results;
+  log.textContent += "DONE";
+</script>
+</body></html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>아이콘 시트 · 인터랙티브 모듈들</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  body { font-family: "Pretendard Variable", sans-serif; background: #f4f2ee; color: #1b1b1a; margin: 0; padding: 24px; }
+  .g { display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; }
+  .c { background: #fff; border-radius: 10px; padding: 12px 6px 8px; text-align: center; font-size: 11px; color: #5d5b57; }
+  .c svg { display: block; margin: 0 auto 6px; }
+</style>
+</head>
+<body>
+<div class="g" id="g"></div>
+<script type="module">
+  import { order } from "./src/catalog.js";
+  import { mainIcon } from "./src/icons.js";
+  document.getElementById("g").innerHTML = order.map(id => `<div class="c">${mainIcon(id, { size: 56, stroke: 1.75, cls: "" })}${id}</div>`).join("");
+</script>
+</body>
+</html>

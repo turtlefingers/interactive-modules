@@ -1,0 +1,191 @@
+import { rng, clamp, dist, localPoint, fitCanvas } from "../../lib/util.js";
+import { bird, ILLO } from "../../lib/draw.js";
+
+export default function demo(api) {
+  const { el, S } = api;
+
+  api.css(`
+    .flee-root { position: absolute; inset: 0; cursor: crosshair; background: var(--board); }
+  `);
+  const root = document.createElement("div");
+  root.className = "flee-root";
+  el.appendChild(root);
+  const { g, size } = fitCanvas(api, { parent: root });
+  const INK3 = api.color("--ink-3") || "#9a9790";
+  const ACC = api.color("--accent") || "#ff5a36";
+
+  /* ---------- 새들 ---------- */
+  let birds = [];
+  const build = () => {
+    const { w, h } = size;
+    const rand = rng(5);
+    const cell = 78;
+    const cols = Math.max(4, Math.floor(w / cell)), rows = Math.max(4, Math.floor(h / cell));
+    const cw = w / cols, ch = h / rows;
+    birds = [];
+    for (let gy = 0; gy < rows; gy++) for (let gx = 0; gx < cols; gx++) {
+      if (rand() < 0.4) continue;
+      const x = (gx + 0.2 + rand() * 0.6) * cw, y = (gy + 0.2 + rand() * 0.6) * ch;
+      if (x < 240 && y < 64) continue;
+      birds.push({
+        x, y, vx: 0, vy: 0, hx: x / w, hy: y / h, a: rand() * Math.PI * 2, fear: 0,
+        s: 6 + rand() * 3, ph: rand() * 10, peck: rand() * 10, col: rand() < 0.5 ? ILLO.blue : ILLO.green
+      });
+    }
+  };
+  build();
+  const homeX = b => b.hx * size.w, homeY = b => b.hy * size.h;
+
+  /* ---------- 포인터 ---------- */
+  const p = { x: -999, y: -999, inside: false, down: false, lx: 0, ly: 0, lt: 0, speed: 0 };
+  const threat = () => p.inside && (!S.pressOnly || p.down);
+  const setPos = e => {
+    const q = localPoint(el, e), now = performance.now();
+    if (p.lt) p.speed = p.speed * 0.6 + Math.hypot(q.x - p.lx, q.y - p.ly) / Math.max(1, now - p.lt) * 16.67 * 0.4;
+    p.lx = q.x; p.ly = q.y; p.lt = now; p.x = q.x; p.y = q.y;
+  };
+  let pulse = null;
+  api.on(root, "pointerenter", e => { p.inside = true; setPos(e); });
+  api.on(root, "pointermove", e => { p.inside = true; setPos(e); api.hideHint(); });
+  api.on(root, "pointerleave", () => { if (!p.down) { p.inside = false; p.lt = 0; } });
+  api.on(root, "pointerdown", e => {
+    e.preventDefault(); root.setPointerCapture(e.pointerId);
+    p.inside = true; p.down = true; setPos(e); api.hideHint();
+    if (S.pressOnly) pulse = { x: p.x, y: p.y, t: 0 };
+  });
+  const up = e => { p.down = false; if (e.pointerType !== "mouse") p.inside = false; };
+  api.on(root, "pointerup", up);
+  api.on(root, "pointercancel", up);
+
+  let homeVis = S.returnHome ? 1 : 0;
+
+  /* ---------- 새 그리기: 진행 방향을 가리키는 납작한 화살촉 ---------- */
+  const drawBird = (b, flying) => {
+    // 날 때는 날개를 퍼덕이고, 앉아 있을 때는 접고 모이를 쪼듯 고개를 끄덕인다
+    const flap = flying ? Math.sin(b.ph) : 0.35 + Math.max(0, Math.sin(b.peck)) * 0.15;
+    bird(g, b.x, b.y, { size: b.s * 3.4, color: b.fear > 0.12 ? ILLO.orange : b.col, angle: b.a, flap, lw: 2 });
+  };
+
+  /* ---------- 루프 ---------- */
+  const NB = 64; // 무리 이웃 거리
+  api.frame((dt, t) => {
+    const { w, h } = size;
+    const on = threat();
+    const R = S.radius, MAX = S.speed;
+    homeVis += ((S.returnHome ? 1 : 0) - homeVis) * 0.1;
+
+    let near = Infinity, fleeing = 0, away = 0, returning = 0;
+    for (const b of birds) {
+      const d = dist(b.x, b.y, p.x, p.y);
+      if (p.inside) near = Math.min(near, d);
+      // 1. 두려움: 반경 안이면 즉시 올라가고, 서서히 가라앉는다
+      if (on && d < R) b.fear = Math.max(b.fear, 0.55 + 0.45 * (1 - d / R));
+      else b.fear *= 0.975;
+    }
+    // 겁은 무리로 번진다
+    if (S.flock > 0) for (const b of birds) {
+      if (b.fear < 0.5) continue;
+      for (const o of birds) if (o !== b && o.fear < b.fear * 0.6 && dist(b.x, b.y, o.x, o.y) < NB * 0.7) o.fear = Math.max(o.fear, b.fear * 0.6 * S.flock);
+    }
+
+    for (const b of birds) {
+      let ax = 0, ay = 0;
+      const d = dist(b.x, b.y, p.x, p.y);
+      const scared = b.fear > 0.12;
+      // 2. 도망 (flee): 위협에서 멀어지는 방향이 원하는 속도
+      if (on && d < R * 1.25) {
+        const k = clamp(1 - d / (R * 1.25), 0, 1);
+        const dx = (b.x - p.x) / (d || 1), dy = (b.y - p.y) / (d || 1);
+        ax += (dx * MAX - b.vx) * 0.35 * (0.3 + k); ay += (dy * MAX - b.vy) * 0.35 * (0.3 + k);
+      }
+      // 3. 무리 짓기: 가까운 이웃과 모이고(응집) 방향을 맞춘다(정렬)
+      let cx = 0, cy = 0, avx = 0, avy = 0, n = 0, sx = 0, sy = 0;
+      for (const o of birds) {
+        if (o === b) continue;
+        const dd = dist(b.x, b.y, o.x, o.y);
+        if (dd < 16 && dd > 0) { sx += (b.x - o.x) / dd * (16 - dd); sy += (b.y - o.y) / dd * (16 - dd); }
+        if (scared && o.fear > 0.12 && dd < NB) { cx += o.x; cy += o.y; avx += o.vx; avy += o.vy; n++; }
+      }
+      ax += sx * 0.05; ay += sy * 0.05;
+      if (n && S.flock > 0) {
+        ax += ((cx / n - b.x) * 0.004 + (avx / n - b.vx) * 0.06) * S.flock * 2;
+        ay += ((cy / n - b.y) * 0.004 + (avy / n - b.vy) * 0.06) * S.flock * 2;
+      }
+      // 4. 진정되면 집으로 (도착 행동: 가까울수록 느려진다) 또는 그 자리에 내려앉기
+      const hx = homeX(b), hy = homeY(b), hd = dist(b.x, b.y, hx, hy);
+      if (!scared) {
+        if (S.returnHome && hd > 1) {
+          const want = Math.min(MAX * 0.55, hd * 0.05);
+          ax += ((hx - b.x) / hd * want - b.vx) * 0.12;
+          ay += ((hy - b.y) / hd * want - b.vy) * 0.12;
+          if (hd > 6) returning++;
+        } else { ax -= b.vx * 0.08; ay -= b.vy * 0.08; }
+      } else if (!(on && d < R * 1.25)) {
+        // 위협에서 벗어나면 조금씩 속도를 줄이며 이리저리 흔들린다
+        ax -= b.vx * 0.025; ay -= b.vy * 0.025;
+        ax += Math.sin(t * 0.004 + b.hx * 40) * 0.12; ay += Math.cos(t * 0.0037 + b.hy * 40) * 0.12;
+      }
+      // 5. 벽
+      const m = 26;
+      if (b.x < m) ax += (m - b.x) * 0.02; if (b.x > w - m) ax -= (b.x - (w - m)) * 0.02;
+      if (b.y < m) ay += (m - b.y) * 0.02; if (b.y > h - m) ay -= (b.y - (h - m)) * 0.02;
+
+      b.vx += ax; b.vy += ay;
+      const sp = Math.hypot(b.vx, b.vy), lim = scared ? MAX : MAX * 0.6;
+      if (sp > lim) { b.vx *= lim / sp; b.vy *= lim / sp; }
+      b.x += b.vx; b.y += b.vy;
+      b.x = clamp(b.x, 4, w - 4); b.y = clamp(b.y, 4, h - 4);
+
+      const sp2 = Math.hypot(b.vx, b.vy);
+      if (sp2 > 0.25) {
+        const ta = Math.atan2(b.vy, b.vx);
+        let da = ta - b.a; da = Math.atan2(Math.sin(da), Math.cos(da));
+        b.a += da * 0.25;
+      } else if (S.returnHome && hd < 3 && on && d < R * 2) {
+        // 집에서 쉬는 중엔 위협 쪽을 흘끔 본다
+        const ta = Math.atan2(p.y - b.y, p.x - b.x);
+        let da = ta - b.a; da = Math.atan2(Math.sin(da), Math.cos(da));
+        b.a += da * 0.05;
+      }
+      b.flying = sp2 > 0.9;
+      b.ph += b.flying ? 0.25 + sp2 * 0.06 : 0;
+      b.peck += b.flying ? 0 : 0.05 + (Math.sin(t * 0.0007 + b.hx * 30) > 0.6 ? 0.2 : 0);
+      if (scared) fleeing++;
+      if (hd > 12) away++;
+    }
+
+    /* 그리기 */
+    g.clearRect(0, 0, w, h);
+    if (homeVis > 0.01) {
+      g.fillStyle = `rgba(0,0,0,${0.16 * homeVis})`;
+      for (const b of birds) { g.beginPath(); g.arc(homeX(b), homeY(b), 1.8, 0, Math.PI * 2); g.fill(); }
+    }
+    if (p.inside) {
+      g.save();
+      g.beginPath(); g.arc(p.x, p.y, R, 0, Math.PI * 2);
+      g.setLineDash([4, 5]); g.strokeStyle = on ? "rgba(27,27,26,.45)" : "rgba(27,27,26,.18)"; g.lineWidth = 1; g.stroke();
+      g.restore();
+    }
+    if (pulse) {
+      pulse.t += dt;
+      const k = pulse.t / 450;
+      if (k >= 1) pulse = null;
+      else { g.beginPath(); g.arc(pulse.x, pulse.y, R * (0.3 + k * 0.9), 0, Math.PI * 2); g.strokeStyle = `rgba(27,27,26,${0.4 * (1 - k)})`; g.lineWidth = 1; g.stroke(); }
+    }
+    const order = birds.slice().sort((a, b) => (a.flying ? 1 : 0) - (b.flying ? 1 : 0));
+    for (const b of order) drawBird(b, b.flying);
+
+    /* 읽는 값과 상태 */
+    api.read("near", near === Infinity ? "–" : Math.round(near) + "px");
+    api.read("fleeing", `${fleeing}마리`);
+    api.read("away", `${away} / ${birds.length}`);
+    api.read("speed", p.inside ? p.speed.toFixed(1) : "0.0");
+    if (p.speed > 0.01) p.speed *= 0.9;
+
+    if (S.pressOnly && !p.down && p.inside && !fleeing) api.status("누르면 놀라서 흩어진다", "idle");
+    else if (fleeing) api.status(`${fleeing}마리 도망 중`, "active");
+    else if (returning) api.status(`집으로 돌아가는 중 · ${returning}마리`, "alt");
+    else if (away && !S.returnHome) api.status(`흩어진 채 쉬는 중 · ${away}마리`, "idle");
+    else api.status("대기", "idle");
+  });
+}

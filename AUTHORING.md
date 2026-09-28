@@ -1,0 +1,124 @@
+# 항목 작성 가이드
+
+「인터랙티브 모듈들」의 항목 하나를 만드는 기준이다. 기준 예시는 `src/items/pan/`(팬 Pan)이다. **작업 전에 pan의 `meta.js`와 `demo.js`를 꼭 읽는다.**
+
+- 항목 하나 = 폴더 하나: `src/items/<id>/meta.js` + `src/items/<id>/demo.js`
+- `<id>`는 `src/catalog.js`에 적힌 주소다. 주소가 곧 URL(`/<id>/`)이 된다.
+- 명칭과 뉘앙스는 프로젝트 루트의 `NAMING-REVIEW.md`를 따른다.
+- 새 npm 패키지를 추가하지 않는다. Canvas 2D, DOM/CSS(3D transform 포함), SVG, Web Audio만 쓴다.
+- 다른 항목 폴더나 공통 파일(`src/lib`, `src/pages`, `src/styles`, `catalog.js`)은 건드리지 않는다.
+
+---
+
+## 1. meta.js — 글 데이터
+
+```js
+export default {
+  name: "팬", nameEn: "Pan",              // NAMING-REVIEW.md의 확정 명칭
+  aliases: ["Board 이동", "패닝"],          // 다른 이름: 노션 원래 이름, 다른 후보 명칭, 흔한 한국어 표현
+  input: "누르고 움직이기",                  // 입력 (카테고리 이름 또는 더 구체적인 입력)
+  effect: "보이는 영역 전체 이동",            // 효과: 짧은 명사구
+  definition: "넓은 지면을 손으로 끌어 둘러보기", // 한 줄 정의: 20자 안팎
+  hint: "누른 채 끌어서 둘러보기",            // 스테이지 왼쪽 위 안내. 무엇을 해보면 되는지 12자 안팎
+  description: ["문단1", "문단2"],          // 2~3문장씩 1~2문단. <strong> 허용
+  uses: ["...", "..."],                    // 쓰임 3~5개
+  designPoints: ["...", "..."],            // 디자인 포인트 2~4개. <code> 허용
+  prompts: { simple: "...", detailed: "..." },
+  related: [                               // 관련 항목 (없으면 빈 배열)
+    { label: "입력만 다른 같은 효과", items: [{ id: "scroll-driven", text: "스크롤 → 이동" }] },
+    { label: "헷갈리는 개념", items: [{ id: "drag-and-drop", text: "드래그 앤 드롭 (대상을 옮김)" }] },
+    { label: "함께 쓰이는 것", items: [{ id: "zoom", text: "확대 · 축소" }] }
+  ],
+  references: [{ name: "Google Maps", url: "https://...", note: "한 줄 코멘트." }],
+  tags: ["Mouse", "Drag", "Translate"],    // catalog.js의 TAGS 어휘에서만 3~5개 (입력 1 + 동작 1 + 효과 1~3)
+  reads: "이 인터랙션이 읽는 입력값 설명 한 문장",
+  readouts: [{ key: "dx", label: "Δx 누른 뒤 가로 이동" }],   // 실시간 수치 2~4개 (2×2 격자로 보인다)
+  variations: [                            // 변주 3~6개
+    { name: "관성", desc: "설명", control: { type: "toggle", key: "inertia", default: true } },
+    { name: "경계", desc: "설명", control: { type: "seg", key: "bound", default: "clamp", options: [["clamp", "멈춤"], ["bounce", "튕김"]] } },
+    { name: "속도", desc: "설명", control: { type: "range", key: "speed", min: 0, max: 1, step: 0.01, default: 0.5, ends: ["느리게", "빠르게"], unit: "px" /* 선택 */ } }
+  ]
+};
+```
+
+### 글쓰기 규칙
+- **문체는 "~이다 / ~한다"체**다. "~해요"체를 쓰지 않는다.
+- 설명은 "무슨 일이 일어나는지 → 사용자가 어떤 감각을 느끼는지" 순서로 쓴다. 헷갈리는 개념이 있으면 설명 안에서 구분한다(예: "드래그가 아니라 팬이다").
+- 한 줄 정의는 명사형으로 끝낸다(예: "~하기", "~하는 버튼").
+- 쓰임에는 실제 서비스, 게임, 앱 사례를 구체적으로 든다.
+- 레퍼런스는 **실제로 존재하는 URL만** 쓴다. 확신이 없으면 넣지 않는다(빈 배열 가능). 위키백과, MDN, Apple HIG, Material Design, 유명 서비스 홈, 유명 인터랙티브 작업처럼 오래 유지되는 주소를 우선한다.
+- related의 id는 `catalog.js`에 있는 id만 쓴다. 해당 항목이 없으면 id 없이 `{ text: "..." }`로 쓴다.
+- 영어 대문자 라벨을 만들지 않는다. 한국어로 쓴다.
+
+### AI 프롬프트 규칙
+- **도구 무관**: HTML, CSS, JavaScript, 라이브러리, API 이름을 쓰지 않는다. 동작으로 설명한다.
+- **간단**: 2~3문장. 무엇을 만드는지, 핵심 동작, 가장 헷갈리기 쉬운 개념과의 차이만 담는다. 문장은 "~(이름) 인터랙션을 만든다."로 시작한다.
+- **상세**: 한 문단(간단의 3~4배). 구성(무엇이 어디에 있는지), 입력과 반응의 정확한 관계(비율, 방향, 기준값), 경계와 예외 처리, 피드백(커서 모양 등), 입력 장치, **넣지 말 것**(추가 효과 금지)까지 담는다.
+- 문체는 "~한다"체의 명세문이다.
+
+---
+
+## 2. demo.js — 데모
+
+```js
+import { rng, clamp, lerp, mod, dist, map, PALETTE, PALETTE_SOFT, localPoint, fitCanvas } from "../../lib/util.js";
+
+export default function demo(api) {
+  const { el, S } = api;           // el: 스테이지를 꽉 채우는 요소, S: 변주 현재값
+  api.css(`.my-thing { ... }`);    // 이 데모 전용 CSS. 클래스 이름은 반드시 <id>- 로 시작한다
+  // ... el 안에 DOM/Canvas/SVG를 만든다
+  api.on(el, "pointerdown", e => { ... });   // 이벤트는 반드시 api.on으로 (다시 시작할 때 자동 해제)
+  api.on(window, "keydown", e => { ... });   // 키보드도 api.on(window, ...)
+  api.frame((dt, t) => { ... });             // 매 프레임 (dt: ms)
+  api.onParam((key, value) => { ... });      // 변주가 바뀔 때 (S는 이미 바뀌어 있다)
+  api.onResize(() => { ... });
+  api.read("dx", 12);                         // 읽는 값 갱신 (readouts의 key)
+  api.status("팬 중", "active");              // 상태 표시: idle | active | alt | ok (변형 모드에서만 보인다)
+  api.flash("클릭으로 인식", "ok");            // 잠깐 보여줄 상태
+  api.hideHint();                             // 사용자가 처음 조작하면 안내를 숨긴다
+  api.timeout(fn, ms); api.interval(fn, ms); api.cleanup(fn);
+  const { w, h } = api.size();
+  return { destroy() { /* 추가 정리가 필요할 때만 */ } };
+}
+```
+
+- 스테이지 오른쪽 위에는 「처음 상태로」 버튼, 왼쪽 위에는 안내, 왼쪽 아래에는 상태 표시가 겹친다. 이 세 곳에 중요한 UI를 두지 않는다(z-index 50 오버레이).
+- 스테이지 크기는 정해져 있지 않다(데스크톱 약 980×850, 모바일 약 375×560). 크기에 맞춰 배치하고 `api.onResize`로 대응한다.
+- `fitCanvas(api)`는 레티나와 리사이즈를 처리한 캔버스를 만들어준다: `const { g, size } = fitCanvas(api);` 그리고 매 프레임 `g.clearRect(0,0,size.w,size.h)`.
+- 포인터 좌표는 `localPoint(el, e)`로 스테이지 기준 좌표로 바꾼다.
+- 마우스와 터치 모두 동작하도록 **Pointer Events**를 쓴다. 끌기 동작은 `el.setPointerCapture(e.pointerId)`를 쓰고 `pointerdown`에서 `e.preventDefault()`를 한다.
+- 키보드 데모는 처리한 키에 `e.preventDefault()`를 해서 페이지가 스크롤되지 않게 한다. 단, 사이드바 입력 요소(`input`, `textarea`)에 포커스가 있으면 반응하지 않는다(`if (e.target.closest("input, textarea, [contenteditable]")) return;` — 데모 안의 입력창은 예외).
+- 소리를 내는 데모는 첫 사용자 입력 때 `AudioContext`를 만들고, `api.cleanup`에서 닫는다. 소리는 작게(gain 0.2 이하).
+- **변주 토글을 끄면 데모가 원래 상태로 부드럽게 돌아와야 한다.** 파라미터를 바꿔도 데모가 멈추거나 초기화되면 안 된다.
+- 데모의 목적은 **개념이 한눈에 보이는 것**이다. 과한 장식 없이, 인터랙션의 핵심이 3초 안에 느껴지게 만든다.
+
+### 스타일
+- **미니멀하게 만든다.** 하이라이트, 광택, 글로우, 장식용 그라데이션을 쓰지 않는다. 납작한 도형, 가는 선, 절제된 색(크림 보드 위에 잉크와 회색, 필요한 곳에만 강조색 하나)으로 인터랙션을 설명하는 데 필요한 것만 남긴다.
+- 페이퍼 스타일: 배경은 `var(--board)`(크림색)가 기본이다. 개체 색은 `PALETTE`/`PALETTE_SOFT` 또는 `var(--c1)`~`var(--c6)`, 강조는 `var(--accent)`(주황), 글자는 `var(--ink)`, `var(--ink-2)`, `var(--ink-3)`을 쓴다.
+- 카드형 개체: `background: var(--note)` 또는 팔레트 색, `border-radius: var(--r-card)`, `box-shadow: var(--shadow-card)`, 호버 시 `var(--shadow-hover)`와 살짝 떠오르기(translateY(-3px) scale(1.015)).
+- 격자 배경이 필요하면 `var(--grid)` 선 100px 간격.
+- 데모 안의 버튼과 텍스트는 사이트와 같은 서체(상속)와 글자 크기(13 / 15 / 18px)를 쓴다.
+- 커서 모양을 인터랙션에 맞게 바꾼다(grab, grabbing, pointer, crosshair 등).
+
+### 그림 스타일 (사람 · 생물 · 사물을 그릴 때)
+데모 안에 사람, 동물, 구름, 식물, 손 같은 **그림**이 들어가면 반드시 `src/lib/draw.js`의 그림 키트를 쓴다. 키트가 없는 그림은 키트와 같은 규칙으로 직접 그린다. 기본 도형(원, 사각형, 선)만 있는 데모는 해당 없다.
+- 그림체: **굵기가 균일한 검정 외곽선(3px)**, 안은 **평면 단색**. 그라데이션, 그림자, 광택 없음. 얼굴은 점 두 개와 선 하나, 몸은 뭉툭한 덩어리. 유치하지 않고 단순한 인쇄 일러스트 느낌이다(레퍼런스: 굵은 선의 플랫 벡터 일러스트).
+- 색: `ILLO` 팔레트(ink, blue, orange, yellow, green, pink, red, lilac, skin, paper, grey)에서만 고른다. 한 장면에 3~4색 이내.
+- 키트 함수: `person`(stand/wave/sit/crouch/jump, mood, look, squash), `face`, `eye`, `zz`, `bird`, `bug`, `cat`, `cloud`, `drop`, `sprout`, `leaf`, `star`, `heart`, `flag`, `mug`, `hand`(open/grab/point). 기본 도구 `shape`, `tube`, `circle`, `ellipse`, `roundRect`, `line`, `dot`.
+- 3D 장면은 `keyboard-orbit` 데모처럼 그린다: 납작한 면 채움, 가는 검정 외곽선, 강조면 하나, 회색 격자 바닥.
+- 개발 서버에서 `/illo.html`을 열면 키트 전체를 한눈에 볼 수 있다.
+
+### 읽는 값과 상태
+- readouts는 이 인터랙션이 **실제로 읽는 입력값**을 보여준다(위치, 거리, 속도, 각도, 누른 시간, 횟수 등). 숫자는 정수나 소수 1자리로 짧게.
+- 상태는 지금 무슨 일이 일어나는지 한 줄로: "대기", "누르는 중 · 0.8초", "쿨다운 중 · 1.2초 남음" 등.
+
+---
+
+## 3. 검증
+
+작업이 끝나면 `site` 폴더에서 아래를 실행해 오류가 없는지 확인한다(개발 서버나 브라우저는 띄우지 않는다).
+
+```bash
+node --check src/items/<id>/demo.js
+node -e 'import("./src/items/<id>/meta.js").then(m=>{const d=m.default;const need=["name","nameEn","input","effect","definition","hint","description","uses","designPoints","prompts","tags","reads","readouts","variations"];const miss=need.filter(k=>!(k in d));if(miss.length)throw new Error("missing "+miss);console.log("ok",d.name)})'
+```

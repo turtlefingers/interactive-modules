@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>그림 키트 시트 · 인터랙티브 모듈들</title>
+<style> body { margin: 0; background: #f4f2ee; } canvas { display: block; } </style>
+</head>
+<body>
+<canvas id="c" width="1400" height="760"></canvas>
+<script type="module">
+  import * as D from "./src/lib/draw.js";
+  const cv = document.getElementById("c"), g = cv.getContext("2d");
+  const dpr = devicePixelRatio || 1; cv.width = 1400 * dpr; cv.height = 760 * dpr; cv.style.width = "1400px"; cv.style.height = "760px"; g.scale(dpr, dpr);
+  const I = D.ILLO;
+  const label = (t, x, y) => { g.fillStyle = "#9a9790"; g.font = "13px sans-serif"; g.textAlign = "center"; g.fillText(t, x, y); };
+  // 사람들
+  const poses = [["stand", "happy", I.blue], ["wave", "happy", I.orange], ["sit", "neutral", I.green], ["crouch", "surprised", I.yellow], ["jump", "happy", I.pink], ["stand", "sleepy", I.red]];
+  poses.forEach(([pose, mood, color], i) => { D.person(g, 100 + i * 130, 200, { h: 150, color, pose, mood, look: { x: 0.6, y: 0 } }); label(pose + " · " + mood, 100 + i * 130, 230); });
+  D.person(g, 900, 200, { h: 150, color: I.blue, skin: I.skin, mood: "happy" }); label("skin", 900, 230);
+  D.person(g, 1030, 200, { h: 150, color: I.orange, squash: 0.25 }); label("squash", 1030, 230);
+  D.person(g, 1160, 200, { h: 80, color: I.green }); D.person(g, 1230, 200, { h: 50, color: I.pink }); label("h 80 / 50", 1200, 230);
+  // 생물
+  [0, -0.6, 0.8].forEach((f, i) => D.bird(g, 90 + i * 90, 330, { flap: f, color: [I.orange, I.blue, I.green][i], angle: i * 0.3 - 0.3 }));
+  label("bird flap", 180, 380);
+  D.bug(g, 380, 330, { legT: 0.3 }); D.bug(g, 430, 330, { color: I.red, angle: 1, legT: 0.7 }); label("bug", 405, 380);
+  D.cat(g, 560, 360, { mood: "sleepy" }); D.cat(g, 680, 360, { mood: "happy", color: I.lilac, look: { x: -0.8, y: 0.3 } }); label("cat", 620, 380);
+  // 얼굴·눈
+  D.circle(g, 820, 330, 30, { fill: I.yellow }); D.face(g, 820, 330, 30, { mood: "happy", look: { x: 0.8, y: 0.4 } });
+  D.circle(g, 900, 330, 30, { fill: I.blue }); D.face(g, 900, 330, 30, { mood: "surprised" });
+  D.circle(g, 980, 330, 30, { fill: I.pink }); D.face(g, 980, 330, 30, { mood: "sleepy" }); D.zz(g, 1010, 300, { t: 0.2 });
+  D.circle(g, 1060, 330, 30, { fill: I.green }); D.face(g, 1060, 330, 30, { mood: "sad" });
+  label("face: happy / surprised / sleepy / sad", 940, 380);
+  D.eye(g, 1160, 330, 18, { look: { x: 0.9, y: -0.3 } }); D.eye(g, 1210, 330, 18, { look: { x: 0.9, y: -0.3 } }); D.eye(g, 1270, 330, 18, { closed: true }); label("eye", 1215, 380);
+  // 자연·사물
+  D.cloud(g, 110, 470, { w: 140 }); D.cloud(g, 270, 470, { w: 140, squeeze: 0.8 }); label("cloud / squeeze", 190, 530);
+  [0, 6, 12].forEach((k, i) => D.drop(g, 370 + i * 22, 480 + k, { size: 14 - i * 2 })); label("drop", 392, 530);
+  [0.2, 0.5, 1].forEach((gr, i) => D.sprout(g, 480 + i * 60, 500, { growth: gr })); label("sprout growth", 540, 530);
+  D.leaf(g, 680, 480, { angle: -0.4 }); D.leaf(g, 730, 480, { color: I.orange, angle: 0.5 }); label("leaf", 705, 530);
+  D.star(g, 820, 470); D.heart(g, 880, 470); D.flag(g, 930, 500); label("star / heart / flag", 880, 530);
+  D.mug(g, 1030, 500); label("mug", 1030, 530);
+  D.hand(g, 1120, 480, { pose: "open" }); D.hand(g, 1190, 480, { pose: "grab" }); D.hand(g, 1260, 480, { pose: "point" }); label("hand open / grab / point", 1190, 530);
+  // 팔레트
+  Object.entries(I).forEach(([k, v], i) => { D.roundRect(g, 60 + i * 110, 600, 90, 50, 10, { fill: v }); label(k, 105 + i * 110, 672); });
+  // 어긋난 채움
+  D.roundRect(g, 60, 690, 90, 50, 10, { fill: I.blue, offset: 3 }); label("offset 3", 105, 755);
+</script>
+</body>
+</html>
