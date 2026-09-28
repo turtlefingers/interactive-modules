@@ -1,5 +1,7 @@
+import "../../lib/objects/index.js";
 import { clamp, lerp, localPoint } from "../../lib/util.js";
 import { ILLO, TONE } from "../../lib/draw.js";
+import { objectCanvas } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -24,10 +26,13 @@ export default function demo(api) {
     .cursor-morph-pill.is-off { background: ${TONE[0]}; border-color: ${TONE[1]}; color: var(--ink-3); cursor: not-allowed; }
     .cursor-morph-link { font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; align-self: flex-start; }
     .cursor-morph-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .cursor-morph-photo { height: 130px; border-radius: var(--r-card); cursor: zoom-in; transition: transform .3s; } /* 사진: 톤 사각형 */
+    .cursor-morph-photo { height: 130px; display: grid; place-items: center; cursor: zoom-in; transition: transform .3s; } /* 사진: 카탈로그 photo-placeholder */
+    .cursor-morph-photo canvas { pointer-events: none; }
     .cursor-morph-photo:hover { transform: scale(.98); }
     .cursor-morph-cur { position: absolute; left: 0; top: 0; z-index: 45; pointer-events: none; will-change: transform; }
     .cursor-morph-cur.blend { mix-blend-mode: difference; }
+    .cursor-morph-arrow { position: absolute; pointer-events: none; } /* 기본 상태의 화살표: 카탈로그 cursor-arrow, 끝점이 포인터에 온다 */
+    .cursor-morph-cur.blend .cursor-morph-arrow { filter: invert(1); }
     .cursor-morph-body { position: absolute; left: 0; top: 0; box-sizing: border-box; display: grid; place-items: center; }
     .cursor-morph-label { position: absolute; font-size: 13px; font-weight: 700; white-space: nowrap; color: #fff; }
     .cursor-morph-bar { position: absolute; width: 16px; height: 2.5px; border-radius: 2px; }
@@ -47,11 +52,19 @@ export default function demo(api) {
       </div>
       <a class="${P}-link" data-cm="link">자세히 보기</a>
       <div class="${P}-photos">
-        <div class="${P}-photo" data-cm="view" style="background:${TONE[1]}"></div>
-        <div class="${P}-photo" data-cm="view" style="background:${TONE[2]}"></div>
+        <div class="${P}-photo" data-cm="view"></div>
+        <div class="${P}-photo" data-cm="view"></div>
       </div>
     </div>`;
   el.appendChild(root);
+  // 사진 자리: 카탈로그 photo-placeholder(폴라로이드)를 칸 높이에 맞춰 캔버스로 넣는다. 둘째는 좌우 반전으로 변화만 준다
+  const photos = [...root.querySelectorAll(`.${P}-photo`)];
+  const fitPhotos = () => photos.forEach((ph, i) => {
+    const h = Math.max(48, ph.clientHeight - 14);
+    ph.replaceChildren(objectCanvas("photo-placeholder", h, { color: TONE[3], flip: i === 1 }, { w: Math.max(h, ph.clientWidth), pad: 6 }));
+  });
+  fitPhotos();
+  api.onResize(fitPhotos);
 
   const cur = document.createElement("div");
   cur.className = `${P}-cur`;
@@ -60,12 +73,20 @@ export default function demo(api) {
   const body = cur.firstChild;
   const labels = { link: body.querySelector('[data-l="link"]'), view: body.querySelector('[data-l="view"]') };
   const bars = [...body.querySelectorAll(`.${P}-bar`)];
+  // 기본 상태의 화살표(카탈로그 cursor-arrow). 모핑은 CSS 몸체가 맡고, 화살표는 기본 상태에서만 나타난다.
+  // cursor-arrow는 (아래 가운데) 기준 top = -0.66h 에 끝점이 있으므로, 그 끝점이 포인터 위치(0, 0)에 오도록 놓는다
+  const AH = 36, AP = 2;
+  const arrow = objectCanvas("cursor-arrow", AH, {}, { w: AH, pad: AP });
+  arrow.className = `${P}-arrow`;
+  arrow.style.left = -AH / 2 + "px";
+  arrow.style.top = -(AH + AP * 2 - AP - AH * 0.66) + "px";
+  cur.appendChild(arrow);
 
   const INK = [27, 27, 26], ACC = [255, 90, 54], RED = [224, 69, 123], WHITE = [255, 255, 255];
-  const NAMES = { none: "기본 · 점", text: "문단 · 글자 커서", ring: "아이콘 버튼 · 커진 링", wrap: "버튼 · 감싸기", deny: "비활성 · 금지 표시", link: "링크 · 라벨 원", view: "사진 · 보기 원" };
+  const NAMES = { none: "기본 · 화살표", text: "문단 · 글자 커서", ring: "아이콘 버튼 · 커진 링", wrap: "버튼 · 감싸기", deny: "비활성 · 금지 표시", link: "링크 · 라벨 원", view: "사진 · 보기 원" };
 
-  // 현재 모양 (매 프레임 목표값으로 다가간다)
-  const c = { x: 0, y: 0, w: 16, h: 16, r: 8, fill: 1, ring: 0, rot: 0, col: INK.slice(), link: 0, view: 0, bar: 0, alpha: 0, press: 1 };
+  // 현재 모양 (매 프레임 목표값으로 다가간다). arrow = 화살표가 보이는 정도
+  const c = { x: 0, y: 0, w: 6, h: 6, r: 3, fill: 1, ring: 0, rot: 0, col: INK.slice(), link: 0, view: 0, bar: 0, arrow: 1, alpha: 0, press: 1 };
   const ptr = { x: -100, y: -100, inside: false, down: false, zone: null, kind: "none" };
   let d0 = 1, lastKind = "none", seen = false;
 
@@ -76,7 +97,9 @@ export default function demo(api) {
 
   const target = () => {
     const k = ptr.kind, blend = S.blend;
-    const t = { x: ptr.x, y: ptr.y, w: 16, h: 16, r: 8, fill: 1, ring: 0, rot: 0, col: INK, link: 0, view: 0, bar: 0 };
+    // 기본: 화살표 + 끝점의 작은 점. 다른 상태로 가면 화살표는 사라지고 점이 그 모양으로 녹아든다
+    const t = { x: ptr.x, y: ptr.y, w: 6, h: 6, r: 3, fill: 1, ring: 0, rot: 0, col: INK, link: 0, view: 0, bar: 0, arrow: 1 };
+    if (k !== "none") Object.assign(t, { w: 16, h: 16, r: 8, arrow: 0 });
     if (k === "text") Object.assign(t, { w: 3, h: 30, r: 2, col: INK });
     else if (k === "ring") Object.assign(t, { w: 68, h: 68, r: 34, fill: 0, ring: 2, col: ACC });
     else if (k === "wrap" && ptr.zone) {
@@ -124,7 +147,7 @@ export default function demo(api) {
     // 감싸기 상태에서는 따라가는 속도도 모양 변화 속도를 따른다 (버튼으로 빨려 들어가는 느낌)
     const fp = ptr.kind === "wrap" ? Math.min(f, k) : f;
     c.x = lerp(c.x, t.x, fp); c.y = lerp(c.y, t.y, fp);
-    for (const key of ["w", "h", "r", "fill", "ring", "rot", "link", "view", "bar"]) c[key] = lerp(c[key], t[key], k);
+    for (const key of ["w", "h", "r", "fill", "ring", "rot", "link", "view", "bar", "arrow"]) c[key] = lerp(c[key], t[key], k);
     for (let i = 0; i < 3; i++) c.col[i] = lerp(c.col[i], t.col[i], k);
     c.alpha = lerp(c.alpha, ptr.inside ? 1 : 0, 0.2);
     c.press = lerp(c.press, ptr.down ? 0.82 : 1, 0.3);
@@ -138,6 +161,7 @@ export default function demo(api) {
     bs.transform = `translate(-50%,-50%) rotate(${c.rot}deg) scale(${c.press})`;
     bs.background = `rgba(${col},${c.fill.toFixed(3)})`;
     bs.border = `${c.ring.toFixed(2)}px solid rgba(${col},${clamp(c.ring / 2, 0, 1).toFixed(3)})`;
+    arrow.style.opacity = c.arrow.toFixed(3);
     labels.link.style.opacity = c.link.toFixed(3);
     labels.view.style.opacity = c.view.toFixed(3);
     labels.link.style.transform = labels.view.style.transform = `rotate(${-c.rot}deg)`;

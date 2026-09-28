@@ -1,6 +1,8 @@
+import "../../lib/objects/index.js";
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE } from "../../lib/draw.js";
+import { ILLO, TONE, circle } from "../../lib/draw.js";
 import { drawPeep, preload, outfit } from "../../lib/figure.js";
+import { drawObject } from "../../lib/objects.js";
 
 // 사람(Open Peeps): 서기(ShirtBW) / 걷기(WalkingBW) / 달리기(WalkingFilled, 세기 0.5 초과) 자세. 기본 그림은 오른쪽을 보므로 왼쪽으로 갈 땐 flip.
 const STAND = { body: "ShirtBW", face: "Calm", hair: "Short", colors: outfit(ILLO.blue) };
@@ -25,8 +27,10 @@ export default function demo(api) {
   const { g, size } = fitCanvas(api, { parent: root });
   preload([STAND, WALK, RUN]);
 
-  const INK = ILLO.ink, PAPER = ILLO.paper, ACC = "#ff5a36";
-  const R = 58, KNOB = 24, MAX = 300;   // 받침 반지름, 손잡이 반지름, 최대 속도(px/s)
+  const ACC = "#ff5a36";
+  const R = 58, MAX = 300;   // 받침 반지름, 최대 속도(px/s)
+  // 받침은 카탈로그 joystick-base A: 받침 반지름 0.36h, 노브 반지름 0.14h, 받침 중심은 (아래 가운데)에서 0.42h 위
+  const JH = R / 0.36, KNOB = JH * 0.14;
 
   /* ---------- 조이스틱 ---------- */
   const joy = { bx: 0, by: 0, kx: 0, ky: 0, kvx: 0, kvy: 0, active: false, vis: 1, id: null };
@@ -99,8 +103,10 @@ export default function demo(api) {
     if (joy.vis < 0.01) return;
     g.save(); g.globalAlpha = joy.vis;
     const { bx, by } = joy;
-    g.fillStyle = "rgba(255,253,246,.7)"; g.strokeStyle = INK; g.lineWidth = 1.5;
-    g.beginPath(); g.arc(bx, by, R, 0, 7); g.fill(); g.stroke();
+    // 받침: 사물은 노브를 한 방향으로만 밀어 그리므로 state 0(가운데)으로 받침만 쓰고,
+    // 가운데 노브는 받침 색으로 덮은 뒤 손잡이를 실제 위치에 따로 그린다
+    drawObject(g, "joystick-base", bx, by + JH * 0.42, JH, { state: 0 });
+    circle(g, bx, by, KNOB + 1, { fill: TONE[1] });
     // 데드존
     if (S.dead > 0.01) {
       g.setLineDash([3, 4]); g.strokeStyle = "rgba(27,27,26,.4)"; g.lineWidth = 1;
@@ -122,8 +128,8 @@ export default function demo(api) {
     if (S.dir === "eight" && o.mag > 0) { const d = Math.hypot(kx, ky); kx = Math.cos(o.ang) * d; ky = -Math.sin(o.ang) * d; }
     g.strokeStyle = "rgba(27,27,26,.35)"; g.lineWidth = 1;
     g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + kx, by + ky); g.stroke();
-    g.fillStyle = joy.active ? INK : PAPER; g.strokeStyle = INK; g.lineWidth = 2;
-    g.beginPath(); g.arc(bx + kx, by + ky, KNOB, 0, 7); g.fill(); g.stroke();
+    // 손잡이: 사물의 노브와 같은 크기의 짙은 톤 면, 밀고 있으면 강조색 (외곽선 없음)
+    circle(g, bx + kx, by + ky, KNOB, { fill: joy.active ? ACC : TONE[5] });
     g.restore();
   }
 

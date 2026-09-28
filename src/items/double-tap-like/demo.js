@@ -1,18 +1,16 @@
 import { clamp, dist } from "../../lib/util.js";
 import { ILLO, TONE } from "../../lib/draw.js";
 import { peepSVG, outfit } from "../../lib/figure.js";
+import "../../lib/objects/index.js";
+import { objectCanvas } from "../../lib/objects.js";
 
 const HEART = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 // 하트는 외곽선 없는 실루엣. 깨진 하트는 같은 실루엣에 종이색 가는 금 하나
 const heartSVG = fill => `<svg viewBox="0 0 24 24"><path d="${HEART}" fill="${fill}"/></svg>`;
 const brokenSVG = `<svg viewBox="0 0 24 24"><path d="${HEART}" fill="${ILLO.red}"/><path d="M12 4.6 10.2 8.6l2.8 2.4-2.2 3.6 1.6 3.2" fill="none" stroke="${ILLO.paper}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
-// 사진: 톤 면으로만 만든 언덕 세 겹과 그 앞에 선 사람 하나 (강조색은 사람의 옷 하나).
+// 사진: 카탈로그 언덕 세 겹(hill-set, 캔버스로 바닥에 깔림)과 그 앞에 선 사람 하나 (강조색은 사람의 옷 하나).
 // 사람은 경계 상자에 맞춘 peepSVG를 안쪽 <svg>로 넣는다: 세로가 길어 높이에 맞고, 상자 바닥(y 96)이 앞 언덕에 닿는다
-const photoSVG = () => `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-  <rect x="-5" y="-5" width="110" height="110" fill="${ILLO.paper}"/>
-  <path d="M-5 62 Q20 44 45 58 T105 52 V105 H-5 Z" fill="${TONE[1]}"/>
-  <path d="M-5 78 Q30 62 58 76 T105 70 V105 H-5 Z" fill="${TONE[2]}"/>
-  <path d="M-5 92 Q35 84 70 92 T105 88 V105 H-5 Z" fill="${TONE[3]}"/>
+const personSVG = () => `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
   ${peepSVG({ body: "WalkingBW", face: "Smile", hair: "ShortCurly", colors: outfit(ILLO.orange), flip: true })
     .replace("<svg ", '<svg x="46" y="36" width="40" height="60" ')}
 </svg>`;
@@ -27,7 +25,8 @@ export default function demo(api) {
     .dtl-ava { width: 26px; height: 26px; border-radius: 50%; background: ${TONE[2]}; }
     .dtl-head .more { margin-left: auto; color: var(--ink-3); letter-spacing: 2px; }
     .dtl-photo { position: relative; overflow: hidden; cursor: default; background: ${ILLO.paper}; border-top: 1px solid var(--ink-3); border-bottom: 1px solid var(--ink-3); }
-    .dtl-photo > svg { display: block; width: 100%; height: 100%; }
+    .dtl-photo > svg { position: relative; display: block; width: 100%; height: 100%; }
+    .dtl-photo > canvas { position: absolute; left: 0; bottom: 0; }
     .dtl-big, .dtl-bit { position: absolute; left: 0; top: 0; pointer-events: none; }
     .dtl-big svg, .dtl-bit svg { display: block; width: 100%; height: 100%; overflow: visible; }
     .dtl-tap { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; border: 1.5px solid var(--ink-2);
@@ -52,7 +51,7 @@ export default function demo(api) {
   card.className = "dtl-card";
   card.innerHTML = `
     <div class="dtl-head"><div class="dtl-ava"></div><span>paper.studio</span><span class="more">···</span></div>
-    <div class="dtl-photo">${photoSVG()}</div>
+    <div class="dtl-photo">${personSVG()}</div>
     <div class="dtl-actions">
       <button class="dtl-btn dtl-like" title="좋아요"><svg viewBox="0 0 24 24"><path d="${HEART}"/></svg></button>
       <button class="dtl-btn dtl-ico" title="댓글"><svg viewBox="0 0 24 24"><path d="M20.5 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.6-4.7A8.5 8.5 0 1 1 20.5 11.5z"/></svg></button>
@@ -71,6 +70,9 @@ export default function demo(api) {
     P = Math.round(clamp(Math.min(w - 48, h - 200, 440), 180, 440));
     card.style.width = P + "px";
     photo.style.height = P + "px";
+    // 언덕: 사진 폭에 맞춰 다시 그린다 (높이 0.46P, 바닥에 붙임)
+    photo.querySelector("canvas")?.remove();
+    photo.prepend(objectCanvas("hill-set", Math.round(P * 0.46), {}, { w: P, pad: 0 }));
   };
   layout();
   api.onResize(layout);

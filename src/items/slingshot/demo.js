@@ -1,4 +1,7 @@
+import "../../lib/objects/index.js";
 import { clamp, dist, localPoint, fitCanvas } from "../../lib/util.js";
+import { ILLO, TONE } from "../../lib/draw.js";
+import { drawObject } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -15,7 +18,8 @@ export default function demo(api) {
     ink: api.color("--ink") || "#1b1b1a",
     ink3: api.color("--ink-3") || "#9a9790",
     accent: api.color("--accent") || "#ff5a36",
-    ball: api.color("--toggle-off") || "#d6d2ca"
+    cue: ILLO.paper,     // 큐볼: 종이색 (펠트가 장면의 색 하나, 강조색은 최대로 당겼을 때의 고리뿐)
+    ball: TONE[2]        // 나머지 공: 톤 면, 외곽선 없음
   };
   const K = 0.14;   // 당긴 거리 → 발사 속도 비율
 
@@ -181,23 +185,32 @@ export default function demo(api) {
     const { w, h } = size;
     g.clearRect(0, 0, w, h);
 
-    // 당구대: 얇은 테두리(쿠션)와 포켓
-    g.fillStyle = "rgba(0,0,0,.025)"; g.fillRect(T.x, T.y, T.w, T.h);
-    g.strokeStyle = C.ink; g.lineWidth = 2; g.strokeRect(T.x, T.y, T.w, T.h);
+    // 당구대: 카탈로그 pool-table (위에서 본 색 펠트). 사물의 펠트(안쪽 면)가 공이 튀는 영역 T와 정확히 겹치도록
+    // 긴 축이 가로가 되게 돌리고 가로만 따로 늘린다. 사물 비례: 바깥 2h × 1.1h, 쿠션 띠 0.08h → 펠트 1.84h × 0.94h
+    {
+      const long = T.wide ? T.w : T.h, short = T.wide ? T.h : T.w;
+      const oh = short / 0.94, sx = long / (1.84 * oh);
+      g.save();
+      g.translate(T.x + T.w / 2, T.y + T.h / 2);
+      if (!T.wide) g.rotate(-Math.PI / 2);
+      g.scale(sx, 1);
+      drawObject(g, "pool-table", 0, oh * 0.55, oh, { color: ILLO.green });
+      g.restore();
+    }
+    // 포켓: 물리에서 쓰는 자리(펠트 모서리·긴 변 가운데)에 잉크 원. 사물의 포켓과 겹쳐 하나로 보인다
     g.fillStyle = C.ink;
     pockets.forEach(([px, py]) => { circle(px, py, T.pr); g.fill(); });
     const hh = cueHome();
-    circle(hh.x, hh.y, 2.5); g.fillStyle = C.ink3; g.fill();
+    circle(hh.x, hh.y, 2.5); g.fillStyle = "rgba(255,253,246,.6)"; g.fill();
 
-    // 공
+    // 공: 외곽선 없는 면
     for (const b of balls) {
       if (!b.alive) {
-        if (b.gone < 1) { circle(b.px + (b.x - b.px) * (1 - b.gone), b.py + (b.y - b.py) * (1 - b.gone), b.r * (1 - b.gone)); g.fillStyle = b.cue ? C.accent : C.ball; g.fill(); }
+        if (b.gone < 1) { circle(b.px + (b.x - b.px) * (1 - b.gone), b.py + (b.y - b.py) * (1 - b.gone), b.r * (1 - b.gone)); g.fillStyle = b.cue ? C.cue : C.ball; g.fill(); }
         continue;
       }
       circle(b.x, b.y, b.r * b.born);
-      g.fillStyle = b.cue ? C.accent : C.ball; g.fill();
-      if (!b.cue) { g.strokeStyle = C.ink3; g.lineWidth = 1; g.stroke(); }
+      g.fillStyle = b.cue ? C.cue : C.ball; g.fill();
     }
 
     // 당김선과 조준선
@@ -205,7 +218,7 @@ export default function demo(api) {
     const v = pullVec();
     if (pull && v.len > 1) {
       const m = S.maxPull * T.s;
-      circle(c.x, c.y, m); g.setLineDash([3, 5]); g.strokeStyle = v.len >= m - 0.5 ? C.accent : "rgba(0,0,0,.18)"; g.lineWidth = 1; g.stroke(); g.setLineDash([]);
+      circle(c.x, c.y, m); g.setLineDash([3, 5]); g.strokeStyle = v.len >= m - 0.5 ? C.accent : "rgba(0,0,0,.28)"; g.lineWidth = 1; g.stroke(); g.setLineDash([]);
       g.strokeStyle = C.ink; g.lineWidth = 1.5;
       g.beginPath(); g.moveTo(c.x, c.y); g.lineTo(c.x + v.x, c.y + v.y); g.stroke();
       circle(c.x + v.x, c.y + v.y, 5); g.fillStyle = C.ink; g.fill();

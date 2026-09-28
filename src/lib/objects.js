@@ -23,7 +23,8 @@ export function drawObject(g, name, x, y, h, o = {}) {
   g.translate(x, y);
   if (o.angle) g.rotate(o.angle);
   if (o.flip) g.scale(-1, 1);
-  v.draw(g, 0, 0, h, { t: 0, state: 0, ...o });
+  // 등록 시 준 기본색(def.color)을 검사 페이지와 같게 기본으로 쓴다.
+  v.draw(g, 0, 0, h, { t: 0, state: 0, color: def.color, ...o });
   g.restore();
   return true;
 }

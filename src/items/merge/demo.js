@@ -1,5 +1,7 @@
+import "../../lib/objects/index.js";
 import { clamp, dist, rng, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, ILLO_CYCLE, dot, ellipse, line as inkLine, circle as inkCircle } from "../../lib/draw.js";
+import { ILLO, TONE, ILLO_CYCLE, circle as inkCircle } from "../../lib/draw.js";
+import { drawObject } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -17,11 +19,12 @@ export default function demo(api) {
     ink: ILLO.ink,
     ink3: api.color("--ink-3") || "#9a9790",
     accent: api.color("--accent") || "#ff5a36",
-    body: ILLO.green,      // 생명체 몸
-    pellet: ILLO.orange,   // 먹이
-    held: ILLO.yellow      // 집은 것
+    body: ILLO.green,                          // 생명체 몸 — 장면의 색 하나
+    pellet: TONE[3],                           // 먹이(쿠키): 톤
+    held: api.color("--accent") || "#ff5a36"   // 집은 것: 상태 강조색
   };
-  const LW = 3;   // 그림 선 굵기 (화면 px 기준)
+  // 쿠키(카탈로그 cookie A)는 반지름 0.425h 이므로 반지름 r → 키 r / 0.425, 아래 가운데는 중심 + r
+  const cookie = (x, y, r, color) => { if (r > 0) drawObject(g, "cookie", x, y + r, r / 0.425, { color }); };
   const font = getComputedStyle(el).fontFamily;
   const rand = rng(5);
 
@@ -154,22 +157,15 @@ export default function demo(api) {
 
   const drawBlob = () => {
     const R = blob.R;
-    // 몸과 붙은 조각의 바깥선을 하나로: 굵은 선을 먼저 모두 그리고, 면을 그 위에 덮는다
-    const shapes = [[blob.x, blob.y, R]];
+    // 가장자리에 붙은 조각: 같은 색 원으로 몸 뒤에 이어 붙인다 (외곽선 없음)
+    g.fillStyle = C.body;
     blob.bumps.forEach(b => {
       const d = blob.tR + b.r * 0.35;
-      shapes.push([blob.x + Math.cos(b.a) * d, blob.y + Math.sin(b.a) * d, b.r * b.s]);
+      circle(blob.x + Math.cos(b.a) * d, blob.y + Math.sin(b.a) * d, b.r * b.s); g.fill();
     });
-    g.strokeStyle = C.ink; g.lineWidth = lw(LW * 2);
-    shapes.forEach(([x, y, r]) => { circle(x, y, r); g.stroke(); });
-    g.fillStyle = C.body;
-    shapes.forEach(([x, y, r]) => { circle(x, y, r); g.fill(); });
-    // 얼굴(키트 규칙: 점 두 개와 선 하나): 먹이가 가까우면 쳐다보고 입을 벌린다
-    const ex = R * 0.34, ey = -R * 0.14, er = Math.max(3, R * 0.09);
-    [-1, 1].forEach(k => dot(g, blob.x + k * ex + blob.lookX, blob.y + ey + blob.lookY, er));
-    const mx = blob.x + blob.lookX * 0.5, my = blob.y + R * 0.3, mw = R * 0.2;
-    if (blob.mouth < 0.08) inkLine(g, [[mx - mw, my], [mx + mw, my]], { lw: lw(LW) });
-    else ellipse(g, mx, my, mw * 0.9, blob.mouth * (6 + R * 0.14), { fill: C.ink, lw: lw(LW) });
+    // 몸: 카탈로그 blob A (state = 입 벌림). 사물 폭이 0.83h 이므로 키 2.4R 로 폭을 2R 에 맞춘다; 아래 가운데는 y + 1.12R.
+    // 먹이가 가까우면 그쪽으로 조금 기운다
+    drawObject(g, "blob", blob.x + blob.lookX * 0.4, blob.y + R * 1.12, R * 2.4, { color: C.body, state: blob.mouth, t: performance.now() / 1000 });
   };
 
   api.frame(dt => {
@@ -214,16 +210,17 @@ export default function demo(api) {
       blob.lookX += (look.x - blob.lookX) * 0.2; blob.lookY += (look.y - blob.lookY) * 0.2;
 
       drawBlob();
+      // 삼키는 중인 쿠키: 입(몸 아래쪽) 쪽으로 빨려 들어가며 작아진다
       eating.forEach(e => {
         const k = e.t * e.t;
-        inkCircle(g, e.x + (blob.x - e.x) * k, e.y + (blob.y + blob.R * 0.3 - e.y) * k, e.r * (1 - e.t), { fill: C.pellet, lw: lw(LW) });
+        cookie(e.x + (blob.x - e.x) * k, e.y + (blob.y + blob.R * 0.3 - e.y) * k, e.r * (1 - e.t), C.pellet);
       });
       // 먹이 자리
       PR.forEach((r, i) => { circle((i - 2) * 92, 190, r + 6); g.setLineDash([lw(3), lw(4)]); g.strokeStyle = C.ink3; g.lineWidth = lw(1); g.stroke(); g.setLineDash([]); });
       pellets.forEach(o => {
         spring(o, "s", "sv", 1);
         if (!held || held.o !== o) { o.vx = (o.vx + (o.tx - o.x) * 0.2) * 0.68; o.vy = (o.vy + (o.ty - o.y) * 0.2) * 0.68; o.x += o.vx; o.y += o.vy; }
-        inkCircle(g, o.x, o.y, Math.max(0, o.r * o.s), { fill: held && held.o === o ? C.held : C.pellet, lw: lw(LW) });
+        cookie(o.x, o.y, Math.max(0, o.r * o.s), held && held.o === o ? C.held : C.pellet);
       });
       api.read("size", Math.round(eqR()));
       api.read("top", "–");
@@ -245,8 +242,8 @@ export default function demo(api) {
         if (!held || held.o !== t) { t.vx = (t.vx + (t.tx - t.x) * 0.22) * 0.66; t.vy = (t.vy + (t.ty - t.y) * 0.22) * 0.66; t.x += t.vx; t.y += t.vy; }
         const isHeld = held && held.o === t;
         const r = tokR(t.level) * Math.max(0, t.s);
-        // 단계마다 다른 평면 단색, 집으면 크림색으로 들린다
-        inkCircle(g, t.x, t.y, r, { fill: isHeld ? ILLO.paper : ILLO_CYCLE[(t.level - 1) % ILLO_CYCLE.length], lw: lw(LW) });
+        // 단계마다 다른 평면 단색(외곽선 없음), 집으면 크림색으로 들린다
+        inkCircle(g, t.x, t.y, r, { fill: isHeld ? ILLO.paper : ILLO_CYCLE[(t.level - 1) % ILLO_CYCLE.length], lw: 0 });
         if (target === t) {   // 놓을 곳 미리보기: 같은 단계면 실선, 다르면 점선
           circle(t.x, t.y, r + 7);
           if (t.level !== held.o.level) g.setLineDash([lw(4), lw(4)]);

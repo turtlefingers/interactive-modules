@@ -1,5 +1,7 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE, LINE, shape, ellipse, leaf, line } from "../../lib/draw.js";
+import { ILLO, TONE, ellipse } from "../../lib/draw.js";
+import "../../lib/objects/index.js";
+import { drawObject } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -15,10 +17,11 @@ export default function demo(api) {
   const { g, size } = fitCanvas(api, { parent: root });
 
   const INK = ILLO.ink, ACC = "#ff5a36", SOIL = TONE[3], SOIL_EDGE = TONE[4];
+  // h: 카탈로그 그림 높이, root: 땅에 묻힌 길이(= 다 뽑히는 거리, 카탈로그 state 1)
   const KINDS = {
-    weed: { root: 46, resist: 0.6, name: "잡초", obj: "잡초를", half: 8 },
-    carrot: { root: 78, resist: 1, name: "당근", obj: "당근을", half: 14 },
-    radish: { root: 70, resist: 1.45, name: "무", obj: "무를", half: 27 }
+    weed: { h: 100, root: 19, resist: 0.6, name: "잡초", obj: "잡초를", half: 8 },
+    carrot: { h: 120, root: 63, resist: 1, name: "당근", obj: "당근을", half: 13 },
+    radish: { h: 130, root: 56, resist: 1.45, name: "무", obj: "무를", half: 40 }
   };
   const GRIP = 40;   // 잡는 지점(잎 끝)에서 뿌리 머리까지 거리
 
@@ -41,45 +44,12 @@ export default function demo(api) {
 
   const need = o => S.threshold * (S.perObject ? KINDS[o.kind].resist : 1);
 
-  /* ---------- 그리기 (외곽선 없는 실루엣: 당근 주황, 무 분홍, 잡초 초록 + 1.5px 잉크 줄기) ---------- */
-  function drawPlant(o, x, y, rot, jit = 0) {
-    const k = KINDS[o.kind], L = k.root;
-    g.save(); g.translate(x, y); g.rotate(rot + jit);
-    // 잎: 줄기는 가는 잉크 선, 잎은 초록 실루엣
-    if (o.kind === "weed") {
-      [-0.55, -0.1, 0.4].forEach((a, j) => {
-        const ex = Math.sin(a) * 22, ey = -30 + j * 3;
-        line(g, [[0, 0], [Math.sin(a) * 8, -16], [ex, ey]]);
-        leaf(g, ex + Math.sin(a) * 6, ey - 6, { size: 18, angle: a - Math.PI / 2 });
-      });
-    } else if (o.kind === "carrot") {
-      [-0.45, 0, 0.45].forEach(a => {
-        const ex = Math.sin(a) * 26, ey = -Math.cos(a) * 38;
-        line(g, [[0, 0], [ex, ey]]);
-        leaf(g, ex + Math.sin(a) * 8, ey - Math.cos(a) * 8, { size: 20, angle: a - Math.PI / 2 });
-      });
-    } else {
-      [-0.5, 0, 0.5].forEach(a => {
-        const ex = Math.sin(a) * 14, ey = -Math.cos(a) * 12;
-        line(g, [[0, 0], [ex, ey]]);
-        leaf(g, ex + Math.sin(a) * 18, ey - Math.cos(a) * 18, { size: 44, angle: a - Math.PI / 2 });
-      });
-    }
-    // 뿌리
-    if (o.kind === "weed") {
-      // 잡초 뿌리: 가는 잉크 선 다발
-      const pts = [];
-      for (let s = 0; s <= L; s += 6) pts.push([Math.sin(s * 0.25) * 3, s]);
-      line(g, pts, { lw: LINE + 0.5 });
-      [[10, -1], [22, 1], [32, -1]].forEach(([yy, d]) => line(g, [[0, yy], [d * 8, yy + 6], [d * 12, yy + 12]]));
-    } else if (o.kind === "carrot") {
-      shape(g, c => { c.moveTo(-13, 0); c.quadraticCurveTo(-12, L * 0.5, 0, L); c.quadraticCurveTo(12, L * 0.5, 13, 0); c.closePath(); }, { fill: ILLO.orange });
-      [0.3, 0.55].forEach((s, j) => line(g, [[j % 2 ? 6 : -8, L * s], [j % 2 ? 1 : -3, L * s + 3]], { lw: LINE * 0.8 }));
-    } else {
-      shape(g, c => { c.moveTo(-10, 0); c.bezierCurveTo(-30, 8, -28, L * 0.75, 0, L * 0.85); c.bezierCurveTo(28, L * 0.75, 30, 8, 10, 0); c.closePath(); }, { fill: ILLO.pink });
-      line(g, [[0, L * 0.85], [1, L * 0.98], [-2, L * 1.1]]);
-    }
-    g.restore();
+  /* ---------- 그리기: 카탈로그 사물 (weed · carrot · radish). state = 뽑힌 정도 ---------- */
+  let time = 0;
+  function drawPlant(o, x, y, rot, jit = 0, lift = 0) {
+    const k = KINDS[o.kind];
+    // 잡초는 state 로 위치가 바뀌지 않으므로 직접 들어올린다
+    drawObject(g, o.kind, x, o.kind === "weed" ? y - lift : y, k.h, { angle: rot + jit, state: lift / k.root, t: time });
   }
 
   /* ---------- 포인터 ---------- */
@@ -140,6 +110,7 @@ export default function demo(api) {
   /* ---------- 루프 ---------- */
   api.frame((dt) => {
     const s = Math.min(dt, 34) / 1000;
+    time += s;
     g.clearRect(0, 0, size.w, size.h);
     let tension = 0, dist = 0;
 
@@ -175,7 +146,7 @@ export default function demo(api) {
         const tau = o.state === "tug" ? tension : 0;
         const amp = o.state === "tug" ? S.tremble * (0.6 + 5 * tau) : 0;
         const jx = (Math.random() - 0.5) * amp, jr = (Math.random() - 0.5) * amp * 0.012;
-        drawPlant(o, o.hx + o.ox + jx, groundY - o.ext, o.rot, jr);
+        drawPlant(o, o.hx + o.ox + jx, groundY, o.rot, jr, o.ext);
       }
     }
 

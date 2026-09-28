@@ -454,46 +454,155 @@ reg("moon", "달", ["easter-egg"], {
   } }
 }, { color: ILLO.paper });
 
-/* ======================= 고양이 (옆모습, 앉음; t = 꼬리) ======================= */
-function catEars(g, u, col, hx, hy, r) {
-  tri(g, [hx - r * 0.75, hy - r * 0.6], [hx - r * 0.85, hy - r * 1.75], [hx - r * 0.05, hy - r * 0.95], col);
-  tri(g, [hx + r * 0.25, hy - r * 0.9], [hx + r * 0.65, hy - r * 1.7], [hx + r * 0.95, hy - r * 0.5], col);
+/* ======================= 고양이 (옆모습, 오른쪽 보기; t = 꼬리) =======================
+   종이 오리기 실루엣: 머리는 몸 길이의 1/4, 귀는 작게, 꼬리는 몸 길이만큼. 얼굴은 수염 한 줄만. */
+/** 좌표 배열을 u배로 그리는 닫힌 실루엣. 점은 [x,y] | [cx,cy,x,y] | [c1x,c1y,c2x,c2y,x,y] */
+function bz(g, pts, fill, u = 1) {
+  shape(g, c => {
+    c.moveTo(pts[0][0] * u, pts[0][1] * u);
+    for (let i = 1; i < pts.length; i++) {
+      const p = pts[i];
+      if (p.length === 6) c.bezierCurveTo(p[0] * u, p[1] * u, p[2] * u, p[3] * u, p[4] * u, p[5] * u);
+      else if (p.length === 4) c.quadraticCurveTo(p[0] * u, p[1] * u, p[2] * u, p[3] * u);
+      else c.lineTo(p[0] * u, p[1] * u);
+    }
+    c.closePath();
+  }, { fill });
 }
+/** 굵은 단색 3차 곡선(꼬리). [x0,y0, c1x,c1y, c2x,c2y, x1,y1] (u 단위) */
+function tailC(g, u, col, [x0, y0, a, b, c2, d, x1, y1], w) {
+  thick(g, c => { c.moveTo(x0 * u, y0 * u); c.bezierCurveTo(a * u, b * u, c2 * u, d * u, x1 * u, y1 * u); }, w * u, col);
+}
+/** 고양이 머리. (hx, hy) 중심, r 반지름(u 단위). flat 0~1 이면 귀가 뒤로 눕는다 */
+function catHead(g, u, col, hx, hy, r, { tilt = 0, flip = false, flat = 0, whisker = true } = {}) {
+  g.save(); g.translate(hx * u, hy * u); if (flip) g.scale(-1, 1); g.rotate(tilt);
+  const R = r * u, f = flat;
+  bz(g, [[-0.6, -0.5], [-0.7 - 0.2 * f, -1.0, -0.66 - 0.3 * f, -1.35 + 0.4 * f, -0.52 - 0.4 * f, -1.68 + 0.7 * f], [-0.3 - 0.2 * f, -1.3 + 0.3 * f, -0.15, -1.0, 0.02, -0.92]], col, R);
+  bz(g, [[0.1, -0.95], [0.3 - 0.2 * f, -1.2 + 0.2 * f, 0.5 - 0.4 * f, -1.42 + 0.4 * f, 0.64 - 0.55 * f, -1.6 + 0.75 * f], [0.8 - 0.2 * f, -1.2 + 0.2 * f, 0.88, -0.8, 0.84, -0.45]], col, R);
+  circle(g, 0, 0, R, { fill: col });
+  ellipse(g, 0.68 * R, 0.24 * R, 0.46 * R, 0.34 * R, { fill: col });
+  if (whisker) line(g, [[1.0 * R, 0.14 * R], [1.85 * R, 0.02 * R]], { lw: LINE * 0.8 });
+  g.restore();
+}
+const paw = (g, u, col, x, y, r = 5.5) => ellipse(g, x * u, (y - 2.4) * u, r * u, 2.5 * u, { fill: col });
+const leg = (g, u, col, x0, y0, x1, y1, w = 5.5) => tube(g, [[x0 * u, y0 * u], [x1 * u, y1 * u]], { color: col, w: w * u });
+
 reg("cat", "고양이", ["rub", "easter-egg"], {
-  A: { label: "앉아서 꼬리를 앞으로 감음", draw(g, x, y, h, o) {
-    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.6) * 3 * u;
+  A: { label: "앉음 · 꼬리는 뒤로 길게", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.5) * 4;
     g.save(); g.translate(x, y);
-    thick(g, c => { c.moveTo(-22 * u, -12 * u); c.quadraticCurveTo(-36 * u, -4 * u, -22 * u, -2.5 * u); c.quadraticCurveTo(-4 * u, -1 * u, 14 * u + sw, -2.5 * u - sw * 0.3); }, 5 * u, col);
-    ellipse(g, -8 * u, -18 * u, 20 * u, 18 * u, { fill: col });
-    ellipse(g, 6 * u, -32 * u, 13 * u, 23 * u, { fill: col }, 0.12);
-    tube(g, [[11 * u, -24 * u], [12 * u, -2 * u]], { color: col, w: 6 * u });
-    tube(g, [[17 * u, -22 * u], [19 * u, -2 * u]], { color: col, w: 5 * u });
-    catEars(g, u, col, 16 * u, -56 * u, 11 * u);
-    circle(g, 16 * u, -56 * u, 11 * u, { fill: col });
-    line(g, [[26 * u, -52 * u], [36 * u, -54 * u]], { lw: LINE * 0.8 });
+    tailC(g, u, col, [-22, -7, -36, -6, -46, -3, -50, -12 + sw], 4.2);
+    ellipse(g, -9 * u, -15 * u, 17 * u, 14.5 * u, { fill: col }, 0.05);
+    bz(g, [[-24, -12], [-27, -34, -12, -52, 5, -56], [16, -58, 22, -46, 20, -30], [19, -14, 19, -6, 17, -2], [17, 0], [-10, 0], [-22, -1, -26, -5, -24, -12]], col, u);
+    leg(g, u, col, 9, -22, 10, -3); leg(g, u, col, 16, -20, 18, -3, 5);
+    paw(g, u, col, 11, 0); paw(g, u, col, 20, 0, 5);
+    catHead(g, u, col, 10, -62, 10.5);
     g.restore();
   } },
-  B: { label: "꼿꼿이 앉아 꼬리를 위로 세움", draw(g, x, y, h, o) {
-    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.4) * 4 * u;
+  B: { label: "식빵 자세", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.2) * 2.5, br = 1 + Math.sin(tt(o) * 1.6) * 0.012;
     g.save(); g.translate(x, y);
-    thick(g, c => { c.moveTo(-20 * u, -14 * u); c.quadraticCurveTo(-34 * u, -20 * u, -32 * u, -40 * u); c.quadraticCurveTo(-31 * u, -52 * u, -24 * u + sw, -58 * u); }, 4.5 * u, col);
-    ellipse(g, -6 * u, -16 * u, 18 * u, 16 * u, { fill: col });
-    ellipse(g, 4 * u, -38 * u, 12 * u, 28 * u, { fill: col }, 0.05);
-    tube(g, [[7 * u, -28 * u], [7 * u, -2 * u]], { color: col, w: 5.5 * u });
-    tube(g, [[13 * u, -26 * u], [14 * u, -2 * u]], { color: col, w: 5 * u });
-    catEars(g, u, col, 11 * u, -67 * u, 10.5 * u);
-    circle(g, 11 * u, -67 * u, 10.5 * u, { fill: col });
+    tailC(g, u, col, [-26, -9, -36, -8, -32, -2, -14, -2.5], 4.5);
+    tailC(g, u, col, [-14, -2.5, -6, -2.5, 0, -2.5, 6 + sw, -3], 3.6);
+    g.save(); g.scale(1, br);
+    bz(g, [[-30, -8], [-32, -22, -18, -30, 0, -30], [16, -30, 26, -26, 30, -16], [32, -8, 30, -2, 26, 0], [-24, 0], [-30, -1, -31, -4, -30, -8]], col, u);
+    g.restore();
+    catHead(g, u, col, 22, -33, 10.5, { tilt: 0.08 });
     g.restore();
   } },
-  C: { label: "식빵 자세 · 낮게 웅크림", draw(g, x, y, h, o) {
-    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.3) * 2.5 * u;
+  C: { label: "앞으로 쭉 스트레칭", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.4) * 4;
     g.save(); g.translate(x, y);
-    thick(g, c => { c.moveTo(-26 * u, -12 * u); c.quadraticCurveTo(-36 * u, -6 * u, -28 * u, -2.5 * u); c.quadraticCurveTo(-16 * u, -1.5 * u, -6 * u + sw, -2.5 * u); }, 5 * u, col);
-    ellipse(g, 0, -15 * u, 30 * u, 15 * u, { fill: col }, -0.04);
-    ellipse(g, 20 * u, -24 * u, 12 * u, 10 * u, { fill: col }, 0.2);
-    catEars(g, u, col, 24 * u, -36 * u, 11 * u);
-    circle(g, 24 * u, -36 * u, 11 * u, { fill: col });
-    line(g, [[34 * u, -32 * u], [44 * u, -33 * u]], { lw: LINE * 0.8 });
+    tailC(g, u, col, [-28, -32, -38, -36, -44, -48, -38 + sw, -62], 4);
+    leg(g, u, col, -26, -20, -30, -3, 6); paw(g, u, col, -30, 0);
+    bz(g, [[-22, -4], [-40, -8, -38, -40, -18, -40], [-4, -40, 4, -30, 14, -22], [18, -18, 20, -10, 18, -6], [16, -3], [-20, -3]], col, u);
+    leg(g, u, col, 10, -14, 34, -3, 6); paw(g, u, col, 36, 0);
+    leg(g, u, col, 8, -12, 27, -3, 5); paw(g, u, col, 29, 0, 5);
+    catHead(g, u, col, 24, -22, 10, { tilt: 0.25 });
+    g.restore();
+  } },
+  D: { label: "걷기 · 꼬리 반쯤", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], t = tt(o), sw = Math.sin(t * 1.3) * 4, st2 = Math.sin(t * 2.4) * 3;
+    g.save(); g.translate(x, y);
+    tailC(g, u, col, [-22, -30, -34, -30, -44, -34, -46 + sw, -50], 4);
+    leg(g, u, col, -14, -24, -20 - st2, -3, 5.5); paw(g, u, col, -21 - st2, 0);
+    leg(g, u, col, 14, -24, 10 + st2, -3, 5); paw(g, u, col, 9 + st2, 0);
+    bz(g, [[-24, -26], [-26, -40, -8, -44, 8, -42], [20, -41, 30, -38, 32, -30], [32, -22, 22, -18, 6, -18], [-8, -18, -22, -16, -24, -26]], col, u);
+    leg(g, u, col, -8, -24, -6 + st2, -3, 5.5); paw(g, u, col, -5 + st2, 0);
+    leg(g, u, col, 20, -24, 24 - st2, -3, 5.5); paw(g, u, col, 25 - st2, 0);
+    ellipse(g, 24 * u, -36 * u, 9 * u, 8 * u, { fill: col }, 0.4);
+    catHead(g, u, col, 32, -44, 9.5, { tilt: 0.12 });
+    g.restore();
+  } },
+  E: { label: "꼬리 세우고 걷기", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], t = tt(o), sw = Math.sin(t * 1.4) * 3, st2 = Math.sin(t * 2.4 + 1) * 3;
+    g.save(); g.translate(x, y);
+    tailC(g, u, col, [-22, -34, -30, -38, -32, -50, -30, -62], 4.2);
+    tailC(g, u, col, [-30, -62, -29, -68, -25 + sw, -70, -20 + sw, -68], 3.6);
+    leg(g, u, col, -14, -26, -19 - st2, -3, 5.5); paw(g, u, col, -20 - st2, 0);
+    leg(g, u, col, 14, -26, 11 + st2, -3, 5); paw(g, u, col, 10 + st2, 0);
+    bz(g, [[-24, -30], [-26, -44, -8, -48, 8, -46], [20, -45, 28, -42, 30, -34], [30, -24, 22, -20, 6, -20], [-8, -20, -22, -18, -24, -30]], col, u);
+    leg(g, u, col, -8, -26, -5 + st2, -3, 5.5); paw(g, u, col, -4 + st2, 0);
+    leg(g, u, col, 20, -26, 24 - st2, -3, 5.5); paw(g, u, col, 25 - st2, 0);
+    ellipse(g, 24 * u, -42 * u, 9 * u, 8 * u, { fill: col }, 0.5);
+    catHead(g, u, col, 30, -52, 9.5, { tilt: -0.05 });
+    g.restore();
+  } },
+  F: { label: "둥글게 말고 잠", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], br = 1 + Math.sin(tt(o) * 1.4) * 0.015;
+    g.save(); g.translate(x, y);
+    g.save(); g.scale(1, br);
+    bz(g, [[-28, -6], [-32, -20, -18, -28, -2, -28], [12, -28, 20, -22, 24, -12], [26, -5, 22, 0, 16, 0], [-22, 0], [-28, 0, -29, -3, -28, -6]], col, u);
+    g.restore();
+    catHead(g, u, col, 22, -13, 9.5, { tilt: 0.42, flat: 0.3 });
+    tailC(g, u, col, [-26, -8, -38, -8, -34, -1, -14, -2.5], 4.5);
+    tailC(g, u, col, [-14, -2.5, 0, -3, 14, -4, 30, -4], 3.8);
+    g.restore();
+  } },
+  G: { label: "등을 활처럼 세움", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.6) * 3;
+    g.save(); g.translate(x, y);
+    tailC(g, u, col, [-18, -30, -28, -36, -30, -52, -24 + sw, -68], 5.5);
+    leg(g, u, col, -14, -24, -18, -3, 5.5); paw(g, u, col, -19, 0);
+    leg(g, u, col, 12, -22, 14, -3, 5); paw(g, u, col, 15, 0, 5);
+    bz(g, [[-18, -10], [-28, -34, -12, -64, 2, -66], [16, -68, 24, -50, 22, -30], [22, -18, 21, -12, 20, -8], [18, -4], [-14, -4]], col, u);
+    leg(g, u, col, -8, -24, -8, -3, 5.5); paw(g, u, col, -7, 0);
+    leg(g, u, col, 18, -22, 22, -3, 5.5); paw(g, u, col, 23, 0);
+    catHead(g, u, col, 24, -26, 9.5, { tilt: 0.6, flat: 0.6 });
+    g.restore();
+  } },
+  H: { label: "고개 돌려 그루밍", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.5) * 3, nod = Math.sin(tt(o) * 2.2) * 0.05;
+    g.save(); g.translate(x, y);
+    tailC(g, u, col, [-22, -8, -36, -6, -44, -3, -48 + sw, -8], 4.2);
+    ellipse(g, -9 * u, -15 * u, 17 * u, 14.5 * u, { fill: col }, 0.05);
+    bz(g, [[-24, -12], [-27, -34, -12, -50, 6, -54], [16, -56, 22, -44, 20, -30], [19, -14, 19, -6, 17, -2], [17, 0], [-10, 0], [-22, -1, -26, -5, -24, -12]], col, u);
+    leg(g, u, col, 9, -22, 10, -3); leg(g, u, col, 16, -20, 18, -3, 5);
+    paw(g, u, col, 11, 0); paw(g, u, col, 20, 0, 5);
+    catHead(g, u, col, 3, -47, 10, { flip: true, tilt: 0.6 + nod, whisker: false });
+    g.restore();
+  } },
+  I: { label: "꼿꼿이 앉아 꼬리로 발 감쌈", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.4) * 2;
+    g.save(); g.translate(x, y);
+    ellipse(g, -6 * u, -14 * u, 15 * u, 13.5 * u, { fill: col }, 0.05);
+    bz(g, [[-20, -10], [-22, -36, -8, -58, 4, -64], [12, -66, 18, -54, 17, -36], [16, -18, 17, -6, 15, -2], [15, 0], [-8, 0], [-18, 0, -22, -4, -20, -10]], col, u);
+    leg(g, u, col, 7, -26, 8, -3, 5.5); leg(g, u, col, 13, -24, 15, -3, 5);
+    paw(g, u, col, 9, 0, 5.5); paw(g, u, col, 17, 0, 5);
+    tailC(g, u, col, [-18, -6, -30, -6, -26, 1, -6, -1.5], 4.4);
+    tailC(g, u, col, [-6, -1.5, 8, -2, 22, -3, 26 + sw, -8 + sw * 0.6], 3.8);
+    catHead(g, u, col, 7, -70, 10, { tilt: -0.05 });
+    g.restore();
+  } },
+  J: { label: "고개 들어 올려다봄", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.5) * 3;
+    g.save(); g.translate(x, y);
+    tailC(g, u, col, [-22, -7, -34, -6, -44, -4, -50 + sw, -6 + sw * 0.5], 4.2);
+    ellipse(g, -10 * u, -15 * u, 17 * u, 14.5 * u, { fill: col }, 0.05);
+    bz(g, [[-25, -12], [-30, -34, -18, -50, 0, -54], [10, -56, 20, -50, 22, -36], [22, -18, 21, -6, 19, -2], [19, 0], [-10, 0], [-22, -1, -27, -5, -25, -12]], col, u);
+    leg(g, u, col, 10, -24, 12, -3); leg(g, u, col, 17, -22, 20, -3, 5);
+    paw(g, u, col, 13, 0); paw(g, u, col, 22, 0, 5);
+    catHead(g, u, col, 8, -60, 10.5, { tilt: -0.62 });
     g.restore();
   } }
 }, { color: TONE[5] });
@@ -538,76 +647,323 @@ reg("bird", "새", ["easter-egg"], {
   } }
 }, { color: TONE[5] });
 
-/* ======================= 물고기 ======================= */
+/* ======================= 물고기 (오른쪽 보기; t = 꼬리 흔듦) =======================
+   자연사 도감 실루엣: 종마다 몸 비례·지느러미 모양이 다르다. 눈은 종이색 점 하나. */
 function fishFrame(g, x, y, h, o, fn) {
   const u = h / 84, col = o.color || ILLO.blue;
   g.save(); g.translate(x, y - 40 * u + Math.sin(tt(o) * 1.1) * 2 * u);
   fn(u, col, Math.sin(tt(o) * 3.2) * 0.16); g.restore();
 }
+/** 갈래 꼬리지느러미. (x, y)는 꼬리자루, ang 방향(0 = 왼쪽으로 뻗음), L 길이, sp 벌어짐, fork 파임 0~1 */
+function tailFin(g, u, col, x, y, ang, L, sp, fork = 0.35) {
+  g.save(); g.translate(x * u, y * u); g.rotate(ang);
+  bz(g, [[0, 0], [-L * 0.35, -sp * 0.25, -L * 0.75, -sp * 0.85, -L, -sp], [-L * (1 - fork), 0, -L, sp], [-L * 0.75, sp * 0.85, -L * 0.35, sp * 0.25, 0, 0]], col, u);
+  g.restore();
+}
+/** 눈: 종이색 점 */
+const fEye = (g, u, x, y, r = 1.7) => dot(g, x * u, y * u, r * u, ILLO.paper);
+/** 2차 곡선의 접선 */
+const qd = ([x0, y0, cx, cy, x1, y1], p) => [2 * (1 - p) * (cx - x0) + 2 * p * (x1 - cx), 2 * (1 - p) * (cy - y0) + 2 * p * (y1 - cy)];
+/** 굽은 등뼈(S: 꼬리자루 → 코)를 따라 두께를 주어 몸을 만든다. wmax 최대 반두께 */
+function spineBody(g, u, col, S, wmax, n = 24) {
+  const top = [], bot = [];
+  for (let i = 0; i <= n; i++) {
+    const s = i / n, p = qp(S, s), d = qd(S, s), len = Math.hypot(d[0], d[1]) || 1, nx = -d[1] / len, ny = d[0] / len;
+    const w = wmax * (0.12 + 0.88 * Math.sin(PI * Math.pow(s, 0.72)) ** 0.9);
+    top.push([p[0] + nx * w, p[1] + ny * w]); bot.push([p[0] - nx * w, p[1] - ny * w]);
+  }
+  shape(g, c => {
+    top.forEach(([px, py], i) => i ? c.lineTo(px * u, py * u) : c.moveTo(px * u, py * u));
+    bot.reverse().forEach(([px, py]) => c.lineTo(px * u, py * u));
+    c.closePath();
+  }, { fill: col });
+}
+/** 작은 물고기 한 마리(피라미). (x, y) 중심, L 몸길이 */
+function minnow(g, u, col, x, y, L, wag, eye = true) {
+  g.save(); g.translate(x * u, y * u);
+  const s = L / 40;
+  tailFin(g, u, col, -18 * s, 0, wag, 9 * s, 6 * s, 0.4);
+  bz(g, [[20 * s, 0], [17 * s, -4 * s, 6 * s, -5.5 * s, -6 * s, -4.5 * s], [-13 * s, -3.5 * s, -17 * s, -1.5 * s, -19 * s, 0], [-17 * s, 1.5 * s, -13 * s, 3.5 * s, -6 * s, 4.5 * s], [6 * s, 5.5 * s, 17 * s, 4 * s, 20 * s, 0]], col, u);
+  bz(g, [[-4 * s, -4.5 * s], [-1 * s, -9 * s, 4 * s, -9 * s, 7 * s, -5 * s]], col, u);
+  if (eye) fEye(g, u, 13 * s, -1.2 * s, 1.3 * s);
+  g.restore();
+}
+
 reg("fish", "물고기", ["easter-egg"], {
-  A: { label: "통통한 붕어 · 갈래 꼬리", draw(g, x, y, h, o) {
+  A: { label: "금붕어 · 부채꼬리", draw(g, x, y, h, o) {
     fishFrame(g, x, y, h, o, (u, col, wag) => {
-      g.save(); g.translate(-20 * u, 0); g.rotate(wag);
-      shape(g, c => { c.moveTo(0, 0); c.lineTo(-13 * u, -11 * u); c.lineTo(-9 * u, 0); c.lineTo(-13 * u, 11 * u); c.closePath(); }, { fill: col });
+      g.save(); g.translate(-9 * u, 0); g.rotate(wag * 0.7);
+      bz(g, [[0, -3], [-8, -12, -20, -22, -30, -16], [-26, -9, -20, -3, -14, 0], [-20, 3, -26, 9, -30, 16], [-20, 22, -8, 12, 0, 3]], col, u);
       g.restore();
-      tri(g, [-5 * u, -10 * u], [3 * u, -17 * u], [9 * u, -9 * u], col);
-      ellipse(g, 0, 0, 22 * u, 12 * u, { fill: col });
-      tri(g, [-2 * u, 10 * u], [-7 * u, 16 * u], [4 * u, 11 * u], col);
+      bz(g, [[-6, -11], [-3, -20, 6, -21, 11, -12]], col, u);
+      ellipse(g, 3 * u, 0, 15 * u, 12.5 * u, { fill: col }, -0.06);
+      bz(g, [[2, 11], [0, 17, -6, 18, -9, 13]], col, u);
+      bz(g, [[10, 4], [12, 9, 8, 12, 4, 8]], col, u);
+      fEye(g, u, 12, -3);
     });
   } },
-  B: { label: "길쭉한 몸 · 뾰족한 머리", draw(g, x, y, h, o) {
+  B: { label: "잉어 · 길고 낮은 등지느러미", draw(g, x, y, h, o) {
     fishFrame(g, x, y, h, o, (u, col, wag) => {
-      g.save(); g.translate(-25 * u, 0); g.rotate(wag);
-      shape(g, c => { c.moveTo(0, 0); c.quadraticCurveTo(-6 * u, -3 * u, -11 * u, -9 * u); c.quadraticCurveTo(-7 * u, 0, -11 * u, 9 * u); c.quadraticCurveTo(-6 * u, 3 * u, 0, 0); }, { fill: col });
-      g.restore();
-      blob(g, [[29 * u, 0.5 * u], [18 * u, -6.5 * u], [-6 * u, -7.5 * u], [-24 * u, -4 * u], [-25 * u, 3 * u], [-8 * u, 7.5 * u], [16 * u, 6.5 * u]], col);
-      shape(g, c => { c.moveTo(-14 * u, -6 * u); c.quadraticCurveTo(-2 * u, -14 * u, 12 * u, -6 * u); c.closePath(); }, { fill: col });
+      tailFin(g, u, col, -27, 0, wag, 13, 11, 0.4);
+      bz(g, [[-10, -9], [-6, -17, 6, -18, 12, -9]], col, u);
+      bz(g, [[28, 0], [26, -8, 10, -12, -4, -11], [-14, -10, -22, -6, -28, -2], [-28, 2], [-22, 6, -14, 10, -4, 11], [10, 12, 26, 8, 28, 0]], col, u);
+      bz(g, [[8, 8], [6, 14, -1, 16, -4, 12]], col, u);
+      ellipse(g, 12 * u, 5 * u, 6 * u, 2.6 * u, { fill: col }, 0.6);
+      fEye(g, u, 20, -3);
+      line(g, [[27 * u, 2 * u], [31 * u, 5 * u]], { lw: LINE * 0.8 });
     });
   } },
-  C: { label: "몸 높은 돔 · 작은 꼬리", draw(g, x, y, h, o) {
+  C: { label: "엔젤피시 · 키 큰 지느러미", draw(g, x, y, h, o) {
     fishFrame(g, x, y, h, o, (u, col, wag) => {
-      g.save(); g.translate(-15 * u, 1 * u); g.rotate(wag);
-      shape(g, c => { c.moveTo(0, 0); c.lineTo(-9 * u, -8 * u); c.lineTo(-7 * u, 0); c.lineTo(-9 * u, 8 * u); c.closePath(); }, { fill: col });
+      g.save(); g.translate(-15 * u, 0); g.rotate(wag * 0.6);
+      bz(g, [[0, -3], [-5, -6, -8, -9, -11, -11], [-9, -4, -9, 4, -11, 11], [-8, 9, -5, 6, 0, 3]], col, u);
       g.restore();
-      blob(g, [[22 * u, 2 * u], [14 * u, -10 * u], [0, -19 * u], [-12 * u, -12 * u], [-16 * u, 2 * u], [-8 * u, 14 * u], [8 * u, 13 * u]], col);
-      tri(g, [-2 * u, -17 * u], [4 * u, -25 * u], [9 * u, -13 * u], col);
+      bz(g, [[-3, -13], [-2, -24, -7, -34, -14, -42], [-12, -30, -15, -18, -15, -8]], col, u);
+      bz(g, [[-3, 13], [-2, 24, -7, 34, -14, 42], [-12, 30, -15, 18, -15, 8]], col, u);
+      bz(g, [[15, -2], [11, -12, 2, -16, -5, -14], [-13, -11, -16, -5, -16, 0], [-16, 5, -13, 11, -5, 14], [2, 16, 11, 12, 15, 2]], col, u);
+      thick(g, c => { c.moveTo(4 * u, 12 * u); c.quadraticCurveTo(2 * u, 22 * u, -3 * u, 30 * u); }, 1.8 * u, col);
+      fEye(g, u, 8, -4);
+    });
+  } },
+  D: { label: "피라미 · 가늘게", draw(g, x, y, h, o) {
+    fishFrame(g, x, y, h, o, (u, col, wag) => {
+      g.translate(0, 6 * u);
+      minnow(g, u, col, 0, 0, 52, wag);
+      ellipse(g, 4 * u, 3.5 * u, 4 * u, 1.6 * u, { fill: col }, 0.5);
+    });
+  } },
+  E: { label: "복어 · 둥글게 부풀림", draw(g, x, y, h, o) {
+    fishFrame(g, x, y, h, o, (u, col, wag) => {
+      tailFin(g, u, col, -15, 1, wag, 9, 7, 0.2);
+      bz(g, [[-4, -15], [-2, -21, 4, -21, 6, -15]], col, u);
+      circle(g, 0, 0, 16 * u, { fill: col });
+      ellipse(g, 12 * u, 3 * u, 6.5 * u, 4.5 * u, { fill: col }, 0.2);
+      [[-13, -9, -0.9], [-8, -14, -1.1], [-1, -16, -1.4], [6, -14, -1.8], [11, -10, -2.2], [-15, -3, -0.5], [-14, 6, 0.2], [-9, 12, 0.7], [-2, 15, 1.2], [5, 14, 1.6]].forEach(([px, py, a], i) => {
+        const L = (2.4 + (i % 3) * 0.6);
+        g.save(); g.translate(px * u, py * u); g.rotate(a + PI);
+        tri(g, [-1.6 * u, 0], [1.6 * u, 0], [0, -L * u], col);
+        g.restore();
+      });
+      bz(g, [[4, 7], [7, 11, 3, 14, -1, 10]], col, u);
+      fEye(g, u, 8, -5, 2);
+    });
+  } },
+  F: { label: "베타 · 너울거리는 지느러미", draw(g, x, y, h, o) {
+    fishFrame(g, x, y, h, o, (u, col, wag) => {
+      const t = tt(o), fl = Math.sin(t * 2.1) * 2, fl2 = Math.sin(t * 2.1 + 1.3) * 2;
+      g.save(); g.translate(-6 * u, 0); g.rotate(wag * 0.5);
+      bz(g, [[0, -3], [-8, -6, -22, -14, -32, -24 + fl], [-36, -12, -37, -4, -38, 0], [-37, 4, -36, 12, -32, 24 - fl], [-22, 14, -8, 6, 0, 3]], col, u);
+      g.restore();
+      bz(g, [[4, -6], [-2, -12, -12, -16 + fl2, -22, -22], [-16, -12, -10, -6, -4, -5]], col, u);
+      bz(g, [[8, 5], [0, 14, -10, 20 - fl2, -20, 24], [-14, 14, -8, 7, -2, 5]], col, u);
+      bz(g, [[12, 2], [10, 8, 4, 12, -2, 14 + fl], [2, 8, 4, 4, 6, 2]], col, u);
+      ellipse(g, 5 * u, 0, 12 * u, 6.2 * u, { fill: col }, -0.04);
+      fEye(g, u, 12, -1.5, 1.5);
+    });
+  } },
+  G: { label: "위에서 본 비단잉어", draw(g, x, y, h, o) {
+    fishFrame(g, x, y, h, o, (u, col, wag) => {
+      tailFin(g, u, col, -28, 0, wag * 1.3, 12, 9, 0.35);
+      [[-1, 1], [1, -1]].forEach(([sy, ro]) => {
+        g.save(); g.scale(1, sy);
+        bz(g, [[10, 7], [4, 12, -6, 16, -12, 14], [-6, 10, 2, 8, 10, 7]], col, u);
+        g.restore();
+      });
+      bz(g, [[28, 0], [26, -7, 12, -9, -2, -8], [-14, -7, -22, -4, -28, -1.5], [-28, 1.5], [-22, 4, -14, 7, -2, 8], [12, 9, 26, 7, 28, 0]], col, u);
+      ellipse(g, 6 * u, -1.5 * u, 7 * u, 4 * u, { fill: ILLO.paper }, 0.15);
+      ellipse(g, -14 * u, 1.5 * u, 4 * u, 3 * u, { fill: ILLO.paper }, -0.3);
+      fEye(g, u, 21, -4, 1.3); fEye(g, u, 21, 4, 1.3);
+    });
+  } },
+  H: { label: "뛰어오름 · 활처럼", draw(g, x, y, h, o) {
+    fishFrame(g, x, y, h, o, (u, col, wag) => {
+      g.translate(0, 8 * u);
+      const S = [-20, 22, -2, -8, 22, -20];
+      const d = qd(S, 0), a = Math.atan2(d[1], d[0]);
+      tailFin(g, u, col, S[0], S[1], a + wag * 0.6, 13, 11, 0.5);
+      spineBody(g, u, col, S, 8.5);
+      const m = qp(S, 0.5), md = qd(S, 0.5), ma = Math.atan2(md[1], md[0]);
+      g.save(); g.translate(m[0] * u, m[1] * u); g.rotate(ma);
+      bz(g, [[-7, -7], [-4, -12, 3, -12, 7, -7.5]], col, u);
+      bz(g, [[6, 6], [6, 11, 1, 13, -3, 9]], col, u);
+      g.restore();
+      const e = qp(S, 0.88);
+      fEye(g, u, e[0] + 1, e[1] - 2.5, 1.5);
+      [[-24, 30, 1.6], [-16, 34, 1.1], [-30, 36, 0.9]].forEach(([px, py, r]) => dot(g, px * u, py * u, r * u, col));
+    });
+  } },
+  I: { label: "머리를 아래로", draw(g, x, y, h, o) {
+    fishFrame(g, x, y, h, o, (u, col, wag) => {
+      const S = [-4, -30, 6, -6, 2, 22];
+      const d = qd(S, 0), a = Math.atan2(d[1], d[0]);
+      tailFin(g, u, col, S[0], S[1], a + wag * 0.8, 11, 9, 0.4);
+      spineBody(g, u, col, S, 9);
+      const m = qp(S, 0.5), md = qd(S, 0.5), ma = Math.atan2(md[1], md[0]);
+      g.save(); g.translate(m[0] * u, m[1] * u); g.rotate(ma);
+      bz(g, [[-7, -8], [-4, -15, 5, -15, 9, -9]], col, u);
+      bz(g, [[2, 8], [4, 13, 0, 15, -3, 10]], col, u);
+      g.restore();
+      const e = qp(S, 0.9);
+      fEye(g, u, e[0] + 3, e[1], 1.5);
+    });
+  } },
+  J: { label: "작은 물고기 세 마리", draw(g, x, y, h, o) {
+    fishFrame(g, x, y, h, o, (u, col) => {
+      const t = tt(o);
+      minnow(g, u, col, -14, -12 + Math.sin(t * 1.3) * 1.5, 24, Math.sin(t * 3.4) * 0.2);
+      minnow(g, u, col, 10, -2 + Math.sin(t * 1.5 + 1) * 1.5, 22, Math.sin(t * 3.1 + 1.2) * 0.2);
+      minnow(g, u, col, -6, 12 + Math.sin(t * 1.4 + 2) * 1.5, 19, Math.sin(t * 3.6 + 2.4) * 0.2);
     });
   } }
 }, { color: ILLO.blue });
 
-/* ======================= 토끼 (옆모습) ======================= */
+/* ======================= 토끼 (옆모습, 오른쪽 보기; t = 귀 움찔) =======================
+   긴 귀(끝이 둥근), 큰 뒷다리 덩이, 앞으로 뻗는 긴 뒷발, 종이색 꼬리 솜뭉치가 종의 표식이다. */
 const puff = (g, x, y, r) => circle(g, x, y, r, { fill: ILLO.paper });
+/** 귀: 둥근 끝의 긴 타원. (x, y) 뿌리, L 길이, ang 방향(-PI/2 = 위), w 너비 비율 */
+function ear(g, u, col, x, y, L, ang, w = 0.3) {
+  ellipse(g, (x + Math.cos(ang) * L / 2) * u, (y + Math.sin(ang) * L / 2) * u, L / 2 * u, L * w / 2 * u, { fill: col }, ang);
+}
+/** 토끼 머리: 타원 + 볼 + 눈(종이색 점). tilt 는 코 방향(+면 아래) */
+function rabHead(g, u, col, x, y, { tilt = 0, r = 10, eye = true } = {}) {
+  g.save(); g.translate(x * u, y * u); g.rotate(tilt);
+  ellipse(g, 0, 0, r * 1.1 * u, r * 0.82 * u, { fill: col }, -0.12);
+  circle(g, -r * 0.45 * u, r * 0.2 * u, r * 0.6 * u, { fill: col });
+  ellipse(g, r * 0.85 * u, r * 0.05 * u, r * 0.4 * u, r * 0.34 * u, { fill: col }, 0.2);
+  if (eye) dot(g, r * 0.42 * u, -r * 0.18 * u, r * 0.14 * u, ILLO.paper);
+  g.restore();
+}
+/** 앞으로 뻗은 긴 뒷발 */
+const hindFoot = (g, u, col, x, y, L = 12) => ellipse(g, x * u, (y - 2.4) * u, L * u, 2.6 * u, { fill: col });
+
 reg("rabbit", "토끼", ["easter-egg"], {
-  A: { label: "앉은 토끼 · 귀 하나는 기움", draw(g, x, y, h, o) {
+  A: { label: "앉아서 경계 · 귀 쫑긋", draw(g, x, y, h, o) {
     const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.7) * 0.03;
     g.save(); g.translate(x, y);
-    lf(g, 14 * u, -42 * u, 26 * u, -PI * 0.62 + tw, col, { w: 0.3, bulge: 0.5 });
-    lf(g, 19 * u, -41 * u, 23 * u, -PI * 0.42 - tw, col, { w: 0.3, bulge: 0.5 });
-    ellipse(g, -4 * u, -18 * u, 21 * u, 17 * u, { fill: col }, -0.05);
-    ellipse(g, 6 * u, -2.5 * u, 10 * u, 3 * u, { fill: col });
-    circle(g, 16 * u, -34 * u, 10.5 * u, { fill: col });
-    puff(g, -22 * u, -14 * u, 4 * u);
+    ear(g, u, col, 11, -45, 27, -PI * 0.56 + tw, 0.3);
+    ear(g, u, col, 15, -44, 25, -PI * 0.43 - tw, 0.3);
+    ellipse(g, -8 * u, -16 * u, 18 * u, 15.5 * u, { fill: col }, -0.05);
+    bz(g, [[-18, -28], [-8, -40, 4, -42, 14, -38], [22, -34, 22, -20, 18, -4], [16, 0], [-10, 0]], col, u);
+    hindFoot(g, u, col, 2, 0, 13);
+    tube(g, [[12 * u, -14 * u], [13 * u, -3 * u]], { color: col, w: 4.5 * u });
+    tube(g, [[18 * u, -13 * u], [19 * u, -3 * u]], { color: col, w: 4 * u });
+    rabHead(g, u, col, 14, -40, { tilt: -0.1 });
+    puff(g, -25 * u, -15 * u, 4.2 * u);
     g.restore();
   } },
-  B: { label: "웅크린 토끼 · 귀는 뒤로", draw(g, x, y, h, o) {
-    const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.5) * 0.03;
+  B: { label: "웅크림 · 귀 뒤로", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.4) * 0.025;
     g.save(); g.translate(x, y);
-    lf(g, 16 * u, -30 * u, 24 * u, -PI * 0.9 + tw, col, { w: 0.3, bulge: 0.5 });
-    lf(g, 18 * u, -27 * u, 21 * u, -PI * 0.98 - tw, col, { w: 0.3, bulge: 0.5 });
-    ellipse(g, 0, -13 * u, 26 * u, 13 * u, { fill: col }, 0.03);
-    circle(g, 21 * u, -22 * u, 9.5 * u, { fill: col });
-    puff(g, -25 * u, -9 * u, 3.5 * u);
+    ear(g, u, col, 14, -22, 25, -PI * 0.9 + tw, 0.28);
+    ear(g, u, col, 16, -19, 22, -PI * 0.97 - tw, 0.28);
+    bz(g, [[-28, -6], [-30, -18, -14, -26, 2, -25], [14, -24, 24, -20, 28, -12], [30, -6, 26, 0, 20, 0], [-22, 0], [-28, 0, -29, -2, -28, -6]], col, u);
+    hindFoot(g, u, col, 8, 0, 10);
+    rabHead(g, u, col, 23, -19, { tilt: 0.12, r: 9 });
+    puff(g, -26 * u, -8 * u, 3.6 * u);
     g.restore();
   } },
-  C: { label: "일어선 토끼 · 길게", draw(g, x, y, h, o) {
+  C: { label: "뛰는 중 · 쭉 뻗음", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.6) * 0.03;
+    g.save(); g.translate(x, y - 8 * u);
+    ear(g, u, col, 22, -44, 22, -PI * 0.86 + tw, 0.3);
+    ear(g, u, col, 25, -42, 20, -PI * 0.96 - tw, 0.3);
+    ellipse(g, -17 * u, -30 * u, 11 * u, 9.5 * u, { fill: col }, -0.3);
+    tube(g, [[-18 * u, -28 * u], [-34 * u, -13 * u]], { color: col, w: 6.5 * u });
+    ellipse(g, -36 * u, -11 * u, 8 * u, 3 * u, { fill: col }, -0.6);
+    bz(g, [[-26, -26], [-22, -40, 0, -46, 16, -42], [26, -40, 30, -34, 28, -26], [24, -18, 6, -18, -8, -20], [-20, -22, -26, -22, -26, -26]], col, u);
+    tube(g, [[14 * u, -26 * u], [28 * u, -12 * u]], { color: col, w: 4.5 * u });
+    tube(g, [[10 * u, -24 * u], [20 * u, -10 * u]], { color: col, w: 4 * u });
+    rabHead(g, u, col, 27, -38, { tilt: -0.28, r: 9.5 });
+    puff(g, -27 * u, -32 * u, 4 * u);
+    g.restore();
+  } },
+  D: { label: "뒷다리로 일어섬", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.7) * 0.03;
+    g.save(); g.translate(x, y);
+    ear(g, u, col, 3, -62, 25, -PI * 0.56 + tw, 0.3);
+    ear(g, u, col, 7, -61, 23, -PI * 0.42 - tw, 0.3);
+    ellipse(g, -5 * u, -12 * u, 14 * u, 11.5 * u, { fill: col });
+    bz(g, [[-16, -12], [-16, -34, -8, -52, 2, -58], [10, -60, 14, -48, 14, -34], [14, -22, 12, -8, 10, -2], [10, 0], [-10, 0]], col, u);
+    hindFoot(g, u, col, 4, 0, 13);
+    tube(g, [[9 * u, -40 * u], [15 * u, -34 * u]], { color: col, w: 4 * u });
+    tube(g, [[10 * u, -35 * u], [15 * u, -30 * u]], { color: col, w: 3.6 * u });
+    rabHead(g, u, col, 7, -57, { tilt: -0.15, r: 9.5 });
+    puff(g, -18 * u, -9 * u, 3.6 * u);
+    g.restore();
+  } },
+  E: { label: "앞발로 세수", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.5) * 0.025, wash = Math.sin(tt(o) * 4) * 1.5;
+    g.save(); g.translate(x, y);
+    ear(g, u, col, 10, -34, 25, -PI * 0.74 + tw, 0.3);
+    ear(g, u, col, 14, -32, 23, -PI * 0.84 - tw, 0.3);
+    ellipse(g, -10 * u, -15 * u, 18 * u, 15 * u, { fill: col }, -0.05);
+    bz(g, [[-20, -26], [-12, -38, 0, -40, 10, -36], [16, -32, 16, -20, 14, -4], [12, 0], [-12, 0]], col, u);
+    hindFoot(g, u, col, 0, 0, 12);
+    rabHead(g, u, col, 20, -27, { tilt: 0.7, r: 9.5, eye: false });
+    tube(g, [[8 * u, -12 * u], [22 * u + wash, -20 * u]], { color: col, w: 4.2 * u });
+    tube(g, [[13 * u, -11 * u], [27 * u - wash, -17 * u]], { color: col, w: 3.8 * u });
+    puff(g, -25 * u, -14 * u, 4 * u);
+    g.restore();
+  } },
+  F: { label: "귀 하나는 서고 하나는 접힘", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.6) * 0.035;
+    g.save(); g.translate(x, y);
+    ear(g, u, col, 9, -40, 27, -PI * 0.52 + tw, 0.3);
+    ear(g, u, col, 16, -38, 22, PI * 0.12 - tw * 0.5, 0.32);
+    bz(g, [[-26, -8], [-28, -22, -14, -32, 0, -32], [14, -32, 22, -26, 24, -14], [25, -6, 22, 0, 16, 0], [-20, 0], [-26, 0, -27, -3, -26, -8]], col, u);
+    hindFoot(g, u, col, 6, 0, 10);
+    rabHead(g, u, col, 15, -35, { tilt: -0.05, r: 9.8 });
+    puff(g, -25 * u, -10 * u, 3.8 * u);
+    g.restore();
+  } },
+  G: { label: "풀 뜯기 · 코를 땅에", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.5) * 0.03, nib = Math.sin(tt(o) * 5) * 0.03;
+    g.save(); g.translate(x, y);
+    ear(g, u, col, 14, -22, 24, -PI * 0.72 + tw, 0.28);
+    ear(g, u, col, 18, -20, 22, -PI * 0.6 - tw, 0.28);
+    bz(g, [[-24, -8], [-30, -22, -16, -32, 0, -31], [12, -30, 22, -26, 26, -16], [28, -10, 26, -4, 24, -2], [22, 0], [-16, 0], [-24, 0, -26, -3, -24, -8]], col, u);
+    hindFoot(g, u, col, -6, 0, 11);
+    tube(g, [[14 * u, -10 * u], [15 * u, -3 * u]], { color: col, w: 4.5 * u });
+    tube(g, [[20 * u, -9 * u], [22 * u, -3 * u]], { color: col, w: 4 * u });
+    rabHead(g, u, col, 26, -13, { tilt: 0.85 + nib, r: 9.5 });
+    lf(g, 40 * u, 0, 8 * u, -PI * 0.55, col, { w: 0.5 });
+    lf(g, 42 * u, 0, 6 * u, -PI * 0.35, col, { w: 0.5 });
+    puff(g, -26 * u, -12 * u, 4 * u);
+    g.restore();
+  } },
+  H: { label: "둥글게 말고 잠", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[4], br = 1 + Math.sin(tt(o) * 1.3) * 0.015;
+    g.save(); g.translate(x, y);
+    g.save(); g.scale(1, br);
+    bz(g, [[-24, -6], [-28, -18, -14, -25, -2, -25], [10, -25, 18, -21, 22, -12], [24, -5, 20, 0, 14, 0], [-18, 0], [-24, 0, -25, -3, -24, -6]], col, u);
+    g.restore();
+    ear(g, u, col, 12, -22, 25, -PI * 0.9, 0.3);
+    ear(g, u, col, 14, -19, 23, -PI * 0.96, 0.3);
+    rabHead(g, u, col, 20, -11, { tilt: 0.45, r: 9, eye: false });
+    puff(g, -22 * u, -7 * u, 3.6 * u);
+    g.restore();
+  } },
+  I: { label: "뒷모습 · 솜꼬리", draw(g, x, y, h, o) {
     const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.6) * 0.03;
     g.save(); g.translate(x, y);
-    lf(g, 4 * u, -59 * u, 27 * u, -PI * 0.56 + tw, col, { w: 0.28, bulge: 0.5 });
-    lf(g, 9 * u, -59 * u, 24 * u, -PI * 0.36 - tw, col, { w: 0.28, bulge: 0.5 });
-    ellipse(g, 0, -26 * u, 13 * u, 25 * u, { fill: col }, 0.06);
-    ellipse(g, 5 * u, -2.5 * u, 12 * u, 3 * u, { fill: col });
-    circle(g, 6 * u, -52 * u, 9.5 * u, { fill: col });
-    puff(g, -13 * u, -9 * u, 3.5 * u);
+    ear(g, u, col, -5, -34, 26, -PI * 0.6 + tw, 0.3);
+    ear(g, u, col, 5, -34, 25, -PI * 0.42 - tw, 0.3);
+    bz(g, [[-19, -10], [-20, -28, -10, -38, 0, -38], [10, -38, 20, -28, 19, -10], [18, -2, 12, 0, 0, 0], [-12, 0, -18, -2, -19, -10]], col, u);
+    circle(g, 0, -34 * u, 11 * u, { fill: col });
+    ellipse(g, -10 * u, -2.4 * u, 7.5 * u, 2.6 * u, { fill: col });
+    ellipse(g, 10 * u, -2.4 * u, 7 * u, 2.6 * u, { fill: col });
+    puff(g, 1 * u, -8 * u, 5 * u);
+    g.restore();
+  } },
+  J: { label: "아기 토끼 · 작게", draw(g, x, y, h, o) {
+    const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 2) * 0.04;
+    g.save(); g.translate(x, y);
+    ear(g, u, col, 7, -19, 14, -PI * 0.6 + tw, 0.38);
+    ear(g, u, col, 10, -18, 13, -PI * 0.42 - tw, 0.38);
+    ellipse(g, -2 * u, -9 * u, 13 * u, 9 * u, { fill: col }, -0.05);
+    hindFoot(g, u, col, 2, 0, 8);
+    rabHead(g, u, col, 9, -16, { tilt: -0.05, r: 7.5 });
+    puff(g, -14 * u, -8 * u, 2.6 * u);
     g.restore();
   } }
 }, { color: TONE[4] });

@@ -1,6 +1,8 @@
 import { clamp, dist, localPoint } from "../../lib/util.js";
 import { ILLO, TONE } from "../../lib/draw.js";
 import { peepSVG, peepBox, outfit } from "../../lib/figure.js";
+import { objectCanvas } from "../../lib/objects.js";
+import "../../lib/objects/index.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -14,7 +16,7 @@ export default function demo(api) {
     .drag-and-drop-tray { position: absolute; border: 1px dashed rgba(0,0,0,.2); border-radius: 18px; pointer-events: none; }
     .drag-and-drop-tray span { position: absolute; left: 14px; top: 10px; font-size: 13px; color: var(--ink-3); }
     .drag-and-drop-char { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 1; }
-    .drag-and-drop-char svg, .drag-and-drop-part svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    .drag-and-drop-char svg, .drag-and-drop-part svg, .drag-and-drop-part canvas { display: block; width: 100% !important; height: 100% !important; overflow: visible; }
     .drag-and-drop-slot { position: absolute; left: 0; top: 0; border-radius: 50%; border: 2px dashed var(--ink-3);
       opacity: 0; transform: scale(.7); transition: opacity .2s, transform .25s cubic-bezier(.3,1.6,.5,1), background-color .2s, border-color .2s;
       pointer-events: none; z-index: 2; }
@@ -55,21 +57,17 @@ export default function demo(api) {
   charEl.innerHTML = peepSVG(FIG);
   root.appendChild(charEl);
 
-  /* ---------- 파츠: 외곽선 없는 납작한 실루엣. 안경테만 1.5px 가는 선 ----------
+  /* ---------- 파츠: 사물 카탈로그(hat, glasses, scarf, bag)를 objectCanvas 로 그린다. 스티커만 실루엣 SVG ----------
      자리(slot)는 peepInner 좌표(머리 그룹 translate(225 0), 짧은 머리의 머리통 x 270~665 · y 110~585, 얼굴 translate(384 186))로 적고
-     캐릭터 상자(CW×CH) 기준 px로 바꿔 둔다: 머리 위, 눈, 목, 손. 스티커는 아무 데나 */
+     캐릭터 상자(CW×CH) 기준 px로 바꿔 둔다: 머리 위, 눈, 목, 손. 스티커는 아무 데나
+     w·h 는 배율 1일 때 파츠 상자 크기이며 캔버스 비례와 같아야 한다 (pad 가 음수면 사물 위 여백을 잘라 상자를 꼭 맞춘다) */
   const at = (ix, iy) => [(ix - BOX.x) * U, (iy - BOX.y) * U];
-  const THIN = `fill="none" stroke="${INK}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"`;
   const starPath = (cx, cy, r) => Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; return `${i ? "L" : "M"}${(cx + Math.cos(a) * rr).toFixed(1)} ${(cy + Math.sin(a) * rr).toFixed(1)}`; }).join(" ") + " Z";
   const PARTS = [
-    { id: "hat", name: "모자", w: 66, h: 42, slot: at(467, 110),
-      svg: `<svg viewBox="0 0 110 70"><path d="M14 54 C14 14 96 14 96 54 Z" fill="${ILLO.blue}"/><rect x="6" y="48" width="98" height="16" rx="8" fill="${ILLO.blue}"/><circle cx="55" cy="14" r="7" fill="${ILLO.blue}"/></svg>` },
-    { id: "glasses", name: "안경", w: 52, h: 21, slot: at(484, 305),
-      svg: `<svg viewBox="0 0 110 44"><circle cx="30" cy="24" r="16" ${THIN}/><circle cx="80" cy="24" r="16" ${THIN}/><path d="M46 22 Q55 15 64 22" ${THIN}/><path d="M14 20 L4 14 M96 20 L106 14" ${THIN}/></svg>` },
-    { id: "scarf", name: "목도리", w: 62, h: 46, slot: at(460, 620),
-      svg: `<svg viewBox="0 0 100 74"><path d="M12 12 Q50 34 88 12 L90 30 Q50 52 10 30 Z" fill="${TONE[4]}"/><path d="M58 32 L76 30 L80 70 L62 72 Z" fill="${TONE[4]}"/></svg>` },
-    { id: "bag", name: "가방", w: 50, h: 68, slot: at(-140, 1780),
-      svg: `<svg viewBox="0 0 70 96"><path d="M22 34 C22 6 48 6 48 34" fill="none" stroke="${TONE[5]}" stroke-width="5" stroke-linecap="round"/><path d="M8 34 H62 L58 92 H12 Z" fill="${TONE[5]}"/></svg>` },
+    { id: "hat", name: "모자", w: 66, h: 44, slot: at(467, 110), obj: () => objectCanvas("hat", 40, { color: TONE[5] }, { w: 66, pad: 2 }) },
+    { id: "glasses", name: "안경", w: 70, h: 24, slot: at(484, 305), obj: () => objectCanvas("glasses", 40, { color: INK }, { w: 70, pad: -8 }) },
+    { id: "scarf", name: "목도리", w: 60, h: 44, slot: at(460, 620), obj: () => objectCanvas("scarf", 60, { color: ILLO.red }, { w: 60, pad: -8 }) },
+    { id: "bag", name: "가방", w: 40, h: 68, slot: at(-140, 1780), obj: () => objectCanvas("bag", 60, { color: TONE[4] }, { w: 40, pad: 4 }) },
     { id: "sticker", name: "스티커", w: 50, h: 50, slot: null,
       svg: `<svg viewBox="0 0 64 64"><path d="${starPath(32, 32, 28)}" fill="${ILLO.blue}"/></svg>` }
   ];
@@ -79,7 +77,8 @@ export default function demo(api) {
   const parts = PARTS.map((d, i) => {
     const node = document.createElement("div");
     node.className = "drag-and-drop-part";
-    node.innerHTML = `<div class="drag-and-drop-part-in">${d.svg}</div>`;
+    node.innerHTML = `<div class="drag-and-drop-part-in">${d.svg || ""}</div>`;
+    if (d.obj) node.firstElementChild.appendChild(d.obj());
     node.style.zIndex = 10 + i;
     root.appendChild(node);
     let slotEl = null;

@@ -1,5 +1,7 @@
 import { rng, clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { shape, circle } from "../../lib/draw.js";
+import { TONE as T, shape } from "../../lib/draw.js";
+import "../../lib/objects/index.js";
+import { drawObject } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -23,48 +25,51 @@ export default function demo(api) {
   root.appendChild(scene);
   const { g, size } = fitCanvas(api, { parent: scene });
   const C = { ink: api.color("--ink"), ink3: api.color("--ink-3"), accent: api.color("--accent"), board: api.color("--board") };
-  // 층 색 (그림 키트 팔레트): 해, 먼 산, 가까운 산, 언덕, 땅, 풀잎
-  const TONE = [C.accent, "#e2dccf", "#cfc7b6", "#b3aa96", "#8a8273", C.ink];
+  // 층 색 (그림 키트 톤): 해, 먼 산(카탈로그 톤을 반투명으로), 가까운 산(카탈로그 톤), 언덕, 땅, 풀잎
+  const TONE = [C.accent, null, null, T[3], T[4], C.ink];
 
   /* ---------- 층 모양 (정규화 좌표로 한 번만 만든다) ---------- */
   const rand = rng(3);
-  const peaks = (n, lo, hi) => Array.from({ length: n + 1 }, (_, i) => ({ x: -0.25 + i * 1.5 / n + (rand() - 0.5) * 0.06, h: lo + rand() * (hi - lo) }));
-  const far = peaks(10, 0.14, 0.3), mid = peaks(7, 0.1, 0.24);
   const hillPh = [rand() * TAU, rand() * TAU];
-  const trees = Array.from({ length: 14 }, () => ({ x: -0.15 + rand() * 1.3, s: 0.6 + rand() * 0.6 }));
-  const blades = Array.from({ length: 18 }, (_, i) => {
-    const left = i < 9;
-    return { x: left ? -0.06 + rand() * 0.16 : 0.9 + rand() * 0.16, h: 0.12 + rand() * 0.2, lean: (rand() - 0.5) * 0.08 };
+  const trees = Array.from({ length: 14 }, () => ({ x: -0.15 + rand() * 1.3, s: 0.6 + rand() * 0.6, flip: rand() < 0.5 }));
+  const blades = Array.from({ length: 6 }, (_, i) => {
+    const left = i < 3;
+    return { x: left ? -0.04 + rand() * 0.14 : 0.9 + rand() * 0.14, h: 0.1 + rand() * 0.12, flip: rand() < 0.5 };
   });
   const hillY = (x, w, h) => h * 0.8 - (Math.sin(x / w * 5.2 + hillPh[0]) * 0.035 + Math.sin(x / w * 11 + hillPh[1]) * 0.015 + 0.03) * h;
+  let time = 0;
+
+  // 산 능선: 카탈로그 mountain-range 를 옆으로 이어 붙인다 (교대로 뒤집어 이음새를 맞춘다). 아래는 앞 능선 톤으로 채운다
+  const mountains = (w, h, base, mh, alpha) => {
+    const W = Math.round(mh * 3.2), n = Math.ceil(w * 2 / W) + 1, y = Math.round(base);
+    g.save(); g.globalAlpha = alpha;
+    g.fillStyle = T[4]; g.fillRect(-w, y - 1, w * 3, h + 200 - y);
+    for (let k = 0; k < n; k++) drawObject(g, "mountain-range", Math.round(w * 0.5) + (k - Math.floor(n / 2)) * W, y, W / 3.2, { flip: k % 2 === 1 });
+    g.restore();
+  };
 
   // 모든 층은 외곽선 없는 톤 면으로 그린다. 색은 해(강조색) 하나뿐이다
   const drawLayer = (i, w, h, ox, oy) => {
-    g.save(); g.translate(ox, oy);
+    g.save(); g.translate(i === 1 || i === 2 ? Math.round(ox) : ox, i === 1 || i === 2 ? Math.round(oy) : oy);
     const fill = TONE[i];
     const X0 = -w * 0.5, X1 = w * 1.5, BOT = h + 200;
     if (i === 0) {
-      circle(g, w * 0.7, h * 0.27, Math.min(w, h) * 0.06, { fill });
-    } else if (i === 1 || i === 2) {
-      const pk = i === 1 ? far : mid, base = i === 1 ? 0.64 : 0.74;
-      shape(g, c => {
-        c.moveTo(X0, BOT);
-        pk.forEach((p, k) => {
-          c.lineTo(p.x * w, h * (base - p.h));
-          if (k < pk.length - 1) c.lineTo((p.x + pk[k + 1].x) / 2 * w, h * (base - 0.02));
-        });
-        c.lineTo(X1, h * base); c.lineTo(X1, BOT); c.closePath();
-      }, { fill });
+      const sh = Math.min(w, h) * 0.3;
+      drawObject(g, "sun-disc", w * 0.7 - sh * 0.08, h * 0.27 + sh * 0.55, sh, { state: 0, color: fill });
+    } else if (i === 1) {
+      mountains(w, h, h * 0.64, h * 0.26, 0.45);
+    } else if (i === 2) {
+      mountains(w, h, h * 0.76, h * 0.2, 0.7);
     } else if (i === 3) {
       shape(g, c => {
         c.moveTo(X0, BOT);
         for (let x = X0; x <= X1; x += 10) c.lineTo(x, hillY(x, w, h));
         c.lineTo(X1, BOT); c.closePath();
       }, { fill });
-      // 나무: 언덕과 같은 톤의 가늘고 긴 실루엣
+      // 나무: 언덕 위에 선 가늘고 긴 실루엣 (카탈로그 bush-tree)
       for (const t of trees) {
-        const x = t.x * w, y = hillY(x, w, h) + 4, th = h * 0.1 * t.s, tw = th * 0.3;
-        shape(g, c => { c.moveTo(x - tw, y); c.quadraticCurveTo(x - tw * 0.9, y - th * 0.55, x, y - th); c.quadraticCurveTo(x + tw * 0.9, y - th * 0.55, x + tw, y); c.closePath(); }, { fill: TONE[4] });
+        const x = t.x * w;
+        drawObject(g, "bush-tree", x, hillY(x, w, h) + 4, h * 0.12 * t.s, { color: TONE[4], flip: t.flip });
       }
     } else if (i === 4) {
       shape(g, c => {
@@ -72,10 +77,8 @@ export default function demo(api) {
         c.quadraticCurveTo(w * 0.5, h * 0.86, X1, h * 0.91); c.lineTo(X1, BOT); c.closePath();
       }, { fill });
     } else {
-      for (const b of blades) {
-        const x = b.x * w, bh = h * b.h, bw = Math.max(4, w * 0.01);
-        shape(g, c => { c.moveTo(x - bw, h + 60); c.quadraticCurveTo(x - bw * 0.3, h - bh * 0.5, x + b.lean * w, h - bh); c.quadraticCurveTo(x + bw * 0.3, h - bh * 0.5, x + bw, h + 60); c.closePath(); }, { fill });
-      }
+      // 풀잎: 카탈로그 grass-blades 묶음을 양 끝에 둔다
+      for (const b of blades) drawObject(g, "grass-blades", b.x * w, h + 6, h * b.h * 1.6, { color: fill, flip: b.flip, t: time + b.x * 10 });
     }
     g.restore();
   };
@@ -125,6 +128,7 @@ export default function demo(api) {
     tl += ((S.tilt ? 1 : 0) - tl) * e;
     guideA += ((S.guide ? 1 : 0) - guideA) * e;
     const MAXPX = clamp(w * 0.18, 70, 220) * S.strength;
+    time += dt / 1000;
 
     g.clearRect(0, 0, w, h);
     for (let i = 0; i < DEPTH.length; i++) {

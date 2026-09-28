@@ -380,45 +380,134 @@ registerObject("planet", {
 });
 
 /* ---------- 드럼 (스텝 시퀀서 무대) ---------- */
+/* 킥 드럼 부품. 통(셸) TONE[4], 후프(림) TONE[5], 헤드 TONE[1], 벤트홀은 종이색.
+   러그(텐션 로드)는 후프 바깥의 잉크 틱, 스퍼(다리)·페달·비터는 가는 잉크 선. 울리면(state) 헤드에 강조 링 + 살짝 커진다. */
+const PI = Math.PI;
+/** 후프 + 헤드를 (cx, cy)에 그린다. 앞에서 본 타원(rx, ry). tilt는 기울기 */
+function kickHead(g, cx, cy, rx, ry, o, { vent = true, lugs = 8, tilt = 0, ventAt = [0.5, 0.3] } = {}) {
+  const s = st(o), k = 1 + s * 0.03;
+  g.save(); g.translate(cx, cy); g.rotate(tilt);
+  shape(g, c => c.ellipse(0, 0, rx, ry, 0, 0, TAU), { fill: TONE[5] });
+  shape(g, c => c.ellipse(0, 0, rx * 0.87 * k, ry * 0.87 * k, 0, 0, TAU), { fill: TONE[1] });
+  if (vent) shape(g, c => c.ellipse(rx * ventAt[0], ry * ventAt[1], rx * 0.085, ry * 0.085, 0, 0, TAU), { fill: ILLO.paper });
+  for (let i = 0; i < lugs; i++) {
+    const a = -PI / 2 + ((i + 0.5) / lugs) * TAU, ca = Math.cos(a), sa = Math.sin(a);
+    line(g, [[ca * rx * 0.99, sa * ry * 0.99], [ca * rx * 1.1, sa * ry * 1.1]], { lw: LINE });
+  }
+  if (s > 0.02) {
+    g.save(); g.globalAlpha = 0.95 - s * 0.6;
+    shape(g, c => c.ellipse(0, 0, rx * (0.42 + s * 0.42), ry * (0.42 + s * 0.42), 0, 0, TAU), { fill: null, lw: LINE * (1 + s * 0.6), stroke: o.accent });
+    g.restore();
+  }
+  g.restore();
+}
+/** 러그 케이싱: 셸 위의 작은 어두운 톤 덩어리 (가로 = 통 축 방향) */
+const lug = (g, x, y, len, thick) => shape(g, c => c.roundRect(x - len / 2, y - thick / 2, len, thick, thick * 0.4), { fill: TONE[5] });
+/** 3/4 로 본 통: 뒤 후프(왼쪽)와 앞 후프(오른쪽) 사이의 셸 면. 후프마다 러그 케이싱 세 개 + 실루엣 밖으로 나온 틱 */
+function kickShell34(g, cx, cy, rx, ry, depth) {
+  shape(g, c => c.ellipse(cx - depth, cy, rx, ry, 0, 0, TAU), { fill: TONE[5] });
+  shape(g, c => { c.moveTo(cx - depth, cy - ry); c.lineTo(cx, cy - ry); c.ellipse(cx, cy, rx, ry, 0, -PI / 2, PI / 2); c.lineTo(cx - depth, cy + ry); c.ellipse(cx - depth, cy, rx, ry, 0, PI / 2, PI * 1.5); c.closePath(); }, { fill: TONE[4] });
+  const len = depth * 0.16, thick = ry * 0.09;
+  for (const dx of [depth * 0.14, depth * 0.86]) {
+    const x0 = cx - dx;
+    for (const a of [PI * 0.74, PI, PI * 1.26]) lug(g, x0 + Math.cos(a) * rx * 0.96, cy + Math.sin(a) * ry * 0.96, len, thick);
+    line(g, [[x0, cy - ry], [x0, cy - ry - ry * 0.08]], { lw: LINE }); line(g, [[x0, cy + ry], [x0, cy + ry + ry * 0.08]], { lw: LINE });
+  }
+}
+/** 스퍼(다리): 가는 선 + 발끝 틱 */
+const spur = (g, x0, y0, x1, y1) => { line(g, [[x0, y0], [x1, y1]], { lw: LINE + 0.3 }); line(g, [[x1 - 3, y1], [x1 + 3, y1]], { lw: LINE }); };
+/** 페달 + 비터 (옆에서). 헤드 면은 x = hx, 통 중심 높이 cy, 반지름 r. beat 0~1 이면 비터가 헤드에 닿는다. dir 은 헤드에서 연주자 쪽으로 가는 방향 */
+function pedal(g, hx, cy, r, h, beat, dir = -1) {
+  const bl = r * 0.8, ang = 0.1 + beat * 0.42, br = h * 0.05;
+  const postX = hx + dir * (Math.sin(0.52) * bl + br * 0.9), pivotY = cy + r * 0.55;
+  const heelX = postX + dir * h * 0.36;
+  line(g, [[heelX, 0], [postX + dir * h * 0.03, -h * 0.075]], { lw: LINE + 0.5 });                // 발판
+  line(g, [[heelX - dir * h * 0.05, 0], [heelX - dir * h * 0.05, -h * 0.05]], { lw: LINE });      // 발판 힌지
+  line(g, [[postX, 0], [postX, pivotY]], { lw: LINE + 0.5 });                                       // 기둥
+  line(g, [[postX - h * 0.06, 0], [postX + h * 0.06, 0]], { lw: LINE });                            // 받침
+  const bx = postX - dir * Math.sin(ang) * bl, by = pivotY - Math.cos(ang) * bl;
+  line(g, [[postX, pivotY], [bx, by]], { lw: LINE });                                               // 비터 로드
+  circle(g, bx, by, br, { fill: TONE[3] });                                                          // 비터 헤드(펠트)
+}
+
 registerObject("drum-kick", {
   label: "킥 드럼 (state = 울림)", group: G, demos: ["step-sequencer"], height: 84, color: ILLO.red,
   variants: {
     A: {
-      label: "정면 큰 원 · 앞 헤드가 밝은 톤, 울리면 강조 링",
+      label: "정면 · 후프 링 + 밝은 헤드, 벤트홀, 러그 틱 8개, 스퍼 두 줄",
       draw(g, x, y, h, o) {
         g.save(); g.translate(x, y);
-        const s = st(o), r = h * 0.36 * (1 + s * 0.04), cy = -r - h * 0.04;
-        line(g, [[-r * 0.6, 0], [-r * 0.45, cy + r * 0.6]], { lw: LINE + 0.5 });
-        line(g, [[r * 0.65, 0], [r * 0.5, cy + r * 0.6]], { lw: LINE + 0.5 });
-        circle(g, 0, cy, r, { fill: TONE[4] });
-        circle(g, r * 0.05, cy - r * 0.02, r * 0.76, { fill: TONE[1] });
-        if (s > 0.02) shape(g, c => c.arc(r * 0.05, cy - r * 0.02, r * (0.76 + s * 0.3), 0, TAU), { fill: null, lw: LINE * (1 + s), stroke: o.accent });
+        const r = h * 0.36, cy = -r - h * 0.07;
+        shape(g, c => c.ellipse(-r * 0.08, cy + r * 0.02, r, r, 0, 0, TAU), { fill: TONE[4] });     // 뒤로 살짝 보이는 셸
+        spur(g, -r * 0.62, cy + r * 0.72, -r * 0.92, 0); spur(g, r * 0.66, cy + r * 0.7, r * 0.98, 0);
+        kickHead(g, 0, cy, r, r, o, { lugs: 8, ventAt: [0.52, 0.34] });
         g.restore();
       }
     },
     B: {
-      label: "옆에서 본 통 · 양끝 타원, 페달 선",
+      label: "3/4 · 뒤 후프와 셸 옆면이 보임, 셸 위 러그 틱, 앞 헤드",
       draw(g, x, y, h, o) {
         g.save(); g.translate(x, y);
-        const s = st(o), w = h * 0.7, r = h * 0.3, cy = -r - h * 0.03;
-        shape(g, c => c.rect(-w / 2, cy - r, w, r * 2), { fill: TONE[3] });
-        ellipse(g, -w / 2, cy, r * 0.28, r, { fill: TONE[4] });
-        ellipse(g, w / 2, cy, r * 0.28, r * (1 + s * 0.06), { fill: lit(o, TONE[1]) });
-        line(g, [[w * 0.55, 0], [w * 0.45, cy + r * 0.2]], { lw: LINE + 0.5 });
-        line(g, [[w * 0.62, 0], [w * 0.9, -h * 0.06]]);
+        const rx = h * 0.29, ry = h * 0.34, depth = h * 0.3, cy = -ry - h * 0.07, cx = h * 0.12;
+        kickShell34(g, cx, cy, rx, ry, depth);
+        spur(g, cx - depth * 0.45, cy + ry * 0.9, cx - depth * 0.45 - rx * 0.45, 0);
+        spur(g, cx + rx * 0.6, cy + ry * 0.78, cx + rx * 0.9, 0);
+        kickHead(g, cx, cy, rx, ry, o, { lugs: 8, ventAt: [0.45, 0.35] });
         g.restore();
       }
     },
     C: {
-      label: "3/4 기울어진 타원 · 림에 구조선 하나",
+      label: "옆면 · 두 후프 사이 셸, 러그 케이싱, 뒤쪽 페달·비터가 헤드를 때림",
       draw(g, x, y, h, o) {
         g.save(); g.translate(x, y);
-        const s = st(o), rx = h * 0.34, ry = h * 0.3, cy = -ry - h * 0.03;
-        shape(g, c => c.ellipse(rx * 0.22, cy + h * 0.02, rx, ry, -0.2, 0, TAU), { fill: TONE[5] });
-        shape(g, c => c.ellipse(0, cy, rx * (1 + s * 0.05), ry * (1 + s * 0.05), -0.2, 0, TAU), { fill: TONE[3] });
-        shape(g, c => c.ellipse(rx * 0.04, cy - h * 0.005, rx * 0.72, ry * 0.72, -0.2, 0, TAU), { fill: lit(o, TONE[1]) });
-        shape(g, c => c.ellipse(0, cy, rx * 0.95, ry * 0.95, -0.2, Math.PI * 0.9, Math.PI * 1.6), { fill: null, lw: LINE, stroke: ILLO.ink });
-        line(g, [[-rx * 0.5, 0], [-rx * 0.4, cy + ry * 0.7]], { lw: LINE + 0.5 });
+        const s = st(o), w = h * 0.56, r = h * 0.31, cy = -r - h * 0.07, hw = r * 0.12, cx = h * 0.14;
+        shape(g, c => c.rect(cx - w / 2, cy - r, w, r * 2), { fill: TONE[4] });                                  // 셸
+        for (const sx of [cx - w / 2 + hw * 3, cx + w / 2 - hw * 3]) for (const t of [-0.6, 0, 0.6]) lug(g, sx, cy + r * t, hw * 2.2, r * 0.1);
+        shape(g, c => c.roundRect(cx - w / 2 - hw, cy - r * (1 + s * 0.03), hw * 2, r * 2 * (1 + s * 0.03), hw * 0.6), { fill: TONE[5] });   // 뒤(배터) 후프
+        shape(g, c => c.roundRect(cx + w / 2 - hw, cy - r, hw * 2, r * 2, hw * 0.6), { fill: TONE[5] });                                        // 앞 후프
+        spur(g, cx + w / 2 - hw, cy + r * 0.8, cx + w / 2 + r * 0.45, 0);
+        pedal(g, cx - w / 2 - hw, cy, r, h, s);
+        if (s > 0.02) { g.save(); g.globalAlpha = 0.95 - s * 0.6; line(g, [[cx - w / 2 - hw * 2 - s * 3, cy - r * 0.5], [cx - w / 2 - hw * 2 - s * 3, cy + r * 0.5]], { lw: LINE * (1 + s * 0.6), stroke: o.accent }); g.restore(); }
+        g.restore();
+      }
+    },
+    D: {
+      label: "탐 얹은 킥 · 정면 킥 위에 홀더 선과 기울어진 작은 탐",
+      draw(g, x, y, h, o) {
+        g.save(); g.translate(x, y);
+        const r = h * 0.29, cy = -r - h * 0.06, tr = h * 0.16, tx = r * 0.28, ty = cy - r - tr * 0.85;
+        shape(g, c => c.ellipse(-r * 0.08, cy + r * 0.02, r, r, 0, 0, TAU), { fill: TONE[4] });
+        spur(g, -r * 0.62, cy + r * 0.72, -r * 0.94, 0); spur(g, r * 0.66, cy + r * 0.7, r * 1.0, 0);
+        line(g, [[tx * 0.4, cy - r * 0.95], [tx * 0.4, ty + tr * 0.5], [tx, ty + tr * 0.5]], { lw: LINE + 0.3 });   // 탐 홀더
+        kickHead(g, 0, cy, r, r, o, { lugs: 8, ventAt: [0.5, 0.36] });
+        // 탐: 얕은 셸 + 기울어진 헤드
+        shape(g, c => c.ellipse(tx - tr * 0.28, ty + tr * 0.12, tr, tr * 0.86, -0.25, 0, TAU), { fill: TONE[4] });
+        kickHead(g, tx, ty, tr, tr * 0.86, o, { vent: false, lugs: 6, tilt: -0.25 });
+        g.restore();
+      }
+    },
+    E: {
+      label: "작은 재즈 킥 · 얕은 통, 벤트홀 없는 헤드, 긴 스퍼로 높이 띄움",
+      draw(g, x, y, h, o) {
+        g.save(); g.translate(x, y);
+        const rx = h * 0.23, ry = h * 0.27, depth = h * 0.17, cy = -ry - h * 0.2, cx = h * 0.1;
+        kickShell34(g, cx, cy, rx, ry, depth);
+        spur(g, cx - depth * 0.5, cy + ry * 0.85, cx - depth * 0.5 - rx * 0.5, 0);
+        spur(g, cx + rx * 0.55, cy + ry * 0.75, cx + rx * 0.95, 0);
+        kickHead(g, cx, cy, rx, ry, o, { vent: false, lugs: 6 });
+        g.restore();
+      }
+    },
+    F: {
+      label: "큰 록 킥 · 깊은 통, 큰 벤트홀, 러그 10개, 스퍼 두 줄",
+      draw(g, x, y, h, o) {
+        g.save(); g.translate(x, y);
+        const rx = h * 0.34, ry = h * 0.4, depth = h * 0.36, cy = -ry - h * 0.05, cx = h * 0.16;
+        kickShell34(g, cx, cy, rx, ry, depth);
+        spur(g, cx - depth * 0.35, cy + ry * 0.9, cx - depth * 0.35 - rx * 0.5, 0);
+        spur(g, cx + rx * 0.62, cy + ry * 0.78, cx + rx * 0.98, 0);
+        kickHead(g, cx, cy, rx, ry, o, { lugs: 10, vent: false });
+        shape(g, c => c.ellipse(cx + rx * 0.36, cy + ry * 0.3, rx * 0.16, ry * 0.16, 0, 0, TAU), { fill: ILLO.paper });   // 큰 벤트홀
         g.restore();
       }
     }

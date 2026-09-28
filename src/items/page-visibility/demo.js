@@ -1,5 +1,6 @@
 import { clamp, lerp, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE, LINE, shape, circle, ellipse, leaf as kitLeaf, line as inkLine } from "../../lib/draw.js";
+import "../../lib/objects/index.js";
+import { drawObject } from "../../lib/objects.js";
 
 const MAX_G = 9;
 const AWAY_TITLE = "돌아와요!";
@@ -90,63 +91,15 @@ export default function demo(api) {
     if (k === "title" && isAway) document.title = S.title ? AWAY_TITLE : origTitle;
   });
 
-  /* ---------- 그리기 (외곽선 없는 톤·실루엣 + 가는 잉크 줄기. 강조색은 꽃 하나) ---------- */
+  /* ---------- 그리기: 카탈로그 화분(state = 성장). 다 자라면 꽃이 강조색 하나로 핀다 ---------- */
   const line = (x0, y0, x1, y1) => { g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); };
   const k01 = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
-
-  // 잎: (x, y)가 잎자루, ang 방향으로 len만큼. k는 0~1 크기. 초록 실루엣
-  function leaf(x, y, len, ang, k) {
-    if (k <= 0.02) return;
-    g.save(); g.translate(x, y); g.rotate(ang);
-    kitLeaf(g, len * k / 2, 0, { size: len * k, color: ILLO.green });
-    g.restore();
-  }
-  // 꽃: 강조색 원판 + 가운데 작은 종이색 점
-  function flower(x, y, r, k) {
-    if (k <= 0.02) return;
-    circle(g, x, y, r * 1.6 * k, { fill: C.accent });
-    circle(g, x, y, Math.max(1.5, r * 0.4 * k), { fill: ILLO.paper });
-  }
-
-  function drawPlant(gv, t, R, cx, top) {
-    const sway = Math.sin(t / 1400) * R * .04;
-    // 씨앗: 어두운 톤 실루엣
-    if (gv < 1) ellipse(g, cx, top - 6, 6 * (1 - k01(gv, .4, 1)) + 4, 5, { fill: TONE[4] });
-    // 줄기: 가는 잉크 선
-    const H = R * 2.9 * (k01(gv, .4, 1) * .12 + k01(gv, 1, 6) * .88);
-    const tipX = cx + sway, tipY = top - H;
-    const at = f => ({ x: lerp(cx, tipX, f) - Math.sin(f * Math.PI) * R * .06, y: top - H * f });
-    if (gv > .4) {
-      const pts = [];
-      for (let i = 0; i <= 8; i++) { const p = at(i / 8); pts.push([p.x, p.y]); }
-      inkLine(g, pts, { lw: LINE + 0.5 });
-    }
-    // 떡잎 → 잎
-    if (gv > .6) { const p = at(1); if (gv < 2.2) { const k = k01(gv, .6, 1.2) * (1 - k01(gv, 1.8, 2.2)); leaf(p.x, p.y, R * .28, -2.5, k); leaf(p.x, p.y, R * .28, -.6, k); } }
-    const p1 = at(.32), p2 = at(.58);
-    leaf(p1.x, p1.y, R * .62, -.35, k01(gv, 1.5, 2.6));
-    leaf(p2.x, p2.y, R * .55, Math.PI + .35, k01(gv, 2.8, 3.9));
-    // 곁가지 꽃
-    const side = (f, dir, k) => {
-      if (k <= 0.02) return;
-      const p = at(f), ex = p.x + dir * R * .75 * k, ey = p.y - R * .45 * k;
-      inkLine(g, [[p.x, p.y], [p.x + dir * R * .4 * k, p.y - R * .1 * k], [ex, ey]], { lw: LINE });
-      flower(ex, ey, R * .11, k);
-    };
-    side(.45, 1, k01(gv, 6, 7.5));
-    side(.72, -1, k01(gv, 7.5, 9));
-    // 봉오리 → 꽃
-    const bud = k01(gv, 4, 5), bloom = k01(gv, 5, 6);
-    if (bud > 0.05 && bloom < 1) ellipse(g, tipX, tipY - 5 * bud, 5 * bud * (1 - bloom) + 1, 8 * bud * (1 - bloom) + 1, { fill: ILLO.green });
-    flower(tipX, tipY, R * .16, bloom);
-  }
-
-  // 화분: 톤 실루엣 (몸통 TONE[3], 테두리는 한 단계 어두운 톤). 외곽선 없음
-  function drawPot(R, cx, top) {
-    const tw = R * .8, bw = R * .58, h = R * .95, rim = R * .18;
-    shape(g, c => { c.moveTo(cx - tw + 4, top + rim); c.lineTo(cx + tw - 4, top + rim); c.lineTo(cx + bw, top + h); c.lineTo(cx - bw, top + h); c.closePath(); }, { fill: TONE[3] });
-    shape(g, c => c.roundRect(cx - tw - 4, top, tw * 2 + 8, rim, 3), { fill: TONE[4] });
-    return top + h;
+  // 성장 단계 0~9 → 화분 state 0~1 (단계 6까지), 그 뒤로는 화분 위에 꽃이 핀다 (단계 6~9)
+  const plantH = R => R * 2.6;
+  function drawPlant(gv, t, R, cx, bottom) {
+    drawObject(g, "potted-plant", cx, bottom, plantH(R), { state: k01(gv, 0, 6), t: t / 1000 });
+    const bloom = k01(gv, 6, 9);
+    if (bloom > 0.02) drawObject(g, "flower", cx + R * 0.1, bottom - plantH(R) * 0.42, R * 1.4 * (0.6 + 0.4 * bloom), { state: bloom, color: C.accent, t: t / 1000 });
   }
 
   function drawDial(x, y, r, ang) {
@@ -170,9 +123,8 @@ export default function demo(api) {
     g.clearRect(0, 0, w, h);
     g.fillStyle = C.board; g.fillRect(0, 0, w, h);
     const R = clamp(Math.min(w * .9, h) * .13, 40, 88);
-    const cx = w / 2, top = h * .62;
-    drawPlant(gShow, t, R, cx, top);
-    const bottom = drawPot(R, cx, top);
+    const cx = w / 2, top = h * .62, bottom = top + R * .95;
+    drawPlant(gShow, t, R, cx, bottom);
     g.fillStyle = C.ink3; g.font = `13px ${FF}`; g.textAlign = "center"; g.textBaseline = "top";
     g.fillText("보고 있는 동안에는 자라지 않는다", cx, bottom + 18);
 
@@ -195,7 +147,7 @@ export default function demo(api) {
       const a = age < 0 ? 0 : Math.min(1, age / 250) * (1 - clamp((age - 3500) / 500, 0, 1));
       if (age > 4000) msg = null;
       else if (a > 0) {
-        const H = R * 2.9 * (k01(gShow, .4, 1) * .12 + k01(gShow, 1, 6) * .88);
+        const H = plantH(R) * (0.45 + 0.55 * k01(gShow, 0, 6)) - R * .95;
         g.globalAlpha = a; g.fillStyle = C.ink; g.font = `15px ${FF}`; g.textAlign = "center"; g.textBaseline = "bottom";
         g.fillText(msg.text, cx, Math.max(40, top - H - R * .5 - (1 - a) * 6));
         g.globalAlpha = 1;

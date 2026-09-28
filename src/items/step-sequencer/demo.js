@@ -1,16 +1,17 @@
+import "../../lib/objects/index.js";
 import { clamp, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE as T, circle, ellipse, roundRect } from "../../lib/draw.js";
+import { drawObject, objectCanvas } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
   const MAXN = 16;
-  // 줄마다 무대 위 실루엣 하나 (외곽선 없는 톤 면): 원(킥), 네모(스네어), 납작한 타원(하이햇), 작은 점(톤)
-  // 울리는 동안에는 강조색으로 채워진다. 격자 라벨 아이콘도 같은 모양·같은 톤이다
+  // 줄마다 무대 위 카탈로그 사물 하나: 킥 드럼, 스네어, 하이햇, 종 (외곽선 없는 톤 면).
+  // 울리는 동안(state > 0)에는 사물이 강조색으로 반응한다. 격자 라벨 아이콘도 같은 사물을 작게 그린 것이다
   const TRACKS = [
-    { name: "킥", color: T[4], icon: `<circle cx="7" cy="7" r="5.5" fill="${T[4]}"/>` },
-    { name: "스네어", color: T[3], icon: `<rect x="2" y="2" width="10" height="10" rx="1.5" fill="${T[3]}"/>` },
-    { name: "하이햇", color: T[2], icon: `<ellipse cx="7" cy="7" rx="6" ry="2.2" fill="${T[2]}"/>` },
-    { name: "톤", color: "accent", icon: `<circle cx="7" cy="7" r="3.2" fill="var(--accent)"/>` }
+    { name: "킥", obj: "drum-kick" },
+    { name: "스네어", obj: "drum-snare" },
+    { name: "하이햇", obj: "hat-cymbal" },
+    { name: "톤", obj: "tone-bell" }
   ];
   // 톤 줄: 칸 위치마다 정해진 음 (마이너 펜타토닉, 반음 단위)
   const TONE = [12, 0, 7, 10, 12, 15, 10, 7, 5, 7, 10, 12, 15, 17, 12, 10];
@@ -42,7 +43,7 @@ export default function demo(api) {
     .step-sequencer-grid { width: 100%; max-width: 820px; display: grid; gap: 6px; align-items: center; }
     .step-sequencer-label { font: inherit; font-size: 13px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 7px;
       background: none; border: 0; padding: 0; cursor: pointer; white-space: nowrap; text-align: left; }
-    .step-sequencer-label svg { width: 12px; height: 12px; flex: none; }
+    .step-sequencer-label canvas { flex: none; }
     .step-sequencer-cell { position: relative; aspect-ratio: 1; padding: 0; border-radius: 6px; cursor: pointer; background: transparent;
       border: 1px solid rgba(0,0,0,.14); transition: background .1s, border-color .1s; }
     .step-sequencer-cell.beat { border-color: rgba(0,0,0,.34); }
@@ -104,7 +105,8 @@ export default function demo(api) {
     lab.className = "step-sequencer-label";
     lab.dataset.row = r;
     lab.title = "눌러서 미리 듣기";
-    lab.innerHTML = `<svg viewBox="0 0 14 14">${tr.icon}</svg><span>${tr.name}</span>`;
+    lab.innerHTML = `<span>${tr.name}</span>`;
+    lab.prepend(objectCanvas(tr.obj, 14, {}, { w: 14, pad: 1 }));
     grid.appendChild(lab);
     for (let i = 0; i < MAXN; i++) {
       const c = document.createElement("button");
@@ -201,44 +203,38 @@ export default function demo(api) {
     if (r === 1) f.angT += Math.PI / 2;
     if (r === 3) f.yT = TONE[step] / 17;
   };
-  // 울리는 동안(f.p > 0)은 강조색, 평소에는 제 톤. 외곽선은 없다
-  const figure = (r, x, y, s, f, e) => {
-    const base = TRACKS[r].color === "accent" ? C.accent : TRACKS[r].color;
-    const fill = f.p > 0 ? C.accent : base;
-    if (r === 0) circle(g, x, y, s * (0.8 + 0.3 * e), { fill });
-    else if (r === 1) {
-      const q = s * 1.3;
-      g.save(); g.translate(x, y); g.rotate(f.ang); roundRect(g, -q / 2, -q / 2, q, q, s * 0.18, { fill }); g.restore();
-    } else if (r === 2) ellipse(g, x, y - e * s, s * 0.9, s * 0.3, { fill });
-    else circle(g, x, y, s * (0.32 + 0.14 * e), { fill });
+  // 울리는 동안(f.p > 0)은 사물이 state 로 반응한다 (킥: 강조 링, 스네어: 헤드 강조, 하이햇: 닫힘, 종: 흔들림). 외곽선은 없다.
+  // 사물은 (x, y) = 아래 가운데, 키 H. 스네어는 칠 때마다 쌓이는 회전(angT)을 덜컹거림으로 보여 준다
+  const figure = (r, x, y, H, f, t) => {
+    const o = { state: f.p, accent: C.accent, t };
+    if (r === 1) { g.save(); g.translate(x, y); g.rotate((f.angT - f.ang) * 0.12); drawObject(g, TRACKS[r].obj, 0, 0, H, o); g.restore(); }
+    else drawObject(g, TRACKS[r].obj, x, y, H, o);
   };
   const drawStage = dt => {
     fitVis();
     const { w, h } = size;
     g.clearRect(0, 0, w, h);
     const s = Math.min(h * 0.2, w / 12);
-    const cy = h * 0.54;
+    const cy = h * 0.54, floor = cy + s * 1.35, H = s * 2.6, t = performance.now() / 1000;
     // 바닥선
     g.strokeStyle = "rgba(0,0,0,.08)"; g.lineWidth = 1;
-    g.beginPath(); g.moveTo(w * 0.06, cy + s * 1.35); g.lineTo(w * 0.94, cy + s * 1.35); g.stroke();
+    g.beginPath(); g.moveTo(w * 0.06, floor); g.lineTo(w * 0.94, floor); g.stroke();
     fig.forEach((f, r) => {
       f.p = Math.max(0, f.p - dt / 280);
-      const e = f.p * f.p;
       f.ang += (f.angT - f.ang) * Math.min(1, dt / 70);
       f.y += (f.yT - f.y) * Math.min(1, dt / 60);
       const x = w * (r + 0.5) / 4;
-      const y = r === 3 ? cy + s * 1.1 - f.y * s * 2.4 : cy;
-      if (r === 3) { // 톤: 음 높이 눈금
+      if (r === 3) { // 톤: 음 높이 눈금 위를 종이 오르내린다
         g.strokeStyle = "rgba(0,0,0,.1)"; g.beginPath(); g.moveTo(x, cy + s * 1.1); g.lineTo(x, cy + s * 1.1 - s * 2.4); g.stroke();
-      }
-      figure(r, x, y, s, f, e);
+        figure(r, x, cy + s * 1.1 - f.y * s * 2.4 + s * 0.55, H * 0.7, f, t);
+      } else figure(r, x, floor, H, f, t);
     });
-    // 킥 파문 (얇은 선)
+    // 킥 파문 (얇은 선) — 킥 드럼 헤드 가운데에서 퍼진다
     for (let i = rings.length - 1; i >= 0; i--) {
       const o = rings[i]; o.t += dt / 650;
       if (o.t >= 1) { rings.splice(i, 1); continue; }
       g.strokeStyle = C.ink; g.globalAlpha = (1 - o.t) * 0.35; g.lineWidth = 1.5;
-      g.beginPath(); g.arc(w / 8, cy, s * (1.1 + o.t * 1.6), 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
+      g.beginPath(); g.arc(w / 8, floor - H * 0.4, s * (1.1 + o.t * 1.6), 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
     }
   };
 

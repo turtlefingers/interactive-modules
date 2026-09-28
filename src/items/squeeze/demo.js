@@ -1,5 +1,7 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { TONE, LINE, cloud as drawCloudShape, sprout as drawSprout } from "../../lib/draw.js";
+import { TONE, LINE, ILLO } from "../../lib/draw.js";
+import "../../lib/objects/index.js";
+import { drawObject } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -12,7 +14,7 @@ export default function demo(api) {
   el.appendChild(root);
   const { g, size } = fitCanvas(api, { parent: root });
 
-  const INK = "#1b1b1a", PAPER = "#fffdf6", ACC = "#ff5a36";
+  const INK = "#1b1b1a", ACC = ILLO.blue;
   const LIQ = {
     water: { grav: 1500, drag: 0, r: 3.2, flow: 0.42, repose: 0, vol: 1, splash: true },
     honey: { grav: 520, drag: 1.6, r: 5.2, flow: 0.035, repose: 0, vol: 1.8, splash: false },
@@ -60,19 +62,17 @@ export default function demo(api) {
   api.on(root, "pointerup", up);
   api.on(root, "pointercancel", up);
 
-  // 구름: 원 여러 개를 겹친 뒤 바깥 윤곽만 선으로 남긴다
-  const PUFFS = [[-0.62, 0.12, 0.42], [-0.28, -0.18, 0.55], [0.18, -0.26, 0.62], [0.58, 0.02, 0.45], [0, 0.18, 0.5]];
+  // 구름: 카탈로그 cloud (state = 눌림). 물이 빠지면 작아진다
   const R = 62;
   const cloudScale = () => {
-    const k = 0.62 + cloud.water * 0.38;            // 물이 빠지면 작아진다
+    const k = 0.62 + cloud.water * 0.38;
     return { sx: k * (1 - cloud.sq * 0.28), sy: k * (1 - cloud.sq * 0.14) };
   };
   function drawCloud() {
     const { sx, sy } = cloudScale();
     const wob = Math.sin(cloud.wob) * cloud.sq * 2;
     const k = 0.62 + cloud.water * 0.38;
-    // 구름: 종이색 실루엣 + 가는(1.5px) 윤곽 (draw.js cloud 기본값)
-    drawCloudShape(g, cloud.x + wob, cloud.y, { w: R * 2.3 * k, squeeze: cloud.sq });
+    drawObject(g, "cloud", cloud.x + wob, cloud.y + R * 0.8 * k, R * 1.5 * k, { state: cloud.sq, t: cloud.wob / 30 });
     // 짜는 중이면 눌린 자국 선
     if (cloud.sq > 0.05) {
       g.strokeStyle = `rgba(27,27,26,${cloud.sq * 0.6})`; g.lineWidth = 1.5; g.lineCap = "round";
@@ -121,7 +121,7 @@ export default function demo(api) {
       const grow = S.sprout && S.accumulate && S.liquid !== "sand" && wet > 2.5;
       sp.g = grow ? Math.min(1, sp.g + s * 0.25 * Math.min(1, wet / 8)) : Math.max(0, sp.g - s * 0.6);
       if (sp.g < 0.02) return;
-      drawSprout(g, sp.x, groundY, { growth: sp.g, size: 52 });
+      drawObject(g, "sprout", sp.x, groundY, 52 * sp.g, { state: sp.g, angle: sp.lean * sp.g, t: t / 1000 + sp.x });
     });
 
     // 고인 액체: 높이 차이만큼 옆으로 퍼진다 (끈적할수록 느리게)

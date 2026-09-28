@@ -1,5 +1,7 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE, shape, circle, roundRect, dot } from "../../lib/draw.js";
+import { ILLO, TONE, shape, circle, dot } from "../../lib/draw.js";
+import { drawObject } from "../../lib/objects.js";
+import "../../lib/objects/index.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -15,6 +17,9 @@ export default function demo(api) {
   const FONT = getComputedStyle(root).fontFamily;
   const C = { ink: api.color("--ink"), ink3: api.color("--ink-3"), acc: api.color("--accent"), note: api.color("--note") };
   const ACC = C.acc || ILLO.orange; // 장면의 강조색 하나
+  // 발사대(카탈로그 turret A, 위를 향해 그려짐): 높이 80. 비례(h=84 기준) — 돔 반지름 23, 포신 16~58
+  const TH = 80, TS = TH / 84, TIP = 58 * TS;
+  // 과녁(카탈로그 target A): 과녁판 반지름 30, 판 가운데는 바닥에서 (1, -50)
 
   const gun = { x: 0, y: 0, ang: -Math.PI / 2, recoil: 0, flash: 0 };
   const ptr = { x: 0, y: 0, has: false, down: false, key: false, holdT: 0, shots: 0, acc: 0 };
@@ -44,7 +49,7 @@ export default function demo(api) {
 
   const fire = () => {
     const spread = (S.spread * Math.PI / 180);
-    const tip = 46 - gun.recoil;
+    const tip = TIP - gun.recoil;
     const mx = gun.x + Math.cos(gun.ang) * tip, my = gun.y + Math.sin(gun.ang) * tip;
     if (S.mode === "particle") {
       for (let i = 0; i < 5; i++) {
@@ -145,21 +150,19 @@ export default function demo(api) {
 
     /* ---------- 그리기 ---------- */
     g.clearRect(0, 0, size.w, size.h);
-    // 표적: 외곽선 없는 톤 동심원 + 강조색 중심점. 남은 체력만큼 바깥 고리 조각이 남는다
+    // 표적: 카탈로그 과녁 (state = 맞은 번쩍임, 가운데가 강조색). 남은 체력만큼 판 둘레에 고리 조각이 남는다
     for (const t of targets) {
       if (t.dead) continue;
-      const s = 1 + t.hit * 0.15;
+      const s = 1 + t.hit * 0.15, ts = t.r / 30;
       g.save(); g.translate(t.x, t.y); g.scale(s, s);
-      circle(g, 0, 0, t.r, { fill: TONE[1] });
-      circle(g, 0, 0, t.r * 0.58, { fill: TONE[3] });
-      dot(g, 0, 0, t.r * 0.2, ACC);
+      drawObject(g, "target", -1 * ts, 50 * ts, 84 * ts, { color: TONE[4], accent: ACC, state: t.hit });
       for (let i = 0; i < 3; i++) {
         if (i >= t.hp) continue;
         const a0 = -Math.PI / 2 + i * (Math.PI * 2 / 3) + 0.14;
-        shape(g, c => c.arc(0, 0, t.r * 0.8, a0, a0 + Math.PI * 2 / 3 - 0.28), { fill: null, lw: 1.5, stroke: TONE[4] });
+        shape(g, c => c.arc(0, 0, t.r * 1.14, a0, a0 + Math.PI * 2 / 3 - 0.28), { fill: null, lw: 1.5, stroke: TONE[4] });
       }
       // 맞은 순간: 짧게 강조색 고리 하나
-      if (t.hit > 0) { g.globalAlpha = t.hit; circle(g, 0, 0, t.r + 4 + (1 - t.hit) * 6, { fill: null, lw: 1.5, stroke: ACC }); g.globalAlpha = 1; }
+      if (t.hit > 0) { g.globalAlpha = t.hit; circle(g, 0, 0, t.r + 8 + (1 - t.hit) * 6, { fill: null, lw: 1.5, stroke: ACC }); g.globalAlpha = 1; }
       g.restore();
     }
     // 발사체: 강조색 점
@@ -174,13 +177,16 @@ export default function demo(api) {
       g.beginPath(); g.moveTo(gun.x, gun.y); g.lineTo(gun.x + Math.cos(gun.ang) * 2000, gun.y + Math.sin(gun.ang) * 2000); g.stroke();
       g.setLineDash([]);
     }
-    // 포대: 외곽선 없는 톤 면 — 반원 받침 + 포신
+    // 포대: 카탈로그 발사대. 포신은 조준각으로 돌려 포신 부분만 남기고(반동만큼 뒤로), 돔 받침은 돌리지 않고 돔 높이까지만 남긴다
     g.save(); g.translate(gun.x, gun.y);
-    g.save(); g.rotate(gun.ang);
-    roundRect(g, -gun.recoil, -9, 48, 18, 5, { fill: TONE[5] });
-    if (gun.flash > 0) { g.globalAlpha = gun.flash; circle(g, 52 - gun.recoil, 0, 3 + gun.flash * 3, { fill: ACC }); g.globalAlpha = 1; } // 포구 섬광: 작은 점 하나
+    g.save(); g.rotate(gun.ang + Math.PI / 2); g.translate(0, gun.recoil);
+    g.beginPath(); g.rect(-5.5 * TS, -60 * TS, 11 * TS, 44 * TS); g.clip();
+    drawObject(g, "turret", 0, 0, TH, { color: TONE[4] });
     g.restore();
-    shape(g, c => { c.arc(0, 0, 26, Math.PI, 0); c.lineTo(34, 16); c.lineTo(-34, 16); c.closePath(); }, { fill: TONE[4] });
+    if (gun.flash > 0) { const tip = TIP + 2 - gun.recoil; g.globalAlpha = gun.flash; circle(g, Math.cos(gun.ang) * tip, Math.sin(gun.ang) * tip, 3 + gun.flash * 3, { fill: ACC }); g.globalAlpha = 1; } // 포구 섬광: 작은 점 하나
+    g.save(); g.beginPath(); g.rect(-30 * TS, -20 * TS, 60 * TS, 21 * TS); g.clip();
+    drawObject(g, "turret", 0, 0, TH, { color: TONE[4] });
+    g.restore();
     g.restore();
 
     // 누르는 동안 발사 리듬 표시

@@ -1,6 +1,8 @@
 import { clamp, lerp, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE, LINE, line as inkLine, zz, dot, ellipse } from "../../lib/draw.js";
+import { ILLO, TONE, LINE, zz, ellipse } from "../../lib/draw.js";
 import { drawPeep, peepBox, preload, outfit } from "../../lib/figure.js";
+import { drawObject } from "../../lib/objects.js";
+import "../../lib/objects/index.js";
 
 const STAGE_NAME = ["깨어 있음", "하품", "졸림", "잠", "화면보호기"];
 const SAVER_AFTER = 4; // 잠든 뒤 화면보호기까지(초)
@@ -94,14 +96,11 @@ export default function demo(api) {
     if (asleep < .995) drawPeep(g, awake, cx, gy + jump, H, { alpha: 1 - asleep, rotate: tilt, squash: -(breath + stretch) });
     if (asleep > .005) drawPeep(g, SIT, cx, gy, H * sitScale(), { alpha: asleep, rotate: slump + tilt, squash: -breath });
 
-    // 느낌표 (가는 잉크 선 하나 + 점)
+    // 느낌표 (카탈로그 exclamation: 기울어진 색 실루엣). 머리 옆 위에서 잠깐 떠 있다가 사라진다
     if (t - startleT < 900) {
       const a = 1 - clamp((t - startleT - 600) / 300, 0, 1);
-      const bx = cx + H * .3, by = gy + jump - H * 1.06, s = H * .16;
-      g.save(); g.globalAlpha = a;
-      inkLine(g, [[bx, by - s], [bx, by - s * .35]], { lw: LINE + .5 });
-      dot(g, bx, by - s * .08, LINE);
-      g.restore();
+      const bx = cx + H * .3, by = gy + jump - H * 1.06, eh = H * .3;
+      drawObject(g, "exclamation", bx, by + eh * .26, eh, { color: C.accent, accent: C.accent, alpha: a, t: t / 1000 });
     }
   }
 

@@ -1,5 +1,7 @@
+import "../../lib/objects/index.js";
 import { rng, clamp, localPoint, fitCanvas } from "../../lib/util.js";
 import { TONE } from "../../lib/draw.js";
+import { drawObject } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -52,8 +54,6 @@ export default function demo(api) {
   api.on(root, "pointerleave", () => { cur.inside = false; root.style.cursor = ""; });
   api.on(root, "pointerup", e => { if (e.pointerType !== "mouse") cur.inside = false; });
 
-  const rr = (x, y, w, h, r) => { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); };
-
   api.frame(dt => {
     const step = dt / 16.67;
     const w = size.w, h = size.h, mx = maxX(), my = maxY();
@@ -104,15 +104,13 @@ export default function demo(api) {
     g.fillStyle = "rgba(0,0,0,.035)"; g.font = FONT;
     g.textAlign = "center"; g.textBaseline = "middle";
     for (let i = 0; i < 6; i++) g.fillText(LET[i], (i % 3) * 1000 + 500, Math.floor(i / 3) * 1000 + 520);
-    // 카드: 외곽선 없는 톤 면 (사진 = 톤 사각형, 메모 = 밝은 톤 + 톤 줄, 점 = 톤 원). 강조색은 시작점 하나뿐
+    // 카드: 카탈로그 사물 (사진 = photo-placeholder, 메모 = stage-card 폴라로이드, 점 = 톤 원). 사물은 (x, y) = 아래 가운데.
+    // 카드 상자(c.w × c.h) 안에 들어가는 높이로 그린다. 색은 톤만 — 강조색은 시작점 하나뿐
     for (const c of cards) {
       if (c.x + c.w < cam.x - 40 || c.x > cam.x + w + 40 || c.y + c.h < cam.y - 40 || c.y > cam.y + h + 40) continue;
       if (c.kind === "dot") { g.fillStyle = c.tone; g.beginPath(); g.arc(c.x + c.w / 2, c.y + c.h / 2, c.w / 2, 0, TAU); g.fill(); }
-      else if (c.kind === "note") {
-        g.fillStyle = TONE[0]; rr(c.x, c.y, c.w, c.h, 10); g.fill();
-        g.fillStyle = TONE[2];
-        [0.7, 1, 0.85].forEach((k, j) => { g.fillRect(c.x + 16, c.y + 18 + j * 16, (c.w - 32) * k, 2); });
-      } else { g.fillStyle = c.tone; rr(c.x, c.y, c.w, c.h, 10); g.fill(); }
+      else if (c.kind === "note") drawObject(g, "stage-card", c.x + c.w / 2, c.y + c.h, Math.min(c.h, c.w / 0.72), { color: TONE[3] });
+      else drawObject(g, "photo-placeholder", c.x + c.w / 2, c.y + c.h, Math.min(c.h, c.w / 1.06), { color: TONE[3] });
     }
     g.fillStyle = C.accent; g.beginPath(); g.arc(W / 2, H / 2, 9, 0, TAU); g.fill();
     g.strokeStyle = "rgba(0,0,0,.2)"; g.lineWidth = 1; g.strokeRect(0.5, 0.5, W - 1, H - 1);

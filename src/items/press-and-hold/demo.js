@@ -1,5 +1,7 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, LINE, shape, circle } from "../../lib/draw.js";
+import { ILLO, LINE, circle } from "../../lib/draw.js";
+import { drawObject } from "../../lib/objects.js";
+import "../../lib/objects/index.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -27,21 +29,28 @@ export default function demo(api) {
   const st = { v: 0, dv: 0, vel: 0, hold: false, holdT: 0, popped: false, popT: 0, pops: 0, rate: 0, key: false };
   const hist = []; // {t, v, hold}
   const shreds = [];
+  // 카탈로그 풍선 A의 비례(h = 84 기준): 끈 38, 몸통 반지름 17×26, 매듭 기울기 -0.14. state 가 0→1 이면 몸통이 절반→전체 크기
+  const BAL = { STR: 38, RX: 17, RY: 26, TILT: -0.14 };
   let layout = {};
   const doLayout = () => {
     const w = size.w, h = size.h;
-    const knotY = h * 0.64;
-    const R = Math.max(40, Math.min((knotY - 70) / 2.25, w * 0.3));
-    layout = { w, h, cx: w / 2, knotY, R, r0: R * 0.2, bx: w / 2, by: Math.min(h - 70, knotY + 90), br: 36 };
+    const br = 36, bx = w / 2, by = Math.min(h - 70, h * 0.64 + 90);
+    const top = by - br - 9;                                            // 끈이 시작하는 곳(값 링 위)
+    const s = Math.max(0.5, Math.min((top - 40) / 84, w * 0.28 / 21));   // 풍선 배율: 위 여백 40px, 옆은 화면 폭의 28%
+    layout = { w, h, cx: bx, bx, by, br, top, s, oh: 84 * s, knotY: top - BAL.STR * s };
   };
   doLayout();
   api.onResize(doLayout);
 
-  const radius = v => lerp(layout.r0, layout.R, v);
-  const hitBalloon = (x, y) => {
-    const r = radius(st.dv), cy = layout.knotY - r * 1.12;
-    return ((x - layout.cx) / (r * 1.05)) ** 2 + ((y - cy) / (r * 1.2)) ** 2 < 1;
+  /** 카탈로그가 그린 풍선 몸통의 화면 위치 (매듭, 몸통 가운데, 반지름, 기울기) */
+  const bodyOf = (v, tSec) => {
+    const { s, cx, knotY } = layout, k = 0.5 + 0.5 * v, sw = Math.sin(tSec * 1.6) * 3 * s;
+    const kx = cx + sw * 0.6, th = BAL.TILT + sw * 0.01;
+    const rx = BAL.RX * s * k, ry = BAL.RY * s * k, d = ry * 0.825; // 매듭에서 몸통 가운데까지
+    return { kx, ky: knotY, x: kx + Math.sin(th) * d, y: knotY - Math.cos(th) * d, rx, ry, th };
   };
+  let body = bodyOf(0, 0);
+  const hitBalloon = (x, y) => ((x - body.x) / (body.rx * 1.15)) ** 2 + ((y - body.y) / (body.ry * 0.85)) ** 2 < 1;
   const hitButton = (x, y) => Math.hypot(x - layout.bx, y - layout.by) < layout.br + 8;
 
   const press = () => {
@@ -81,51 +90,35 @@ export default function demo(api) {
   api.on(window, "blur", release);
 
   const pop = () => {
-    const r = radius(st.dv), cy = layout.knotY - r * 1.12;
+    const r = body.rx * 1.1, cy = body.y;
     for (let i = 0; i < 26; i++) {
       const a = Math.random() * Math.PI * 2, sp = 3 + Math.random() * 7;
-      shreds.push({ x: layout.cx + Math.cos(a) * r * 0.8, y: cy + Math.sin(a) * r * 0.8, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 2, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.5, life: 1, s: 6 + Math.random() * 10 });
+      shreds.push({ x: body.x + Math.cos(a) * r * 0.8, y: cy + Math.sin(a) * r * 1.1, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 2, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.5, life: 1, s: 6 + Math.random() * 10 });
     }
     st.popped = true; st.popT = 0; st.pops++;
     st.v = 0; st.dv = 0; st.vel = 0;
     api.flash("펑! 최대에서 터졌다", "ok");
   };
 
-  const LW = 3;
-  const drawBalloon = (v, t) => {
-    const { cx, knotY } = layout;
-    let r = radius(v);
+  // 풍선: 사물 카탈로그(balloon). state = 값(부풀기), t = 끈의 흔들림. 값 숫자는 몸통 위에 얹는다
+  const drawBalloon = (v, tSec) => {
+    const { bx, top, oh } = layout;
     const atMax = !S.pop && st.hold && st.v >= 1;
-    const jx = atMax ? Math.sin(t * 0.09) * 2.2 : 0;
-    const sq = st.hold ? 1 + Math.sin(t * 0.02) * 0.012 : 1;
-    const rx = r * 1.0 * sq, ry = r * 1.12 / sq;
-    const cy = knotY - ry - 4;
+    const jx = atMax ? Math.sin(tSec * 90) * 2.2 : 0;
+    body = bodyOf(v, tSec);
     g.save(); g.translate(jx, 0);
-    // 몸통: 외곽선 있는 평면 단색 (그림 키트 규칙)
-    shape(g, c => {
-      c.moveTo(cx, knotY - 4);
-      c.bezierCurveTo(cx - rx * 0.55, knotY - 6, cx - rx * 1.02, cy + ry * 0.55, cx - rx, cy);
-      c.bezierCurveTo(cx - rx, cy - ry * 0.75, cx - rx * 0.55, cy - ry, cx, cy - ry);
-      c.bezierCurveTo(cx + rx * 0.55, cy - ry, cx + rx, cy - ry * 0.75, cx + rx, cy);
-      c.bezierCurveTo(cx + rx * 1.02, cy + ry * 0.55, cx + rx * 0.55, knotY - 6, cx, knotY - 4);
-      c.closePath();
-    }, { fill: C.acc });
-    // 매듭
-    shape(g, c => { c.moveTo(cx, knotY - 6); c.lineTo(cx - 6, knotY + 5); c.lineTo(cx + 6, knotY + 5); c.closePath(); }, { fill: C.acc });
-    // 수치
-    const fs = clamp(r * 0.55, 13, 64);
+    drawObject(g, "balloon", bx, top, oh, { color: C.acc, state: v, t: tSec });
+    const fs = clamp(body.rx * 0.9, 13, 64);
+    g.translate(body.x, body.y); g.rotate(body.th);
     g.fillStyle = ILLO.paper; g.font = `800 ${fs}px ${FONT}`;
     g.textAlign = "center"; g.textBaseline = "middle";
-    g.fillText(Math.round(st.v * 100), cx, cy + 2);
+    g.fillText(Math.round(st.v * 100), 0, 1);
     g.restore();
+    body.x += jx;
   };
 
   const drawButton = () => {
-    const { bx, by, br, knotY } = layout;
-    // 끈 (잉크 선)
-    g.save(); g.strokeStyle = ILLO.ink; g.lineWidth = LINE; g.lineCap = "round";
-    g.beginPath(); g.moveTo(bx, knotY + 4); g.quadraticCurveTo(bx + 10, (knotY + by) / 2, bx, by - br); g.stroke();
-    g.restore();
+    const { bx, by, br } = layout;
     const s = st.hold ? 0.92 : 1;
     g.save(); g.translate(bx, by); g.scale(s, s);
     // 값 링 (얇은 선은 그대로)
@@ -190,11 +183,11 @@ export default function demo(api) {
 
     g.clearRect(0, 0, size.w, size.h);
     drawButton();
-    if (!st.popped) drawBalloon(Math.max(0, st.dv), t);
+    if (!st.popped) drawBalloon(Math.max(0, st.dv), t / 1000);
     else {
       const a = clamp(1 - st.popT / 600, 0, 1);
       g.globalAlpha = a; g.fillStyle = ILLO.red; g.font = `900 44px ${FONT}`; g.textAlign = "center";
-      g.fillText("펑!", layout.cx, layout.knotY - layout.R * 1.1 - st.popT * 0.04); g.globalAlpha = 1;
+      g.fillText("펑!", layout.cx, layout.knotY - 40 * layout.s - st.popT * 0.04); g.globalAlpha = 1;
     }
     for (let i = shreds.length - 1; i >= 0; i--) {
       const s = shreds[i];

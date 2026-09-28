@@ -424,25 +424,101 @@ reg("chocolate", "초콜릿", ["break-apart"], TONE[4], 84, {
 });
 
 /* ---------- 쿠키 / 펠릿 (merge) ---------- */
+/** 울퉁불퉁한 원반 윤곽. bumps 는 반지름 배율 목록, 중점을 지나는 곡선으로 부드럽게 잇는다 */
+const bumpy = (c, cx, cy, r, bumps, rot = 0, sy = 1) => {
+  const n = bumps.length, pts = bumps.map((b, i) => { const a = rot + (i / n) * TAU; return [cx + Math.cos(a) * r * b, cy + Math.sin(a) * r * b * sy]; });
+  const mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+  let m = mid(pts[n - 1], pts[0]); c.moveTo(m[0], m[1]);
+  for (let i = 0; i < n; i++) { const q = pts[(i + 1) % n]; m = mid(pts[i], q); c.quadraticCurveTo(pts[i][0], pts[i][1], m[0], m[1]); }
+  c.closePath();
+};
+const BUMPS_A = [1, 1.05, 0.96, 1.03, 0.98, 1.06, 0.97, 1.02, 0.95, 1.04, 1, 0.97];
+const BUMPS_B = [1.02, 0.98, 1.04, 1, 0.97, 1.03, 0.99, 1.05, 0.96, 1.01, 1.03, 0.98];
+/** 주색 면 + 오른쪽 아래 가장자리에 한 톤 어두운 초승달(두께감). 윤곽선은 없다 */
+const disc = (g, path, color, dx, dy, shade = TONE[4]) => {
+  g.save(); g.beginPath(); path(g); g.clip();
+  g.fillStyle = shade; g.beginPath(); path(g); g.fill();
+  g.translate(-dx, -dy); g.fillStyle = color; g.beginPath(); path(g); g.fill();
+  g.restore();
+};
+/** 초코칩: 크기·각도가 다른 불규칙 오각형, TONE[5] */
+const chip = (g, x, y, r, rot) => shape(g, c => { [1, 0.7, 1.1, 0.8, 0.95].forEach((m, i) => { const a = rot + (i / 5) * TAU; c[i ? "lineTo" : "moveTo"](x + Math.cos(a) * r * m, y + Math.sin(a) * r * m * 0.85); }); c.closePath(); }, { fill: TONE[5] });
 reg("cookie", "쿠키", ["merge"], TONE[3], 40, {
-  A: V("울퉁불퉁한 둥근 쿠키, 잉크 초코칩", (g, x, y, h, o) => {
-    const s = h / 40, r = 17 * s, cy = -r;
-    g.save(); g.translate(x, y);
-    shape(g, c => { c.moveTo(-r, cy); c.bezierCurveTo(-r, cy - r * 1.2, r * 0.9, cy - r * 1.15, r, cy - r * 0.1); c.bezierCurveTo(r * 1.05, cy + r * 1.1, -r * 0.8, cy + r * 1.15, -r, cy); }, { fill: o.color });
-    [[-7, -6], [4, -9], [8, 3], [-3, 6]].forEach(([px, py]) => dot(g, px * s, cy + py * s, 1.8 * s));
+  A: V("초코칩 쿠키 · 울퉁불퉁한 원반, 크기가 다른 칩 여섯", (g, x, y, h, o) => {
+    const s = h / 40, r = 17 * s;
+    g.save(); g.translate(x, y - r); g.rotate(0.12);
+    disc(g, c => bumpy(c, 0, 0, r, BUMPS_A), o.color, 1.6 * s, 1.9 * s);
+    chip(g, -6 * s, -5 * s, 2.6 * s, 0.3); chip(g, 5 * s, -8.5 * s, 2 * s, 1.2); chip(g, 8.5 * s, 3 * s, 2.9 * s, 2.4);
+    chip(g, -2 * s, 6.5 * s, 2.3 * s, 0.8); chip(g, -10.5 * s, 3.5 * s, 1.7 * s, 1.9); chip(g, 2 * s, -1 * s, 1.3 * s, 0.5);
     g.restore();
   }),
-  B: V("납작한 펠릿(알약꼴), 디테일 없음", (g, x, y, h, o) => {
-    const s = h / 40;
-    g.save(); g.translate(x, y); g.rotate(0.05);
-    roundRect(g, -17 * s, -13 * s, 34 * s, 13 * s, 6.5 * s, { fill: o.color });
+  B: V("크랙 쿠키 · 둥근 돔, 윗면에 가는 잉크 균열", (g, x, y, h, o) => {
+    const s = h / 40, r = 16.5 * s;
+    g.save(); g.translate(x, y - r); g.rotate(-0.3);
+    disc(g, c => bumpy(c, 0, 0, r, BUMPS_B), o.color, 1.4 * s, 2 * s);
+    const lw = LINE * 0.7;
+    line(g, [[-10 * s, -1 * s], [-4 * s, -3.5 * s], [1 * s, 1 * s], [7 * s, 2.5 * s], [11 * s, 6 * s]], { lw });
+    line(g, [[1 * s, 1 * s], [-1 * s, 6 * s], [-6 * s, 9 * s]], { lw });
+    line(g, [[-4 * s, -3.5 * s], [-2 * s, -9 * s], [2 * s, -11.5 * s]], { lw });
+    line(g, [[7 * s, 2.5 * s], [9 * s, -3 * s]], { lw });
+    line(g, [[-12 * s, 5 * s], [-8 * s, 3 * s]], { lw });
     g.restore();
   }),
-  C: V("한입 베어 문 쿠키", (g, x, y, h, o) => {
-    const s = h / 40, r = 16 * s, cy = -r;
+  C: V("샌드위치 쿠키 · 두 원반 사이 종이색 크림, 윗면에 점 무늬", (g, x, y, h, o) => {
+    const s = h / 40, rx = 17 * s, ry = 6 * s;
+    g.save(); g.translate(x, y); g.rotate(0.04);
+    // 아래 원반: 옆면(어두운 톤)
+    shape(g, c => { c.moveTo(-rx, -12 * s); c.lineTo(rx, -12 * s); c.ellipse(0, -6 * s, rx, ry, 0, 0, PI); c.closePath(); }, { fill: TONE[4] });
+    // 크림
+    shape(g, c => { c.moveTo(-rx * 0.97, -14 * s); c.lineTo(rx * 0.97, -14 * s); c.ellipse(0, -11.5 * s, rx * 0.97, ry * 0.9, 0, 0, PI); c.closePath(); }, { fill: ILLO.paper });
+    // 위 원반: 옆면 + 윗면(초승달 두께감)
+    shape(g, c => { c.moveTo(-rx, -21 * s); c.lineTo(rx, -21 * s); c.ellipse(0, -15.5 * s, rx, ry, 0, 0, PI); c.closePath(); }, { fill: TONE[4] });
+    disc(g, c => c.ellipse(0, -21 * s, rx, ry, 0, 0, TAU), o.color, 1.2 * s, 1.4 * s);
+    // 윗면 눌린 점 무늬 (잉크 점)
+    for (let i = 0; i < 9; i++) { const a = (i / 9) * TAU + 0.3; dot(g, Math.cos(a) * rx * 0.62, -21 * s + Math.sin(a) * ry * 0.58, 0.9 * s); }
+    dot(g, 0.5 * s, -21.5 * s, 1.1 * s);
+    g.restore();
+  }),
+  D: V("한입 베어 문 초코칩 쿠키 · 옆에 부스러기", (g, x, y, h, o) => {
+    const s = h / 40, r = 16 * s, bx = r * 0.72, by = -r * 0.62, br = 7.5 * s;
+    g.save(); g.translate(x, y - r); g.rotate(-0.15);
+    // 몸통 안쪽만 그리되, 베어 문 원은 빼고
+    g.save();
+    g.beginPath(); bumpy(g, 0, 0, r, BUMPS_A, 1.1); g.clip();
+    g.beginPath(); g.rect(-r * 2, -r * 2, r * 4, r * 4); g.arc(bx, by, br, 0, TAU); g.clip("evenodd");
+    disc(g, c => bumpy(c, 0, 0, r, BUMPS_A, 1.1), o.color, 1.5 * s, 1.9 * s);
+    chip(g, -6 * s, -4 * s, 2.5 * s, 0.4); chip(g, 3 * s, 5.5 * s, 2.8 * s, 2.1); chip(g, -3 * s, 8 * s, 1.6 * s, 1.5); chip(g, 6 * s, -2 * s, 1.4 * s, 0.9); chip(g, -11 * s, 2 * s, 1.9 * s, 2.6);
+    g.restore();
+    // 이빨 자국: 베어 문 호에 작은 요철
+    shape(g, c => { c.arc(bx - br * 0.45, by + br * 0.75, 1.6 * s, 0, TAU); }, { fill: o.color });
+    g.restore();
+    // 부스러기 (땅 위)
     g.save(); g.translate(x, y);
-    shape(g, c => { c.arc(0, cy, r, 0, TAU); c.moveTo(r * 0.75 + 7 * s, cy - r * 0.7); c.arc(r * 0.75, cy - r * 0.7, 7 * s, 0, TAU, true); }, { fill: o.color });
-    [[-6, -4], [3, 5], [-2, 8]].forEach(([px, py]) => dot(g, px * s, cy + py * s, 1.7 * s));
+    shape(g, c => { c.moveTo(r + 3 * s, 0); c.lineTo(r + 6 * s, -3 * s); c.lineTo(r + 9.5 * s, -1 * s); c.lineTo(r + 8 * s, 0); c.closePath(); }, { fill: o.color });
+    shape(g, c => { c.moveTo(r + 11 * s, 0); c.lineTo(r + 12.5 * s, -2.2 * s); c.lineTo(r + 14.5 * s, 0); c.closePath(); }, { fill: o.color });
+    chip(g, r + 12 * s, -3.5 * s, 1.1 * s, 0.7);
+    shape(g, c => { c.moveTo(-r - 4 * s, 0); c.lineTo(-r - 2.5 * s, -1.8 * s); c.lineTo(-r - 0.5 * s, 0); c.closePath(); }, { fill: o.color });
+    g.restore();
+  }),
+  E: V("쇼트브레드 · 둥근 모서리 직사각형, 찍힌 구멍 점 줄", (g, x, y, h, o) => {
+    const s = h / 40, w = 38 * s, hh = 25 * s;
+    g.save(); g.translate(x, y); g.rotate(-0.05); g.translate(0, -hh);
+    disc(g, c => c.roundRect(-w / 2, 0, w, hh, 3 * s), o.color, 1.4 * s, 1.7 * s);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 5; j++) dot(g, -w / 2 + 7 * s + j * 6 * s + (i % 2) * 0.6 * s, 6 * s + i * 6.3 * s, 1 * s);
+    g.restore();
+  }),
+  F: V("작은 접시 위 초코칩 쿠키 · 접시는 두 톤 타원", (g, x, y, h, o) => {
+    const s = h / 40, pr = 25 * s, prY = 6.5 * s;
+    g.save(); g.translate(x, y);
+    ellipse(g, 0, -prY, pr, prY, { fill: TONE[1] });
+    ellipse(g, 0.5 * s, -prY - 0.5 * s, pr * 0.7, prY * 0.62, { fill: TONE[0] });
+    line(g, [[-pr * 0.42, -0.6 * s], [pr * 0.42, -0.6 * s]], { lw: LINE * 0.8 });                          // 굽
+    g.save(); g.translate(-2 * s, -prY - 6.5 * s); g.rotate(0.2);
+    const r = 12.5 * s;
+    disc(g, c => bumpy(c, 0, 0, r, BUMPS_B, 0, 0.72), o.color, 1.1 * s, 1.6 * s);
+    chip(g, -4 * s, -3 * s, 1.9 * s, 0.6); chip(g, 4 * s, -5 * s, 1.5 * s, 1.7); chip(g, 5.5 * s, 1.5 * s, 2 * s, 2.3); chip(g, -2 * s, 3.5 * s, 1.5 * s, 1.1); chip(g, -8 * s, 1 * s, 1.2 * s, 2.9);
+    g.restore();
+    shape(g, c => { c.moveTo(12 * s, -3 * s); c.lineTo(13.5 * s, -5 * s); c.lineTo(15.5 * s, -3.2 * s); c.closePath(); }, { fill: o.color });  // 부스러기 한 조각
     g.restore();
   })
 });

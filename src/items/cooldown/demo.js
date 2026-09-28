@@ -1,5 +1,7 @@
 import { clamp } from "../../lib/util.js";
 import { ILLO } from "../../lib/draw.js";
+import { objectCanvas } from "../../lib/objects.js";
+import "../../lib/objects/index.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -11,13 +13,13 @@ export default function demo(api) {
     .${P}-col { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; }
     .${P}-pips { display: flex; gap: 8px; height: 12px; }
     .${P}-pip { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--ink); box-sizing: border-box; }
-    /* 스킬 버튼: 잉크색 원판, 안에는 외곽선 없는 종이색 번개 실루엣 */
+    /* 스킬 버튼: 잉크색 원판, 안에는 종이색 번개 (사물 카탈로그 lightning) */
     .${P}-btn { position: relative; width: 112px; height: 112px; border-radius: 50%; border: 0; padding: 0; background: ${ILLO.ink}; color: var(--on-ink);
       box-sizing: border-box; cursor: pointer; overflow: hidden; font: inherit; transition: translate .2s; -webkit-tap-highlight-color: transparent; }
     .${P}-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
     .${P}-btn.ready:hover { translate: 0 -3px; }
     .${P}-btn.cooling { cursor: not-allowed; }
-    .${P}-btn svg { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; transform: translate(-50%,-50%); overflow: visible; }
+    .${P}-btn canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); pointer-events: none; }
     .${P}-shade { position: absolute; inset: 0; pointer-events: none; }
     .${P}-num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 30px; font-weight: 800; color: #fff; mix-blend-mode: difference;
       font-variant-numeric: tabular-nums; pointer-events: none; }
@@ -37,7 +39,6 @@ export default function demo(api) {
       <div style="position:relative">
         <div class="${P}-ring"></div>
         <button class="${P}-btn ready" aria-label="스킬 사용">
-          <svg viewBox="0 0 48 48"><path d="M26 3 L8 27 H22 L20 45 L38 21 H24 Z" fill="${ILLO.paper}"/></svg>
           <div class="${P}-shade"></div>
           <div class="${P}-num"></div>
         </button>
@@ -47,6 +48,7 @@ export default function demo(api) {
     </div>`;
   el.appendChild(root);
   const btn = root.querySelector(`.${P}-btn`), shade = root.querySelector(`.${P}-shade`), num = root.querySelector(`.${P}-num`);
+  btn.insertBefore(objectCanvas("lightning", 50, { color: ILLO.paper }, { w: 40, pad: 2 }), shade);
   const ring = root.querySelector(`.${P}-ring`), bar = root.querySelector(`.${P}-bar`), barFill = bar.querySelector("b");
   const pipsEl = root.querySelector(`.${P}-pips`), cap = root.querySelector(`.${P}-cap`);
 

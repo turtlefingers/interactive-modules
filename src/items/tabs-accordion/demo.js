@@ -1,19 +1,21 @@
-import { ILLO, TONE, LINE } from "../../lib/draw.js";
+import "../../lib/objects/index.js";
+import { objectDataURL } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
-  const INK = ILLO.ink;
+  // 행성 그림: 카탈로그 planet (state 0~1 로 네 가지 톤을 고른다). 크기는 h 로
   const DATA = [
-    // 행성 그림: 외곽선 없는 톤 원판 + 가는(1.5px) 잉크 호 한두 개. 강조색은 화성 하나
-    { name: "수성", r: 14, fill: TONE[3], orbit: "88일", moons: "0개", detail: `<path d="M23 25 a3 3 0 1 0 6 0 M31 32 a2 2 0 1 0 4 0"/>`,
+    { name: "수성", h: 58, tone: 1 / 3, orbit: "88일", moons: "0개",
       t: "태양에 가장 가까운 행성이다. 대기가 거의 없어서 낮과 밤의 온도 차가 매우 크다." },
-    { name: "금성", r: 22, fill: TONE[1], orbit: "225일", moons: "0개", detail: `<path d="M14 26 q10 -6 20 0 t16 2 M18 36 q8 -5 16 0"/>`,
+    { name: "금성", h: 84, tone: 0, orbit: "225일", moons: "0개",
       t: "두꺼운 이산화탄소 대기 때문에 표면이 약 460°C로, 태양계 행성 중 가장 뜨겁다. 대부분의 행성과 반대 방향으로 자전한다." },
-    { name: "지구", r: 23, fill: TONE[4], orbit: "365일", moons: "1개", detail: `<path d="M20 20 q8 -6 14 0 q6 6 -2 10 q-8 4 -12 -2 q-4 -4 0 -8" style="stroke:${TONE[0]}"/>`,
+    { name: "지구", h: 88, tone: 2 / 3, orbit: "365일", moons: "1개",
       t: "표면의 약 71%가 물로 덮여 있다. 지금까지 알려진 행성 중 생명이 사는 유일한 곳이다." },
-    { name: "화성", r: 17, fill: "var(--accent)", orbit: "687일", moons: "2개", detail: `<path d="M30 25 a3 3 0 1 0 6 0 M22 36 q6 3 12 0"/>`,
+    { name: "화성", h: 68, tone: 1, orbit: "687일", moons: "2개",
       t: "흙 속의 산화철 때문에 붉게 보인다. 태양계에서 가장 높은 화산인 올림푸스 산이 있다." }
   ];
+  const PB = 96;   // 행성 그림 상자(px). 사물은 가운데 오도록 위아래 여백을 나눈다
+  DATA.forEach(d => { d.src = objectDataURL("planet", d.h, { state: d.tone }, { w: PB, pad: (PB - d.h) / 2 }); });
   const EASE = { smooth: "cubic-bezier(.2,.8,.2,1)", elastic: "cubic-bezier(.3,1.35,.5,1)", none: "linear" };
   const dur = ms => (S.motion === "none" ? 0 : ms);
 
@@ -32,9 +34,7 @@ export default function demo(api) {
     .tabs-accordion-root.pill .tabs-accordion-tablist { border-bottom-color: transparent; }
     .tabs-accordion-panelwrap { position: relative; overflow: hidden; }
     .tabs-accordion-panel { display: grid; grid-template-columns: 72px 1fr; gap: 20px; padding: 22px 4px; align-items: start; }
-    .tabs-accordion-panel svg { width: 72px; height: 72px; }
-    .tabs-accordion-planet circle { stroke: none; }
-    .tabs-accordion-planet path { fill: none; stroke: ${INK}; stroke-width: ${LINE}; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+    .tabs-accordion-planet { display: block; width: 72px; height: 72px; }
     .tabs-accordion-panel p { margin: 0 0 12px; font-size: 15px; line-height: 1.65; color: var(--ink); word-break: keep-all; }
     .tabs-accordion-facts { display: flex; gap: 22px; font-size: 13px; color: var(--ink-3); }
     .tabs-accordion-facts b { color: var(--ink); font-weight: 600; margin-left: 5px; }
@@ -46,10 +46,10 @@ export default function demo(api) {
     .tabs-accordion-region { height: 0; overflow: hidden; }
     .tabs-accordion-region .tabs-accordion-panel { padding-top: 4px; }
     .tabs-accordion-view.hide { display: none; }
-    @media (max-width: 560px) { .tabs-accordion-panel { grid-template-columns: 48px 1fr; gap: 14px; } .tabs-accordion-panel svg { width: 48px; height: 48px; } .tabs-accordion-tab { font-size: 13px; } }
+    @media (max-width: 560px) { .tabs-accordion-panel { grid-template-columns: 48px 1fr; gap: 14px; } .tabs-accordion-planet { width: 48px; height: 48px; } .tabs-accordion-tab { font-size: 13px; } }
   `);
 
-  const panelHTML = d => `<div class="tabs-accordion-panel"><svg viewBox="0 0 60 60" class="tabs-accordion-planet"><circle cx="30" cy="30" r="${d.r}" fill="${d.fill}"/>${d.detail || ""}</svg>
+  const panelHTML = d => `<div class="tabs-accordion-panel"><img class="tabs-accordion-planet" src="${d.src}" alt="${d.name}">
     <div><p>${d.t}</p><div class="tabs-accordion-facts"><span>공전 주기<b>${d.orbit}</b></span><span>위성<b>${d.moons}</b></span></div></div></div>`;
 
   const root = document.createElement("div");

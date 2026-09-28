@@ -1,4 +1,7 @@
+import "../../lib/objects/index.js";
 import { clamp, mod, localPoint, fitCanvas } from "../../lib/util.js";
+import { TONE } from "../../lib/draw.js";
+import { drawObject } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -152,32 +155,34 @@ export default function demo(api) {
     if (S.limit) g.arc(x, y, r + 30, canvasAng(MIN), canvasAng(clamp(a, MIN, MAX)));
     else { const m = mod(a, 360); if (m > 0.5) g.arc(x, y, r + 30, canvasAng(0), canvasAng(m)); }
     g.stroke(); g.lineCap = "butt";
-    // 몸체
-    g.fillStyle = "rgba(27,27,26,.05)";
-    g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = drag.on && drag.obj === knob ? INK : INK2; g.lineWidth = 2; g.stroke();
-    // 지시선
-    g.strokeStyle = INK; g.lineWidth = 3; g.lineCap = "round";
-    g.beginPath(); g.moveTo(x + dirX(a) * r * 0.45, y + dirY(a) * r * 0.45); g.lineTo(x + dirX(a) * r * 0.88, y + dirY(a) * r * 0.88); g.stroke();
-    g.lineCap = "butt";
+    // 몸체 + 지시선: 카탈로그 knob A (state = 0..1 정규화 각도). 사물의 원판 중심은 (아래 가운데)에서 0.42h 위, 반지름 0.3h.
+    // 사물의 지시선은 state 0에서 왼쪽 위(-135°, 캔버스 각)를 가리키므로 -90° 돌려 우리의 -135°(아래 왼쪽)에 맞춘다.
+    // 한계 없음 모드에서는 state 0으로 두고 각도만큼 통째로 돌린다
+    {
+      const H = r / 0.3;
+      g.save(); g.translate(x, y);
+      if (S.limit) { g.rotate(-Math.PI / 2); drawObject(g, "knob", 0, H * 0.42, H, { state: (clamp(a, MIN, MAX) - MIN) / (MAX - MIN), accent: ACC }); }
+      else { g.rotate((a + 45) * RAD); drawObject(g, "knob", 0, H * 0.42, H, { state: 0, accent: ACC }); }
+      g.restore();
+    }
     text(Math.round(knobValue(a)), x, y, Math.max(18, r * 0.34), INK, 700);
     text("노브", x, y + r + 54, 13, INK2);
   }
 
   function drawDisc() {
     const { x, y, r, a } = disc;
-    g.fillStyle = "rgba(27,27,26,.05)";
+    // 원판: 외곽선 없는 톤 면 + 톤 홈 몇 줄 + 라벨 면(잡으면 조금 짙어진다). 방향 표시만 강조색
+    g.fillStyle = TONE[1];
     g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = drag.on && drag.obj === disc ? INK : INK2; g.lineWidth = 2; g.stroke();
-    g.strokeStyle = "rgba(27,27,26,.12)"; g.lineWidth = 1;
+    g.strokeStyle = TONE[2]; g.lineWidth = 1;
     for (let k = 0.5; k < 0.97; k += 0.07) { g.beginPath(); g.arc(x, y, r * k, 0, Math.PI * 2); g.stroke(); }
-    g.strokeStyle = INK2; g.lineWidth = 1.5;
-    g.beginPath(); g.arc(x, y, r * 0.34, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = drag.on && drag.obj === disc ? TONE[3] : TONE[2];
+    g.beginPath(); g.arc(x, y, r * 0.34, 0, Math.PI * 2); g.fill();
     // 원판 위 표시: 방향을 알 수 있게 한 줄과 작은 점
     g.strokeStyle = ACC; g.lineWidth = 3; g.lineCap = "round";
     g.beginPath(); g.moveTo(x + dirX(a) * r * 0.4, y + dirY(a) * r * 0.4); g.lineTo(x + dirX(a) * r * 0.94, y + dirY(a) * r * 0.94); g.stroke();
     g.lineCap = "butt";
-    g.fillStyle = INK2;
+    g.fillStyle = TONE[4];
     const b = a + 180;
     g.beginPath(); g.arc(x + dirX(b) * r * 0.2, y + dirY(b) * r * 0.2, 3, 0, Math.PI * 2); g.fill();
     g.fillStyle = INK; g.beginPath(); g.arc(x, y, 4, 0, Math.PI * 2); g.fill();

@@ -1,12 +1,13 @@
-import { clamp, rng } from "../../lib/util.js";
+import { clamp } from "../../lib/util.js";
 import { ILLO, TONE } from "../../lib/draw.js";
+import { objectCanvas } from "../../lib/objects.js";
+import "../../lib/objects/index.js";
 
 export default function demo(api) {
   const { el, S } = api;
   const NS = "http://www.w3.org/2000/svg";
   const INK = ILLO.ink, PAPER = ILLO.paper;
   const ACC = api.color("--accent") || "#ff5a36";
-  const LINE = 1.5; // 가는 잉크 디테일 선
 
   /* ---------- 결과와 확률 ---------- */
   // 등급 색: 톤 세 단계 + 전설만 강조색
@@ -38,6 +39,13 @@ export default function demo(api) {
     .randomizer-app { position: absolute; inset: 0; display: grid; place-items: center; transition: opacity .3s, transform .3s; }
     .randomizer-app.off { opacity: 0; transform: scale(.94); pointer-events: none; }
     .randomizer-app svg { width: 100%; height: 100%; overflow: visible; }
+    /* 캡슐 뽑기: 사물 카탈로그(gacha-machine, capsule) 캔버스를 300×320 무대 좌표에 놓는다 */
+    .randomizer-gacha { position: absolute; left: 0; top: 0; width: 300px; height: 320px; transform-origin: 0 0; }
+    .randomizer-root.narrow .randomizer-gacha { transform: scale(.8); }
+    .randomizer-machine { position: absolute; left: 0; top: 0; transform-origin: 50% 100%; }
+    .randomizer-machine canvas, .randomizer-outcap-img canvas { display: block; }
+    .randomizer-outcap { position: absolute; left: 0; top: 0; opacity: 0; transform-origin: 50% 80%; }
+    .randomizer-outcap-label { position: absolute; left: 50%; top: -30px; transform: translateX(-50%); font-size: 15px; font-weight: 700; white-space: nowrap; opacity: 0; }
     .randomizer-result { font-size: 18px; font-weight: 700; color: var(--ink); height: 26px; text-align: center; font-variant-numeric: tabular-nums; }
     .randomizer-result small { font-size: 13px; font-weight: 500; color: var(--ink-3); margin-left: 6px; }
     .randomizer-result .legend { color: var(--accent); }
@@ -88,7 +96,7 @@ export default function demo(api) {
     <div class="randomizer-main">
       <div class="randomizer-stage">
         <div class="randomizer-app" data-kind="dice"><div class="randomizer-cube-scene"><div class="randomizer-cube"></div></div><div class="randomizer-dice-note">무거운 주사위 · 6이 잘 나온다</div></div>
-        <div class="randomizer-app" data-kind="gacha"><svg viewBox="0 0 300 320"></svg></div>
+        <div class="randomizer-app" data-kind="gacha"><div class="randomizer-gacha"><div class="randomizer-machine"></div><div class="randomizer-outcap"><div class="randomizer-outcap-img"></div><div class="randomizer-outcap-label"></div></div></div></div>
         <div class="randomizer-app" data-kind="roulette"><svg viewBox="0 0 300 320"></svg></div>
       </div>
       <div class="randomizer-result"></div>
@@ -123,32 +131,23 @@ export default function demo(api) {
   const setCube = () => { cube.style.transform = `translateY(${dice.y}px) rotateX(-14deg) rotateY(18deg) rotateX(${dice.rx}deg) rotateY(${dice.ry}deg)`; };
   setCube();
 
-  /* ---------- 캡슐 뽑기 기계 ---------- */
-  // 외곽선 없는 톤 실루엣: 몸통은 톤, 유리통은 종이색에 가는 잉크 윤곽만, 손잡이는 강조색. 캡슐은 톤 위 반쪽 + 종이색 아래 반쪽
-  const gsvg = apps.gacha.querySelector("svg");
-  const O = { stroke: INK, "stroke-width": LINE, "stroke-linejoin": "round", "stroke-linecap": "round" };
-  mk("path", { d: "M92 172 L84 290 H216 L208 172 Z", fill: TONE[3] }, gsvg);
-  mk("circle", { cx: 150, cy: 112, r: 84, fill: PAPER, ...O }, gsvg);
-  mk("rect", { x: 176, y: 250, width: 30, height: 24, rx: 3, fill: TONE[1] }, gsvg);
-  const knob = mk("g", {}, gsvg);
-  mk("circle", { cx: 128, cy: 232, r: 17, fill: ACC }, knob);
-  mk("path", { d: "M128 221 V243", stroke: PAPER, "stroke-width": 2.5, "stroke-linecap": "round" }, knob);
-  const r7 = rng(5);
-  const caps = [];
-  const CAP_COL = [TONE[2], TONE[3], TONE[4], TONE[1]];
-  const capsule = (parent, r, color) => {
-    mk("path", { d: `M${-r} 0 A${r} ${r} 0 0 0 ${r} 0 Z`, fill: PAPER }, parent);
-    return mk("path", { d: `M${-r} 0 A${r} ${r} 0 0 1 ${r} 0 Z`, fill: color }, parent);
-  };
-  for (let i = 0; i < 13; i++) {
-    const a = r7() * Math.PI * 2, d = Math.sqrt(r7()) * 56;
-    const g = mk("g", {}, gsvg);
-    capsule(g, 13, CAP_COL[i % 4]);
-    caps.push({ g, x: 150 + Math.cos(a) * d, y: 118 + Math.sin(a) * d * 0.8, ph: r7() * 6 });
-  }
-  const outCap = mk("g", { opacity: 0 }, gsvg);
-  const capTop = capsule(outCap, 20, TONE[2]);
-  const capLabel = mk("text", { x: 0, y: -34, "text-anchor": "middle", "font-size": 15, "font-weight": 700, fill: INK, opacity: 0 }, outCap);
+  /* ---------- 캡슐 뽑기 기계 (사물 카탈로그) ---------- */
+  // 기계는 gacha-machine(톤 몸통 + 종이색 돔, 안의 캡슐은 카탈로그가 그린다). 돌리는 동안 기계 전체가 들썩이고,
+  // 배출구(카탈로그 A: 몸통 왼쪽 아래)에서 캡슐(capsule A)이 굴러 나온 뒤 열린 캡슐(capsule C)로 바뀐다. 캡슐 색 = 등급 톤, 전설만 강조색
+  const MH = 250, MS = MH / 84;                      // 기계 높이(px)와 카탈로그 배율
+  const MACH = { x: 150, y: 296, w: 56 * MS, pad: 4 }; // 무대 좌표의 기계 아래 가운데
+  const gachaEl = apps.gacha.querySelector(".randomizer-gacha");
+  const machineEl = gachaEl.querySelector(".randomizer-machine");
+  const machineCv = objectCanvas("gacha-machine", MH, { color: TONE[4] }, { w: MACH.w, pad: MACH.pad });
+  machineEl.appendChild(machineCv);
+  Object.assign(machineEl.style, { left: MACH.x - MACH.w / 2 + "px", top: MACH.y + MACH.pad - (MH + MACH.pad * 2) + "px" });
+  const outCap = gachaEl.querySelector(".randomizer-outcap"), capImg = gachaEl.querySelector(".randomizer-outcap-img"), capLabel = gachaEl.querySelector(".randomizer-outcap-label");
+  const CAP = { h: 76, w: 106, pad: 4 };
+  const setCap = (variant, color) => capImg.replaceChildren(objectCanvas("capsule", CAP.h, { variant, color }, { w: CAP.w, pad: CAP.pad }));
+  setCap("A", TONE[2]);
+  // 캡슐 아래 가운데를 무대 좌표 (x, y)에 놓는다
+  const placeCap = (x, y, rot, op) => { outCap.style.opacity = op; outCap.style.transform = `translate(${x - CAP.w / 2}px, ${y + CAP.pad - (CAP.h + CAP.pad * 2)}px) rotate(${rot}deg)`; };
+  const CAP_FROM = { x: MACH.x - 10.5 * MS, y: MACH.y - 6 * MS }, CAP_TO = { x: 62, y: 302 }; // 배출구 → 바닥
 
   /* ---------- 룰렛 ---------- */
   const rsvg = apps.roulette.querySelector("svg");
@@ -214,7 +213,7 @@ export default function demo(api) {
         dice.tx = fx + 360 * Math.ceil((dice.rx + 360 * spins - fx) / 360);
         dice.ty = fy + 360 * Math.ceil((dice.ry + 360 * spins - fy) / 360);
       }
-      if (kind === "gacha") { [capTop, capLabel].forEach(x => x.getAnimations().forEach(a => a.cancel())); outCap.setAttribute("opacity", 0); }
+      if (kind === "gacha") { [capImg, capLabel].forEach(x => x.getAnimations().forEach(a => a.cancel())); outCap.style.opacity = 0; setCap("A", TONE[2]); }
     }
     roll = r;
     goBtn.disabled = true;
@@ -234,8 +233,8 @@ export default function demo(api) {
     resultEl.animate([{ transform: "scale(1.15)" }, { transform: "scale(1)" }], { duration: 260, easing: "cubic-bezier(.3,1.5,.5,1)" });
     if (r.kind === "gacha") {
       capLabel.textContent = TIERS[r.idx].name;
-      capLabel.setAttribute("fill", legend ? ACC : INK);
-      capTop.setAttribute("fill", r.idx === 0 ? TONE[2] : TIERS[r.idx].fill);
+      capLabel.style.color = legend ? ACC : INK;
+      setCap("C", r.idx === 0 ? TONE[2] : TIERS[r.idx].fill); // 열린 캡슐: 색이 등급을 알린다
     }
     lastResult = { kind: r.kind, name, p };
     renderSide(true);
@@ -318,32 +317,25 @@ export default function demo(api) {
     wheel.setAttribute("transform", `rotate(${rou.ang} ${RC.x} ${RC.y})`);
     needle.setAttribute("transform", `rotate(${-rou.kick * 16} ${RC.x} ${RC.y - RC.r - 18})`);
 
-    // 캡슐 뽑기
+    // 캡슐 뽑기: 앞 60%는 기계가 들썩이고(손잡이를 돌리는 동안), 그 뒤 배출구에서 캡슐이 굴러 나와 바닥에서 흔들리다 멈춘다
     const g = roll && roll.kind === "gacha";
     const shake = g && p < 0.6 ? Math.sin((p / 0.6) * Math.PI) : 0;
-    caps.forEach(c => {
-      const jx = Math.sin(t / 60 + c.ph) * 7 * shake, jy = Math.cos(t / 47 + c.ph * 1.3) * 7 * shake;
-      c.g.setAttribute("transform", `translate(${c.x + jx} ${c.y + jy})`);
-    });
-    if (g) {
-      const kp = clamp(p / 0.6, 0, 1);
-      knob.setAttribute("transform", `rotate(${easeOut(kp) * 360} 128 232)`);
-      if (p > 0.6) {
-        const q = clamp((p - 0.6) / 0.25, 0, 1);
-        const x = 191 + (240 - 191) * easeOut(q), y = 262 + 24 * easeOut(q);
-        const wob = p > 0.85 ? Math.sin((p - 0.85) / 0.15 * Math.PI * 4) * 12 * (1 - (p - 0.85) / 0.15) : q * 360;
-        outCap.setAttribute("opacity", 1);
-        outCap.setAttribute("transform", `translate(${x} ${y}) rotate(${wob})`);
-      }
+    machineEl.style.transform = shake > 0.001
+      ? `translate(${Math.sin(t / 45) * 4 * shake}px, ${-Math.abs(Math.cos(t / 60)) * 3 * shake}px) rotate(${Math.sin(t / 70) * 2.5 * shake}deg)` : "none";
+    if (g && p > 0.6) {
+      const q = clamp((p - 0.6) / 0.25, 0, 1);
+      const x = CAP_FROM.x + (CAP_TO.x - CAP_FROM.x) * easeOut(q), y = CAP_FROM.y + (CAP_TO.y - CAP_FROM.y) * easeOut(q);
+      const wob = p > 0.85 ? Math.sin((p - 0.85) / 0.15 * Math.PI * 4) * 12 * (1 - (p - 0.85) / 0.15) : -q * 360;
+      placeCap(x, y, wob, 1);
     }
     if (roll && p >= 1) {
-      if (roll.kind === "gacha") {
-        outCap.setAttribute("opacity", 1);
-        outCap.setAttribute("transform", "translate(240 286)");
-        capTop.animate([{ transform: "none" }, { transform: "translate(-14px, -22px) rotate(-35deg)" }], { duration: 320, easing: "cubic-bezier(.2,.9,.3,1)", fill: "forwards" });
-        capLabel.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 260, delay: 120, fill: "forwards" });
-      }
+      const opened = roll.kind === "gacha";
       finish();
+      if (opened) { // 열린 캡슐(C)로 바뀌며 톡 튀고, 등급 이름이 떠오른다
+        placeCap(CAP_TO.x, CAP_TO.y, 0, 1);
+        capImg.animate([{ transform: "scale(.8)" }, { transform: "scale(1.08)" }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.9,.3,1)" });
+        capLabel.animate([{ opacity: 0, transform: "translate(-50%, 6px)" }, { opacity: 1, transform: "translate(-50%, 0)" }], { duration: 260, delay: 120, fill: "forwards" });
+      }
     }
 
     // 읽는 값과 상태

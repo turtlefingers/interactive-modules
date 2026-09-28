@@ -1,5 +1,7 @@
 import { clamp, dist, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE, LINE, shape, tube, circle as kCircle, ellipse as kEllipse, leaf as kLeaf, curve as kCurve } from "../../lib/draw.js";
+import { TONE } from "../../lib/draw.js";
+import "../../lib/objects/index.js";
+import { drawObject } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -115,54 +117,24 @@ export default function demo(api) {
     }
   });
 
-  /* ---------- 그리기 (외곽선 없는 톤·실루엣 + 가는 잉크 줄기. 강조색은 꽃과 들고 있는 씨앗) ---------- */
+  /* ---------- 그리기: 카탈로그 사물 (seed → sprout → flower / tree). 강조색은 꽃과 들고 있는 씨앗 ---------- */
   const circle = (x, y, r) => { g.beginPath(); g.arc(x, y, Math.max(0, r), 0, Math.PI * 2); };
-  // 씨앗 세 종류: 모양과 톤으로 구분한다
+  // 씨앗 세 종류: 톤과 방향으로 구분한다
   const SEED_COLOR = [TONE[3], TONE[4], TONE[5]];
   const drawSeed = (o, hot) => {
     g.save(); g.translate(o.x, o.y); g.scale(o.s, o.s);
-    const fill = hot ? C.accent : SEED_COLOR[o.type];
-    if (o.type === 0) kCircle(g, 0, 0, 8, { fill });
-    else if (o.type === 1) kEllipse(g, 0, 0, 11, 7, { fill }, -0.4);
-    else shape(g, c => { c.moveTo(0, -12); c.quadraticCurveTo(10, 2, 0, 9); c.quadraticCurveTo(-10, 2, 0, -12); }, { fill });
+    drawObject(g, "seed", 0, 8, 16, { color: hot ? C.accent : SEED_COLOR[o.type], flip: o.type === 1, angle: o.type === 2 ? -0.5 : 0 });
     g.restore();
   };
   const ease = t => 1 - Math.pow(1 - clamp(t, 0, 1), 3);
   const drawPlant = p => {
-    const x = p.x, y = BED_Y;
-    const stem = ease(p.t / 0.5), leaf = ease((p.t - 0.45) / 0.3), head = ease((p.t - 0.7) / 0.3);
     const H = [120, 100, 90][p.type];
-    g.save(); g.translate(x, y); g.scale(p.s, p.s);
-    const L = LINE / Math.max(0.3, p.s);
-    if (p.t < 0.08) kCircle(g, 0, -4, 6, { fill: SEED_COLOR[p.type] });
-    // 줄기: 가는 잉크 곡선 (나무는 톤 몸통)
-    if (stem > 0.02) {
-      if (p.type === 2) tube(g, [[0, 0], [0, -H * stem]], { color: TONE[4], w: 12 });
-      else kCurve(g, [0, 0, 4, -H * stem * 0.5, 0, -H * stem], { lw: L + 0.5 });
-    }
-    if (leaf > 0.05 && p.type !== 2) {
-      const lh = H * 0.45;
-      kLeaf(g, -13 * leaf, -lh, { size: 26 * leaf, angle: 0.5, lw: L });
-      kLeaf(g, 13 * leaf, -lh + 0.12 * H, { size: 26 * leaf, angle: -0.5, lw: L });
-    }
-    if (head > 0.05) {
-      const hy = -H;
-      if (p.type === 0) {
-        // 데이지: 강조색 원판 + 가운데 종이색 점
-        kCircle(g, 0, hy, 16 * head, { fill: C.accent });
-        kCircle(g, 0, hy, 5 * head, { fill: ILLO.paper });
-      } else if (p.type === 1) {
-        // 튤립: 강조색 실루엣
-        const r = 15 * head;
-        shape(g, c => {
-          c.moveTo(-r, hy - r * 0.6); c.lineTo(-r * 0.4, hy - r * 0.1); c.lineTo(0, hy - r * 0.8); c.lineTo(r * 0.4, hy - r * 0.1); c.lineTo(r, hy - r * 0.6);
-          c.quadraticCurveTo(r, hy + r * 0.9, 0, hy + r * 0.9); c.quadraticCurveTo(-r, hy + r * 0.9, -r, hy - r * 0.6); c.closePath();
-        }, { fill: C.accent });
-      } else {
-        // 나무: 초록 수관 실루엣
-        kCircle(g, 0, hy - 10 * head, 30 * head, { fill: ILLO.green });
-      }
-    }
+    const sprout = ease(p.t / 0.5), grow = ease((p.t - 0.5) / 0.5);
+    g.save(); g.translate(p.x, BED_Y); g.scale(p.s, p.s);
+    if (p.t < 0.08) drawObject(g, "seed", 0, 4, 16, { color: SEED_COLOR[p.type] });
+    else if (p.t < 0.5) drawObject(g, "sprout", 0, 0, H * 0.9 * (0.4 + 0.6 * sprout), { state: sprout });
+    else if (p.type === 2) drawObject(g, "tree", 0, 0, H * (0.45 + 0.55 * grow));
+    else drawObject(g, "flower", 0, 0, H * (0.6 + 0.4 * grow), { state: grow, color: C.accent, flip: p.type === 1 });
     g.restore();
   };
 

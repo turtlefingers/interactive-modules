@@ -1,5 +1,7 @@
-import { rng, clamp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE, LINE, shape, circle, line } from "../../lib/draw.js";
+import { clamp, localPoint, fitCanvas } from "../../lib/util.js";
+import { ILLO, TONE } from "../../lib/draw.js";
+import "../../lib/objects/index.js";
+import { drawObject } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -21,45 +23,24 @@ export default function demo(api) {
   root.append(labA, labB);
   const FILTER_NAMES = { gray: "흑백", sepia: "빈티지", invert: "반전", pixel: "픽셀" };
 
-  /* ---------- 그림: 외곽선 없는 톤 면으로 만든 풍경. 강조색은 해 하나 (필터 차이가 여기서 읽힌다) ---------- */
+  /* ---------- 그림: 카탈로그 풍경 (sun-disc · mountain-range · hill-set · bush-tree). 강조색은 해 하나 (필터 차이가 여기서 읽힌다) ---------- */
   const before = document.createElement("canvas"), after = document.createElement("canvas"), tmp = document.createElement("canvas");
   const drawScene = (c, w, h) => {
     c.fillStyle = ILLO.cream; c.fillRect(0, 0, w, h);
-    const m = Math.min(w, h), rand = rng(3);
-    // 해: 강조색 원판
-    circle(c, w * 0.7, h * 0.3, m * 0.075, { fill: ILLO.orange });
-    // 능선: 뒤에서 앞으로 점점 어두운 톤
-    const ridge = (base, amp, seed, color, stepPx = 6) => {
-      const r = rng(seed), ph = [r() * 6, r() * 6, r() * 6];
-      shape(c, p => {
-        p.moveTo(-10, h + 10);
-        for (let x = -10; x <= w + stepPx + 10; x += stepPx) {
-          const t = x / w;
-          const y = base - amp * (0.55 * Math.sin(t * 5.1 + ph[0]) + 0.3 * Math.sin(t * 11.3 + ph[1]) + 0.15 * Math.sin(t * 23 + ph[2]));
-          p.lineTo(x, y);
-        }
-        p.lineTo(w + 10, h + 10); p.closePath();
-      }, { fill: color });
+    const m = Math.min(w, h);
+    // 넓은 사물은 옆으로 이어 붙인다 (교대로 뒤집어 이음새를 맞춘다). 아래는 fill 톤으로 채운다
+    const tile = (name, base, oh, wf, fill) => {
+      const W = Math.round(oh * wf), n = Math.ceil(w / W) + 2, y = Math.round(base);
+      c.fillStyle = fill; c.fillRect(-10, y - 1, w + 20, h - y + 11);
+      for (let k = 0; k < n; k++) drawObject(c, name, Math.round(w / 2) + (k - Math.floor(n / 2)) * W, y, W / wf, { flip: k % 2 === 1 });
     };
-    ridge(h * 0.5, h * 0.1, 7, TONE[1]);
-    ridge(h * 0.57, h * 0.08, 9, TONE[2]);
-    ridge(h * 0.64, h * 0.06, 12, TONE[3]);
-    // 호수: 밝은 톤 띠 + 가는 물결선 몇 개
-    const ly = h * 0.7;
-    shape(c, p => p.rect(-10, ly, w + 20, h * 0.1 + 10), { fill: TONE[1] });
-    for (let i = 0; i < 3; i++) {
-      const y = ly + h * 0.025 + i * h * 0.022, len = m * (0.05 + rand() * 0.08), x = w * 0.7 - len / 2 + (rand() - 0.5) * m * 0.08;
-      line(c, [[x, y], [x + len, y]], { lw: LINE, stroke: TONE[3] });
-    }
-    // 앞 들판
-    shape(c, p => p.rect(-10, h * 0.8, w + 20, h * 0.2 + 10), { fill: TONE[3] });
-    // 나무: 가늘고 긴 어두운 톤 실루엣 (mouse-parallax와 같은 모양)
-    const tree = (x, s) => {
-      const y = h * 0.82 + s * 0.15, th = s * 1.6, tw = th * 0.28;
-      shape(c, p => { p.moveTo(x - tw, y); p.quadraticCurveTo(x - tw * 0.9, y - th * 0.55, x, y - th); p.quadraticCurveTo(x + tw * 0.9, y - th * 0.55, x + tw, y); p.closePath(); }, { fill: TONE[5] });
-    };
-    const u = m * 0.09;
-    [[0.08, 1.1], [0.14, 0.8], [0.3, 0.95], [0.52, 1.2], [0.6, 0.7], [0.78, 1.15], [0.85, 0.85], [0.95, 1]].forEach(([x, s]) => tree(w * x, u * s));
+    const sh = m * 0.36;
+    drawObject(c, "sun-disc", w * 0.7 - sh * 0.08, h * 0.3 + sh * 0.55, sh, { color: ILLO.orange });
+    tile("mountain-range", h * 0.64, h * 0.19, 3.2, TONE[1]);   // 산 아래는 밝은 톤: 안개 낀 호수처럼 읽힌다
+    tile("hill-set", h * 0.84, h * 0.25, 3, TONE[3]);
+    // 나무: 앞 들판에 선 가늘고 긴 어두운 실루엣
+    [[0.08, 1.1], [0.14, 0.8], [0.3, 0.95], [0.52, 1.2], [0.6, 0.7], [0.78, 1.15], [0.85, 0.85], [0.95, 1]].forEach(([x, s], i) =>
+      drawObject(c, "bush-tree", w * x, h * 0.86 + s * m * 0.02, m * 0.16 * s, { color: TONE[5], flip: i % 3 === 1 }));
   };
   const applyFilter = (src, dst, type, dpr) => {
     const W = src.width, H = src.height;

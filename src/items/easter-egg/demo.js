@@ -1,10 +1,19 @@
-import { dist } from "../../lib/util.js";
+import "../../lib/objects/index.js";
+import { dist, fitCanvas } from "../../lib/util.js";
 import { ILLO, TONE, LINE } from "../../lib/draw.js";
+import { drawObject } from "../../lib/objects.js";
 
 const NS = "http://www.w3.org/2000/svg";
+const TAU = Math.PI * 2;
 const ACC = ILLO.orange;   // 장면의 강조색 하나 (창문 불빛과 비밀 실루엣)
 const TRIGGER_NAME = { right: "우클릭", long: "길게 누르기", triple: "세 번 클릭" };
 const HINT_TEXT = { right: "어딘가를 우클릭해 보기", long: "어딘가를 길게 눌러 보기", triple: "어딘가를 세 번 클릭" };
+// 키프레임 보간: [[진행도, 값], …] 을 선형으로 잇는다
+const kf = (p, pts) => {
+  if (p <= pts[0][0]) return pts[0][1];
+  for (let i = 1; i < pts.length; i++) if (p <= pts[i][0]) { const [a, va] = pts[i - 1], [b, vb] = pts[i]; return va + (vb - va) * (p - a) / (b - a); }
+  return pts[pts.length - 1][1];
+};
 
 export default function demo(api) {
   const { el, S } = api;
@@ -14,7 +23,6 @@ export default function demo(api) {
     .ee-demo svg.scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
     /* 그림 규칙: 외곽선 없는 톤 면 + 가는(1.5px) 잉크 디테일. 강조색은 창문 불빛 하나 */
     .ee-line { fill: none; stroke: ${ILLO.ink}; stroke-width: ${LINE}; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-    .ee-ripple { fill: none; stroke: ${TONE[2]}; stroke-width: ${LINE}; vector-effect: non-scaling-stroke; }
     .ee-acc { fill: none; stroke: ${ACC}; stroke-width: ${LINE}; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
     .ee-hit { fill: transparent; stroke: none; pointer-events: all; }
     .ee-egg { opacity: 0; }
@@ -35,76 +43,28 @@ export default function demo(api) {
   el.appendChild(root);
 
   // 설계 크기 600×700. 좁은 화면에서 좌우가, 넓은 화면에서 위아래가 잘리므로 비밀은 가운데 영역에 둔다.
+  // 장면은 캔버스 밑그림(카탈로그 사물, 매 프레임 다시 그림)이고, 그 위의 SVG 는 히트 영역·별자리·단서·효과만 맡는다.
+  // 캔버스도 SVG 의 preserveAspectRatio="xMidYMid slice" 와 같은 변환을 쓴다
+  const { g, size } = fitCanvas(api, { parent: root });
+  const VW = 600, VH = 700;
+  const view = () => { const sc = Math.max(size.w / VW, size.h / VH); return { sc, ox: (size.w - VW * sc) / 2, oy: (size.h - VH * sc) / 2 }; };
+
   // 별자리 점 (별 도상 대신 작은 잉크 점)
   const cons = [[-40, -15], [0, -35], [40, -10], [25, 30], [-20, 25]];
   const svg = document.createElementNS(NS, "svg");
   svg.setAttribute("class", "scene");
   svg.setAttribute("viewBox", "0 0 600 700");
   svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
-  // 밤 풍경: 하늘 → 달 → 먼 언덕 → 가까운 언덕 순서로 겹치는 톤 면. 외곽선 없음.
   svg.innerHTML = `
-    <defs><clipPath id="ee-win"><rect x="-12" y="-11" width="24" height="22"/></clipPath></defs>
-    <rect x="-20" y="-20" width="640" height="740" fill="${TONE[2]}"/>
-
     <g data-egg="stars" transform="translate(160 190)">
       <circle class="ee-hit" r="58"/>
       <path class="ee-line ee-egg" id="ee-cons" d="M${cons.map(p => p.join(" ")).join(" L")} Z"/>
       ${cons.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.6" fill="${ILLO.ink}"/>`).join("")}
     </g>
-
-    <g data-egg="moon" transform="translate(430 190)">
-      <circle class="ee-hit" r="56"/>
-      <circle fill="${TONE[0]}" r="48"/>
-      <!-- 달 속 토끼: 잉크 실루엣 -->
-      <g class="ee-egg" id="ee-rabbit" fill="${ILLO.ink}">
-        <ellipse cx="6" cy="16" rx="17" ry="12"/>
-        <ellipse cx="-15" cy="-15" rx="3.6" ry="12" transform="rotate(-14 -15 -15)"/>
-        <ellipse cx="-6" cy="-16" rx="3.6" ry="12" transform="rotate(8 -6 -16)"/>
-        <circle cx="-10" cy="2" r="10"/>
-        <circle cx="22" cy="12" r="4.5"/>
-      </g>
-    </g>
-
-    <!-- 먼 언덕 / 가까운 땅 -->
-    <path fill="${TONE[3]}" d="M-20 430 Q110 380 230 418 T460 402 T620 420 V720 H-20 Z"/>
-    <path fill="${TONE[4]}" d="M-20 500 Q120 470 260 492 T620 484 V720 H-20 Z"/>
-
-    <g data-egg="window">
-      <!-- 집: 톤 실루엣 사각형 + 강조색 창문 하나 -->
-      <rect fill="${TONE[5]}" x="96" y="392" width="108" height="86"/>
-      <g transform="translate(128 424)">
-        <rect class="ee-hit" x="-32" y="-30" width="64" height="60"/>
-        <rect id="ee-light" x="-12" y="-11" width="24" height="22" fill="${ACC}"/>
-        <g clip-path="url(#ee-win)"><g id="ee-cat" style="transform: translateY(20px)" fill="${ILLO.ink}">
-          <path d="M-8 6l1-9 5 5z M8 6l-1-9-5 5z"/>
-          <rect x="-9" y="10" width="18" height="18" rx="5"/>
-          <circle cx="0" cy="8" r="7.5"/>
-        </g></g>
-      </g>
-    </g>
-
-    <g data-egg="tree" transform="translate(305 400)">
-      <circle class="ee-hit" r="60"/>
-      <!-- 나무: 가늘고 긴 톤 실루엣 -->
-      <path fill="${TONE[5]}" d="M-24 84 Q-22 20 0 -78 Q22 20 24 84 Z"/>
-      <!-- 부엉이: 강조색 실루엣 -->
-      <g class="ee-egg" id="ee-owl" fill="${ACC}">
-        <path d="M-13 -10 L-10 -20 L-3 -12 Z M13 -10 L10 -20 L3 -12 Z"/>
-        <ellipse cy="2" rx="14" ry="16"/>
-        <circle cx="-5.5" cy="-2" r="2" fill="${TONE[5]}"/><circle cx="5.5" cy="-2" r="2" fill="${TONE[5]}"/>
-      </g>
-    </g>
-
-    <g data-egg="pond" transform="translate(420 565)">
-      <ellipse class="ee-hit" rx="112" ry="46"/>
-      <ellipse fill="${TONE[5]}" rx="100" ry="24"/>
-      <g id="ee-ripples"></g>
-      <!-- 물고기: 강조색 실루엣 -->
-      <g class="ee-egg" id="ee-fish" fill="${ACC}">
-        <path d="M-14 0q12-11 24 0q-12 11-24 0z"/>
-        <path d="M9 0l10-8v16z"/>
-      </g>
-    </g>
+    <g data-egg="moon" transform="translate(430 190)"><circle class="ee-hit" r="56"/></g>
+    <g data-egg="window" transform="translate(128 442)"><rect class="ee-hit" x="-32" y="-30" width="64" height="60"/></g>
+    <g data-egg="tree" transform="translate(305 400)"><circle class="ee-hit" r="60"/></g>
+    <g data-egg="pond" transform="translate(420 565)"><ellipse class="ee-hit" rx="112" ry="46"/></g>
     <g id="ee-fx"></g>
     <path id="ee-shoot" class="ee-acc" style="vector-effect:none" d="M120 60 L420 150" stroke-dasharray="320" stroke-dashoffset="320" opacity="0"/>
   `;
@@ -114,7 +74,7 @@ export default function demo(api) {
 
   const EGGS = {
     moon: { name: "달 속의 토끼", at: [430, 190], r: 50 },
-    window: { name: "창가의 고양이", at: [128, 424], r: 30 },
+    window: { name: "창가의 고양이", at: [128, 442], r: 30 },
     tree: { name: "나무 속 부엉이", at: [305, 400], r: 30 },
     pond: { name: "뛰어오르는 물고기", at: [420, 565], r: 40 },
     stars: { name: "숨은 별자리", at: [160, 190], r: 50 }
@@ -122,6 +82,8 @@ export default function demo(api) {
   const KEYS = Object.keys(EGGS);
   const found = new Set();
   let tries = 0, lastTry = "–";
+  // 캔버스 비밀의 드러남 시각 (null = 아직). 진행도는 매 프레임 이 값에서 계산한다
+  const anim = { moon: null, window: null, tree: null, pond: null };
 
   const panel = document.createElement("div");
   panel.className = "ee-found";
@@ -131,6 +93,78 @@ export default function demo(api) {
     api.read("found", `${found.size} / ${KEYS.length}`);
   };
   renderPanel();
+
+  /* ---------- 장면 (캔버스) ---------- */
+  // 집 A 의 창 자리: 변형 코드의 비례 (몸통 폭 1.15h, 높이 0.5h; 창 x = 0.1·폭, y = -0.72·몸통높이, 크기 0.14h × 0.16h)
+  const HOUSE = { x: 104, y: 478, h: 130 };
+  const WIN = { x: HOUSE.x + 0.115 * HOUSE.h, y: HOUSE.y - 0.36 * HOUSE.h, w: 0.14 * HOUSE.h, h: 0.16 * HOUSE.h };
+  const prog = (k, dur, now) => anim[k] == null ? -1 : Math.min(1, Math.max(0, (now - anim[k]) / dur));
+
+  function drawScene(now) {
+    const { sc, ox, oy } = view(), t = now / 1000;
+    g.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+    g.fillStyle = TONE[2]; g.fillRect(0, 0, size.w, size.h);
+    g.save(); g.translate(ox, oy); g.scale(sc, sc);
+
+    // 달 (moon C: 반지름 21u 원이 (x-2u, y-52u)에 온다 → 중심 (430, 190), 반지름 48) + 달 속 토끼
+    drawObject(g, "moon", 432, 309, 192, { t });
+    const pm = prog("moon", 1300, now);
+    if (pm >= 0) {
+      g.save(); g.beginPath(); g.arc(430, 190, 48, 0, TAU); g.clip();
+      const dy = kf(pm, [[0, 10], [0.3, 0], [0.5, -8], [0.65, 0], [0.8, -6], [1, 0]]);
+      // TODO: rabbit 타입이 새로 그려지면 variant 만 지정한다
+      drawObject(g, "rabbit", 428, 222 + dy, 62, { color: ILLO.ink, alpha: kf(pm, [[0, 0], [0.3, 1]]), t });
+      g.restore();
+    }
+
+    // 언덕 세 겹 (hill-set B), 그 위에 멀리 있는 집 둘(B·C, 불 꺼짐), 새, 나무 실루엣
+    drawObject(g, "hill-set", 300, 720, 300);
+    drawObject(g, "house", 500, 496, 44, { variant: "B", color: TONE[4] });
+    drawObject(g, "house", 40, 540, 36, { variant: "C", color: TONE[4] });
+    drawObject(g, "bird", 262, 470, 40, { color: TONE[5], t });
+    drawObject(g, "bush-tree", 575, 535, 110, { color: TONE[4], flip: true });
+
+    // 집 A: 불 켜진 창(강조색) + 창가의 고양이 (불빛이 한 번 깜빡이고 실루엣이 올라온다)
+    drawObject(g, "house", HOUSE.x, HOUSE.y, HOUSE.h, { variant: "A", color: ACC, accent: ACC, state: 1 });
+    const pw = prog("window", 900, now);
+    if (pw >= 0) {
+      const light = kf(pw, [[0, 1], [0.17, 0.35], [0.55, 1]]);
+      if (light < 1) { g.save(); g.globalAlpha = 1 - light; g.fillStyle = TONE[2]; g.fillRect(WIN.x, WIN.y, WIN.w, WIN.h); g.restore(); }
+      g.save(); g.beginPath(); g.rect(WIN.x, WIN.y, WIN.w, WIN.h); g.clip();
+      const dy = kf(pw, [[0, 20], [0.3, 20], [0.75, -2], [1, 0]]);
+      // TODO: cat 타입이 새로 그려지면 variant 만 지정한다
+      drawObject(g, "cat", WIN.x + WIN.w / 2, WIN.y + WIN.h + 3 + dy, WIN.h * 1.5, { color: ILLO.ink, t });
+      g.restore();
+    }
+
+    // 나무 (tree C) 와 그 앞의 부엉이 (세로로 펼쳐지며 나타나고, 한 번 눈을 깜빡이듯 접힌다)
+    drawObject(g, "bush-tree", 215, 600, 120, { color: TONE[4] });
+    drawObject(g, "tree", 305, 484, 150, { color: TONE[5] });
+    const pt = prog("tree", 1100, now);
+    if (pt >= 0) {
+      const sy = kf(pt, [[0, 0], [0.3, 1], [0.55, 1], [0.65, 0.1], [1, 1]]);
+      g.save(); g.translate(322, 428); g.scale(1, Math.max(0.001, sy));
+      drawObject(g, "owl", 0, 0, 52, { color: ACC, t });
+      g.restore();
+    }
+
+    // 연못 (pond C: state = 파문. 물고기가 뛰어들고 나올 때 퍼진다) + 뛰어오르는 물고기
+    const pp = prog("pond", 1200, now);
+    let ripple = 0;
+    if (pp >= 0) { const ms = now - anim.pond; [0, 1150].forEach(d => { const e = (ms - d) / 800; if (e >= 0 && e < 1) ripple = Math.max(ripple, e); }); }
+    drawObject(g, "pond", 426, 568, 118, { state: ripple, t });
+    if (pp >= 0 && pp < 1) {
+      const tx = kf(pp, [[0, -50], [0.15, -38], [0.5, 0], [0.85, 38], [1, 50]]);
+      const ty = kf(pp, [[0, 0], [0.15, -40], [0.5, -95], [0.85, -40], [1, 0]]);
+      const rot = kf(pp, [[0, -60], [0.15, -45], [0.5, 0], [0.85, 45], [1, 60]]) * Math.PI / 180;
+      const al = kf(pp, [[0, 0], [0.15, 1], [0.85, 1], [1, 0]]);
+      g.save(); g.translate(420 + tx, 565 + ty); g.rotate(rot);
+      // fish 는 몸 중심이 (아래 가운데)에서 40u 위에 온다 (h = 50 → 24). TODO: fish 타입이 새로 그려지면 variant 만 지정한다
+      drawObject(g, "fish", 0, 24, 50, { color: ACC, alpha: al, t: 0 });
+      g.restore();
+    }
+    g.restore();
+  }
 
   /* ---------- 좌표 · 소리 ---------- */
   const toSvg = e => {
@@ -169,39 +203,8 @@ export default function demo(api) {
   /* ---------- 드러내기 ---------- */
   const show = (node, keyframes, opts) => node.animate(keyframes, { fill: "forwards", ...opts });
   function reveal(k) {
-    if (k === "moon") {
-      const r = $("ee-rabbit");
-      show(r, [{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "translateY(0)", offset: .3 },
-        { transform: "translateY(-8px)", offset: .5 }, { transform: "translateY(0)", offset: .65 }, { transform: "translateY(-6px)", offset: .8 }, { opacity: 1, transform: "translateY(0)" }],
-        { duration: 1300, easing: "ease-out" });
-    } else if (k === "window") {
-      // 창문 불빛이 한 번 깜빡이고 고양이 실루엣이 올라온다
-      $("ee-light").animate([{ opacity: 1 }, { opacity: .35, offset: .3 }, { opacity: 1 }], { duration: 500, easing: "ease-out" });
-      show($("ee-cat"), [{ transform: "translateY(20px)" }, { transform: "translateY(20px)", offset: .3 }, { transform: "translateY(-2px)", offset: .75 }, { transform: "translateY(0)" }],
-        { duration: 900, easing: "ease-out" });
-    } else if (k === "tree") {
-      show($("ee-owl"), [{ opacity: 1, transform: "scaleY(0)" }, { transform: "scaleY(1)", offset: .3 }, { transform: "scaleY(1)", offset: .55 },
-        { transform: "scaleY(.1)", offset: .65 }, { opacity: 1, transform: "scaleY(1)" }], { duration: 1100, easing: "ease-out" });
-    } else if (k === "pond") {
-      const f = $("ee-fish");
-      show(f, [
-        { opacity: 0, transform: "translate(-50px, 0) rotate(-60deg)" },
-        { opacity: 1, transform: "translate(-38px, -40px) rotate(-45deg)", offset: .15 },
-        { transform: "translate(0px, -95px) rotate(0deg)", offset: .5 },
-        { opacity: 1, transform: "translate(38px, -40px) rotate(45deg)", offset: .85 },
-        { opacity: 0, transform: "translate(50px, 0) rotate(60deg)" }], { duration: 1200, easing: "linear" });
-      const rp = $("ee-ripples");
-      [[-50, 0], [50, 1150]].forEach(([x, delay]) => api.timeout(() => {
-        for (let i = 0; i < 2; i++) api.timeout(() => {
-          const e = document.createElementNS(NS, "ellipse");
-          e.setAttribute("class", "ee-ripple"); e.setAttribute("cx", x); e.setAttribute("rx", 28); e.setAttribute("ry", 7);
-          rp.appendChild(e);
-          e.style.transformOrigin = `${x}px 0px`; e.style.transformBox = "view-box";
-          const a = e.animate([{ transform: "scale(.2)", opacity: 1 }, { transform: "scale(1.2)", opacity: 0 }], { duration: 800, easing: "ease-out", fill: "forwards" });
-          a.onfinish = () => e.remove();
-        }, i * 180);
-      }, delay));
-    } else if (k === "stars") {
+    if (k in anim) { anim[k] = performance.now(); return; }   // 캔버스 비밀: drawScene 이 진행도에 따라 그린다
+    if (k === "stars") {
       const p = $("ee-cons");
       const len = p.getTotalLength ? p.getTotalLength() : 300;
       p.style.strokeDasharray = len;
@@ -310,6 +313,7 @@ export default function demo(api) {
   });
 
   api.frame(() => {
+    drawScene(performance.now());
     api.read("tries", tries);
     api.read("last", lastTry);
     api.read("trigger", TRIGGER_NAME[S.trigger]);

@@ -1,5 +1,7 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE, circle, roundRect, dot } from "../../lib/draw.js";
+import { ILLO, TONE, circle, dot } from "../../lib/draw.js";
+import { drawObject } from "../../lib/objects.js";
+import "../../lib/objects/index.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -14,6 +16,8 @@ export default function demo(api) {
   const { g, size } = fitCanvas(api, { parent: root });
   const C = { ink: api.color("--ink"), ink3: api.color("--ink-3"), acc: api.color("--accent"), note: api.color("--note"), line: api.color("--line") };
   const ACC = C.acc || ILLO.orange; // 장면의 강조색 하나
+  // 발사대(카탈로그 turret A, 위를 향해 그려짐): 높이 64. 비례(h=84 기준) — 돔 반지름 23, 포신 16~58
+  const TH = 64, TS = TH / 84, TIP = 58 * TS;
 
   const gun = { x: 0, y: 0, ang: -Math.PI / 4, recoil: 0, flash: 0, shake: 0 };
   const ptr = { x: 0, y: 0, has: false, down: false, downT: 0 };
@@ -43,7 +47,7 @@ export default function demo(api) {
     const a = aimAt(o, px, py);
     gun.ang = a;
     const sp = S.speed;
-    const tip = S.origin === "click" ? 0 : 40;
+    const tip = S.origin === "click" ? 0 : TIP;
     shots.push({ x: o.x + Math.cos(a) * tip, y: o.y + Math.sin(a) * tip, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, trail: [], life: 0 });
     count++; lastSpeed = sp; lastAng = a;
     if (S.recoil) { gun.recoil = 12; gun.flash = 1; gun.shake = 1; }
@@ -109,21 +113,19 @@ export default function demo(api) {
     g.clearRect(0, 0, size.w, size.h);
     g.save(); g.translate((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh);
 
-    // 표적: 외곽선 없는 톤 동심원 + 강조색 중심점
+    // 표적: 카탈로그 과녁 (판 반지름 30 → t.r, 판 가운데가 t.x, t.y 에 오도록)
     for (const t of targets) {
       if (t.dead) continue;
-      const s = Math.max(0.01, t.born);
+      const s = Math.max(0.01, t.born), ts = t.r / 30;
       g.save(); g.translate(t.x, t.y); g.scale(s, s);
-      circle(g, 0, 0, t.r, { fill: TONE[1] });
-      circle(g, 0, 0, t.r * 0.55, { fill: TONE[3] });
-      dot(g, 0, 0, 3.5, ACC);
+      drawObject(g, "target", -1 * ts, 50 * ts, 84 * ts, { color: TONE[4], accent: ACC, state: 0 });
       g.restore();
     }
 
     // 예상 궤적 (포대 모드에서 커서를 올려두면)
     if (S.origin !== "click" && ptr.has && !ptr.down) {
       const o = origin(); const a = Math.atan2(ptr.y - o.y, ptr.x - o.x);
-      let x = o.x + Math.cos(a) * 40, y = o.y + Math.sin(a) * 40, vx = Math.cos(a) * S.speed, vy = Math.sin(a) * S.speed;
+      let x = o.x + Math.cos(a) * TIP, y = o.y + Math.sin(a) * TIP, vx = Math.cos(a) * S.speed, vy = Math.sin(a) * S.speed;
       g.fillStyle = "rgba(0,0,0,.18)";
       for (let i = 0; i < 90; i++) {
         vy += grav; x += vx; y += vy;
@@ -142,17 +144,19 @@ export default function demo(api) {
     for (const p of sparks) { g.globalAlpha = p.life; dot(g, p.x, p.y, 2, ACC); }
     g.globalAlpha = 1;
 
-    // 포대: 외곽선 없는 톤 면 — 반원 받침 + 포신
+    // 포대: 카탈로그 발사대. 포신은 조준각으로 돌려 포신 부분만 남기고(반동만큼 뒤로), 돔 받침은 돔 높이까지만 남긴다
     if (S.origin !== "click") {
       const o = origin();
-      g.save(); g.translate(o.x, o.y); g.rotate(gun.ang);
-      roundRect(g, -gun.recoil, -7, 42, 14, 4, { fill: TONE[5] });
-      if (gun.flash > 0) { g.globalAlpha = gun.flash; circle(g, 46 - gun.recoil, 0, 2.5 + gun.flash * 3, { fill: ACC }); g.globalAlpha = 1; } // 포구 섬광: 작은 점 하나
-      g.restore();
       g.save(); g.translate(o.x, o.y);
+      g.save(); g.rotate(gun.ang + Math.PI / 2); g.translate(0, gun.recoil);
+      g.beginPath(); g.rect(-5.5 * TS, -60 * TS, 11 * TS, 44 * TS); g.clip();
+      drawObject(g, "turret", 0, 0, TH, { color: TONE[4] });
+      g.restore();
+      if (gun.flash > 0) { const tip = TIP + 2 - gun.recoil; g.globalAlpha = gun.flash; circle(g, Math.cos(gun.ang) * tip, Math.sin(gun.ang) * tip, 2.5 + gun.flash * 3, { fill: ACC }); g.globalAlpha = 1; } // 포구 섬광: 작은 점 하나
       const flat = S.origin === "bottom" ? 0 : -Math.PI / 4; // 왼쪽 아래 구석에서는 받침을 대각선으로 기울인다
-      g.rotate(flat);
-      g.beginPath(); g.arc(0, 0, 18, Math.PI, 0); g.lineTo(24, 10); g.lineTo(-24, 10); g.closePath(); g.fillStyle = TONE[4]; g.fill();
+      g.save(); g.rotate(flat); g.beginPath(); g.rect(-30 * TS, -20 * TS, 60 * TS, 21 * TS); g.clip();
+      drawObject(g, "turret", 0, 0, TH, { color: TONE[4] });
+      g.restore();
       g.restore();
     } else if (gun.flash > 0 && shots.length) {
       const s = shots[shots.length - 1];

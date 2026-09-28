@@ -1,5 +1,7 @@
 import { clamp, localPoint, fitCanvas } from "../../lib/util.js";
-import { ILLO, TONE, flag, shape, circle, dot } from "../../lib/draw.js";
+import { ILLO, TONE, shape, circle, dot } from "../../lib/draw.js";
+import { drawObject } from "../../lib/objects.js";
+import "../../lib/objects/index.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -61,9 +63,9 @@ export default function demo(api) {
       g.beginPath(); g.arc(f.x, f.y, 8 + age * 70, 0, Math.PI * 2); g.stroke();
       g.globalAlpha = alpha;
     }
-    // 깃발(키트): 강조색 실루엣 + 가는 깃대. 꽂히는 순간 솟아오르고, 잠깐 펄럭인다
+    // 깃발(카탈로그 flag): 꽂히는 순간 높이가 솟아오르고, state(물결 위상)를 시간으로 돌려 펄럭인다
     const rise = Math.min(1, age / 0.18);
-    flag(g, f.x, f.y, { h: Math.max(2, 40 * rise), color: C.acc || ILLO.orange, wave: Math.sin(age * 8) * Math.max(0, 1 - age / 2) });
+    drawObject(g, "flag", f.x, f.y, Math.max(2, 44 * rise), { color: C.acc || ILLO.orange, state: (age * 1.2) % 1, t: 0 });
     if (label) { g.fillStyle = C.ink; g.font = `700 13px ${FONT}`; g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(label, f.x + 8, f.y + 8); }
     g.globalAlpha = 1;
   };

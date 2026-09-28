@@ -1,39 +1,48 @@
 import { ILLO, TONE, LINE } from "../../lib/draw.js";
+import { objectDataURL } from "../../lib/objects.js";
+import "../../lib/objects/index.js";
 
-/* ---------- 재료 아이콘: 외곽선 없는 단색 실루엣 + 1.5px 가는 잉크 선만으로 그린 작은 SVG ----------
+/* ---------- 재료 아이콘 ----------
+   기본 재료 넷(물·불·흙·바람)과 몇몇 결과물은 사물 카탈로그(element-*, lightning)를 데이터 URL 이미지로 쓴다.
+   나머지 결과물은 외곽선 없는 단색 실루엣 + 1.5px 가는 잉크 선만으로 그린 작은 SVG 다.
    색은 톤이 기본이고, 물(파랑)·불(주황)처럼 꼭 필요한 곳에만 색 하나를 쓴다 */
 const NS = "http://www.w3.org/2000/svg";
+const OBJ = {
+  "물": ["element-water", { color: ILLO.blue }],
+  "불": ["element-fire", { color: ILLO.orange }],
+  "흙": ["element-earth", { color: TONE[4] }],
+  "바람": ["element-wind", { color: TONE[3] }],
+  "파도": ["element-water", { variant: "B", color: ILLO.blue }],
+  "용암": ["element-water", { variant: "A", color: ILLO.orange }],
+  "폭풍": ["element-wind", { variant: "A", color: TONE[4] }],
+  "돌": ["element-earth", { variant: "A", color: TONE[3] }],
+  "번개": ["lightning", { color: ILLO.orange }]
+};
+const objURL = {};
+const objIcon = name => {
+  if (!objURL[name]) { const [obj, o] = OBJ[name]; objURL[name] = objectDataURL(obj, 30, o, { w: 44, pad: 4 }); }
+  return `<img class="crafting-ico" src="${objURL[name]}" alt="" draggable="false">`;
+};
 const I = ILLO.ink, P = ILLO.paper;
 const at = (fill, o = {}) => Object.entries({ fill, ...o }).map(([k, v]) => `${k}="${v}"`).join(" ");
 const ln = (d, o = {}) => `<path d="${d}" ${at("none", { stroke: I, "stroke-width": LINE, "stroke-linejoin": "round", "stroke-linecap": "round", ...o })}/>`;
-const dropD = (x, y, s) => `M${x} ${y} Q${x + 9 * s} ${y - 10 * s} ${x} ${y - 20 * s} Q${x - 9 * s} ${y - 10 * s} ${x} ${y} Z`;
 const cloudD = "M9 22 A5 5 0 0 1 8 12 A6 6 0 0 1 19 9 A5 5 0 0 1 26 15 A4.5 4.5 0 0 1 24 22 Z";
-const swirl = () => ln("M6 12 Q16 5 24 11 T14 19 M8 21 Q16 16 22 21 T15 27");
 const ICONS = {
-  "물": `<path d="${dropD(16, 27, 1.1)}" ${at(ILLO.blue)}/>`,
-  "불": `<path d="M16 4 C22 11 26 14 26 20 A10 10 0 0 1 6 20 C6 15 10 13 11 9 C13 12 14 13 16 12 Z" ${at(ILLO.orange)}/>`,
-  "흙": `<path d="M4 27 Q8 12 16 12 Q24 12 28 27 Z" ${at(TONE[4])}/>`,
-  "바람": swirl(),
   "증기": `<path d="${cloudD}" ${at(TONE[1])}/>` + ln("M12 28 Q14 26 12 24 M20 28 Q22 26 20 24"),
   "진흙": `<path d="M4 27 Q8 12 16 12 Q24 12 28 27 Z" ${at(TONE[5])}/>` + ln("M10 22 H22", { stroke: P }),
-  "용암": `<path d="${dropD(16, 27, 1.1)}" ${at(ILLO.orange)}/>`,
   "먼지": `<circle cx="9" cy="20" r="4" ${at(TONE[3])}/><circle cx="22" cy="12" r="5" ${at(TONE[3])}/><circle cx="21" cy="24" r="3" ${at(TONE[3])}/>`,
   "연기": ln("M16 28 Q8 22 14 16 Q20 11 12 5") + ln("M24 26 Q18 21 22 16"),
-  "파도": `<path d="M3 20 Q9 12 16 20 T29 20 V28 H3 Z" ${at(ILLO.blue)}/>`,
-  "폭풍": ln("M16 5 A10 10 0 1 1 6 15 A6 6 0 1 1 16 11 A2.5 2.5 0 1 1 13 15"),
   "산": `<path d="M3 27 L13 8 L19 17 L23 12 L29 27 Z" ${at(TONE[4])}/>`,
   "구름": `<path d="${cloudD}" ${at(P)}/>` + ln(cloudD),
   "비": `<path d="M9 17 A5 5 0 0 1 8 8 A6 6 0 0 1 19 5 A4.5 4.5 0 0 1 26 10 A4 4 0 0 1 24 17 Z" ${at(TONE[2])}/>` + ln("M11 22 L9 27 M17 22 L15 27 M23 22 L21 27"),
-  "돌": `<path d="M8 10 L20 6 L28 14 L25 26 L11 27 L5 19 Z" ${at(TONE[3])}/>`,
   "벽돌": `<rect x="4" y="9" width="24" height="14" ${at(ILLO.orange)}/>` + ln("M16 9 V23", { stroke: P }),
   "새싹": ln("M16 29 Q17 20 16 12") + `<path d="M16 15 Q6 15 5 8 Q14 6 16 15 Z" ${at(TONE[4])}/><path d="M16 12 Q26 12 27 5 Q18 3 16 12 Z" ${at(TONE[4])}/>`,
   "모래": `<path d="M3 26 Q10 20 16 24 Q22 28 29 22 V29 H3 Z" ${at(TONE[2])}/><circle cx="10" cy="14" r="1.6" fill="${I}"/><circle cx="18" cy="11" r="1.6" fill="${I}"/><circle cx="23" cy="16" r="1.6" fill="${I}"/>`,
   "도자기": `<path d="M11 6 H21 V10 Q28 13 26 20 Q25 28 16 28 Q7 28 6 20 Q4 13 11 10 Z" ${at(TONE[1])}/>` + ln("M11 10 H21"),
   "나무": `<path d="M14 29 V20 H18 V29 Z" ${at(TONE[5])}/><circle cx="16" cy="13" r="10" ${at(TONE[4])}/>`,
-  "번개": `<path d="M18 3 L7 18 H15 L13 29 L25 13 H17 Z" ${at(ILLO.orange)}/>`,
   "실패": ln("M9 9 L23 23 M23 9 L9 23", { stroke: TONE[3] })
 };
-const iconOf = name => `<svg class="crafting-ico" viewBox="0 0 32 32" xmlns="${NS}">${ICONS[name] || `<circle cx="16" cy="16" r="10" ${at(TONE[2])}/>`}</svg>`;
+const iconOf = name => OBJ[name] ? objIcon(name) : `<svg class="crafting-ico" viewBox="0 0 32 32" xmlns="${NS}">${ICONS[name] || `<circle cx="16" cy="16" r="10" ${at(TONE[2])}/>`}</svg>`;
 
 export default function demo(api) {
   const { el, S } = api;
@@ -60,7 +69,7 @@ export default function demo(api) {
     .crafting-token { font: inherit; width: 64px; height: 64px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--board);
       color: var(--ink); font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
       cursor: pointer; padding: 0; line-height: 1; transition: transform .15s, border-color .2s, color .2s; }
-    .crafting-ico { width: 30px; height: 30px; display: block; overflow: visible; }
+    .crafting-ico { width: 30px; height: 30px; display: block; overflow: visible; object-fit: contain; pointer-events: none; }
     .crafting-root.narrow .crafting-ico { width: 26px; height: 26px; }
     .crafting-token:hover { transform: translateY(-2px); }
     .crafting-token:active { transform: scale(.94); }
