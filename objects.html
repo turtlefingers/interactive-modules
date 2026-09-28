@@ -34,7 +34,7 @@
 <body>
 <header>
   <h1>사물 그림 검사</h1>
-  <p>사물마다 마음에 드는 타입을 클릭한다. 선택은 이 브라우저에 저장되고 Claude가 읽어 간다. 메모 칸에 고칠 점을 적어도 된다.</p>
+  <p>사물마다 마음에 드는 타입을 클릭한다(다시 누르면 유지). 상태(자람·부풂·불붙음)는 천천히 오간다. 선택은 이 브라우저에 저장되고 Claude가 읽어 간다. 메모 칸에 고칠 점을 적어도 된다.</p>
   <span class="count" id="count"></span>
   <button class="export" id="export">선택 복사</button>
 </header>
@@ -71,7 +71,7 @@
           g.fillStyle = TONE[2]; g.fillRect(0, 118, W, 32);           // 땅
           g.fillStyle = TONE[3]; g.fillRect(0, 118, W, 1.5);          // 지평선
           g.save(); g.translate(W / 2, 118);
-          try { v.draw(g, 0, 0, def.height || 84, { t, state: 0, color: def.color || ILLO.green, accent: ILLO.orange }); } catch (e) { g.fillStyle = "#c00"; g.fillText(e.message, -100, -40); }
+          try { v.draw(g, 0, 0, def.height || 84, { t, state: (Math.sin(t * 0.9) + 1) / 2, color: def.color || ILLO.green, accent: ILLO.orange }); } catch (e) { g.fillStyle = "#c00"; g.fillText(e.message, -100, -40); }
           g.restore();
         });
         el.addEventListener("click", () => { picks[name] = el.dataset.k; save(); });
