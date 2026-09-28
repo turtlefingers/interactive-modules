@@ -108,6 +108,14 @@ export default function demo(api) {
   - Canvas: `drawPeep(g, opts, x, y, h, { rotate, squash, alpha })` — (x, y)는 발바닥 가운데, h는 높이. 준비되기 전에는 false를 돌려주므로 시작할 때 `preload()`를 부른다.
   - 사람 목록은 `PEOPLE`, 색은 `outfit(색)` 하나만(선은 항상 검정). 포즈는 `NAMES.standing`(걷기 `WalkingBW`/`WalkingWB`, 서기 `ShirtBW`, 가리키기 `PointingFingerBW`, 팔짱 `CrossedArmsBW`, 기대기 `EasingBW`, 쉬기 `RestingBW`), `NAMES.sitting`(`MediumBW`, `CrossedLegs`, `OneLegUpBW`, `Wheelchair`), `NAMES.bust`에서 고른다. 표정은 `NAMES.face`(Smile, Calm, Cheeky, EyesClosed, Tired, Awe, Fear, Serious …), 머리는 `NAMES.hair`.
   - 점프·웅크림은 `rotate`/`squash`와 y 이동으로, 잠은 표정 `EyesClosed`/`Tired`와 앉기 포즈로 표현한다.
+- **왜 세련되어 보이는가 (사물을 그릴 때 지킬 7가지)** — 기준 예: `pull-out`의 식물
+  1. 선은 장식이 아니라 구조다. 줄기·뿌리·끈처럼 "형태의 뼈대"에만 1.5px 검정 선을 쓰고, 덩어리에 테두리를 두르지 않는다.
+  2. 기호(아이콘)가 아니라 형태의 추상이다. 세모 지붕 집, 뾰족한 해, 별 모양 같은 "어린이 도상"을 쓰지 않고, 실물의 실루엣을 단순화한다.
+  3. 색은 두 개다. 톤 배경 + 색 하나. 상태 변화(잡힘, 뜨거움)에서만 잠깐 강조색이 더해진다. 채도 높은 원색 여러 개를 함께 쓰지 않는다.
+  4. 여백이 대부분이다. 화면을 채우지 않는다. 사물은 작게, 땅은 넓게.
+  5. 비대칭과 리듬. 완벽한 원·정삼각형·좌우 대칭을 피하고, 크기와 각도를 조금씩 다르게 둔다.
+  6. 배경은 탁한 톤(`TONE`)이다. 순백이나 밝은 원색 배경을 쓰지 않는다.
+  7. 하나의 지평선. 사물은 한 선 위에 놓여 구도의 질서를 만든다.
 - **동물과 사물**은 당분간 **외곽선 없는 톤 면 실루엣**으로만 그린다(`src/lib/draw.js`의 `shape`/`circle`/`ellipse` 등, `TONE` 색). 동물이 꼭 필요한 데모는 사람(Open Peeps)으로 바꾸는 쪽을 먼저 검토한다. Open Peeps와 같은 손그림 계열의 동물·사물 자산은 AI 생성으로 따로 만들 예정이며, 준비되면 이 항목을 갱신한다.
 - **풍경과 구조물**은 톤 면(`TONE`)으로만 그리고 외곽선을 두르지 않는다. 필요한 곳(풍선 끈, 줄기)에만 1.5px 가는 잉크 선(`src/lib/draw.js`의 `line/curve`)을 쓴다. 강조색은 장면에 하나만.
 - 3D 장면은 `keyboard-orbit`처럼 그린다: 납작한 면 채움, 가는 외곽선, 강조면 하나, 회색 격자 바닥.

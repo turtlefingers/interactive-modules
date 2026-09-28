@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사물 그림 검사 · 인터랙티브 모듈들</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root { --bg: #f4f2ee; --ink: #1b1b1a; --ink-2: #5d5b57; --ink-3: #9a9790; --line: #e4e0d8; --accent: #ff5a36; }
+  body { margin: 0; background: var(--bg); font-family: "Pretendard Variable", sans-serif; color: var(--ink); padding: 28px 32px 120px; }
+  header { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; position: sticky; top: 0; background: var(--bg); padding: 10px 0; z-index: 5; border-bottom: 1px solid var(--line); }
+  h1 { font-size: 18px; margin: 0; }
+  header p { margin: 0; font-size: 13px; color: var(--ink-2); flex: 1; }
+  .count { font-size: 13px; color: var(--ink-3); }
+  button.export { font: inherit; font-size: 13px; font-weight: 600; background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+  .group { margin-top: 34px; }
+  .group h2 { font-size: 13px; color: var(--ink-3); letter-spacing: .04em; margin: 0 0 10px; }
+  .obj { background: #fff; border-radius: 12px; padding: 14px 16px 12px; margin-bottom: 12px; }
+  .obj .head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .obj .head b { font-size: 15px; }
+  .obj .head small { font-size: 12px; color: var(--ink-3); }
+  .obj .head .picked { margin-left: auto; font-size: 12px; color: var(--accent); font-weight: 600; }
+  .vars { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .var { border: 2px solid transparent; border-radius: 10px; padding: 6px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .var:hover { background: #f8f6f1; }
+  .var.on { border-color: var(--accent); }
+  .var canvas { display: block; width: 100%; border-radius: 8px; background: #e9e4d8; }
+  .var .lbl { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); margin-top: 6px; padding: 0 2px; }
+  .var .lbl b { color: var(--ink); }
+  .note { margin-top: 8px; }
+  .note input { width: 100%; font: inherit; font-size: 13px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: #fff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>사물 그림 검사</h1>
+  <p>사물마다 마음에 드는 타입을 클릭한다. 선택은 이 브라우저에 저장되고 Claude가 읽어 간다. 메모 칸에 고칠 점을 적어도 된다.</p>
+  <span class="count" id="count"></span>
+  <button class="export" id="export">선택 복사</button>
+</header>
+<div id="root"></div>
+<script type="module">
+  import "./src/lib/objects/index.js";
+  import { OBJECTS } from "./src/lib/objects.js";
+  import { TONE, ILLO } from "./src/lib/draw.js";
+
+  const KEY = "object-picks", NKEY = "object-notes";
+  const load = k => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch (e) { return {}; } };
+  const picks = load(KEY), notes = load(NKEY);
+  const save = () => { localStorage.setItem(KEY, JSON.stringify(picks)); localStorage.setItem(NKEY, JSON.stringify(notes)); update(); };
+
+  const groups = {};
+  for (const [name, def] of Object.entries(OBJECTS)) (groups[def.group || "기타"] ||= []).push([name, def]);
+  const root = document.getElementById("root");
+  const anims = [];
+  for (const [gname, list] of Object.entries(groups)) {
+    const sec = document.createElement("section"); sec.className = "group";
+    sec.innerHTML = `<h2>${gname}</h2>`;
+    for (const [name, def] of list) {
+      const box = document.createElement("div"); box.className = "obj"; box.dataset.name = name;
+      box.innerHTML = `<div class="head"><b>${def.label}</b><small>${name} · ${(def.demos || []).join(", ")}</small><span class="picked"></span></div>
+        <div class="vars">${Object.entries(def.variants).map(([k, v]) => `<div class="var" data-k="${k}"><canvas></canvas><div class="lbl"><b>${k}</b><span>${v.label || ""}</span></div></div>`).join("")}</div>
+        <div class="note"><input placeholder="메모 (예: B인데 잎을 더 작게)" value="${(notes[name] || "").replace(/"/g, "&quot;")}"></div>`;
+      sec.appendChild(box);
+      box.querySelectorAll(".var").forEach(el => {
+        const cv = el.querySelector("canvas"), W = 230, H = 150, dpr = devicePixelRatio || 1;
+        cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext("2d"); g.scale(dpr, dpr);
+        const v = def.variants[el.dataset.k];
+        anims.push(t => {
+          g.clearRect(0, 0, W, H);
+          g.fillStyle = TONE[2]; g.fillRect(0, 118, W, 32);           // 땅
+          g.fillStyle = TONE[3]; g.fillRect(0, 118, W, 1.5);          // 지평선
+          g.save(); g.translate(W / 2, 118);
+          try { v.draw(g, 0, 0, def.height || 84, { t, state: 0, color: def.color || ILLO.green, accent: ILLO.orange }); } catch (e) { g.fillStyle = "#c00"; g.fillText(e.message, -100, -40); }
+          g.restore();
+        });
+        el.addEventListener("click", () => { picks[name] = el.dataset.k; save(); });
+      });
+      box.querySelector("input").addEventListener("input", e => { notes[name] = e.target.value; save(); });
+    }
+    root.appendChild(sec);
+  }
+  function update() {
+    document.querySelectorAll(".obj").forEach(box => {
+      const n = box.dataset.name, k = picks[n];
+      box.querySelectorAll(".var").forEach(el => el.classList.toggle("on", el.dataset.k === k));
+      box.querySelector(".picked").textContent = k ? `선택: ${k}` : "";
+    });
+    const total = Object.keys(OBJECTS).length, done = Object.keys(picks).filter(n => OBJECTS[n]).length;
+    document.getElementById("count").textContent = `${done} / ${total} 선택`;
+  }
+  update();
+  document.getElementById("export").addEventListener("click", () => {
+    const text = JSON.stringify({ picks, notes }, null, 2);
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => alert("복사됨"), () => prompt("복사", text));
+  });
+  window.__picks = () => ({ picks, notes });
+  let t0 = performance.now();
+  (function loop(now) { const t = (now - t0) / 1000; anims.forEach(f => f(t)); requestAnimationFrame(loop); })(t0);
+</script>
+</body>
+</html>
