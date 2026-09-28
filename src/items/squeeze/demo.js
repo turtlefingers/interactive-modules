@@ -1,5 +1,5 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { cloud as drawCloudShape, sprout as drawSprout } from "../../lib/draw.js";
+import { TONE, LINE, cloud as drawCloudShape, sprout as drawSprout } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -71,7 +71,8 @@ export default function demo(api) {
     const { sx, sy } = cloudScale();
     const wob = Math.sin(cloud.wob) * cloud.sq * 2;
     const k = 0.62 + cloud.water * 0.38;
-    drawCloudShape(g, cloud.x + wob, cloud.y, { w: R * 2.3 * k, squeeze: cloud.sq, lw: 3 });
+    // 구름: 종이색 실루엣 + 가는(1.5px) 윤곽 (draw.js cloud 기본값)
+    drawCloudShape(g, cloud.x + wob, cloud.y, { w: R * 2.3 * k, squeeze: cloud.sq });
     // 짜는 중이면 눌린 자국 선
     if (cloud.sq > 0.05) {
       g.strokeStyle = `rgba(27,27,26,${cloud.sq * 0.6})`; g.lineWidth = 1.5; g.lineCap = "round";
@@ -109,6 +110,8 @@ export default function demo(api) {
     if (!ptr.down) cloud.water = Math.min(1, cloud.water + s * 0.12);
 
     g.clearRect(0, 0, size.w, size.h);
+    // 땅: 톤 면 (외곽선 없음)
+    g.fillStyle = TONE[2]; g.fillRect(0, groundY, size.w, size.h - groundY);
 
     // 새싹 (고인 곳에서 자란다)
     g.strokeStyle = INK; g.lineWidth = 1.5; g.lineCap = "round";
@@ -118,7 +121,7 @@ export default function demo(api) {
       const grow = S.sprout && S.accumulate && S.liquid !== "sand" && wet > 2.5;
       sp.g = grow ? Math.min(1, sp.g + s * 0.25 * Math.min(1, wet / 8)) : Math.max(0, sp.g - s * 0.6);
       if (sp.g < 0.02) return;
-      drawSprout(g, sp.x, groundY, { growth: sp.g, size: 52, lw: 2.5 });
+      drawSprout(g, sp.x, groundY, { growth: sp.g, size: 52 });
     });
 
     // 고인 액체: 높이 차이만큼 옆으로 퍼진다 (끈적할수록 느리게)
@@ -138,8 +141,8 @@ export default function demo(api) {
     g.beginPath(); g.moveTo(0, groundY);
     for (let i = 0; i < nb; i++) g.lineTo(i * BIN, groundY - level[i]);
     g.lineTo(size.w, groundY); g.closePath(); g.fill();
-    // 바닥 선
-    g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(0, groundY); g.lineTo(size.w, groundY); g.stroke();
+    // 바닥 선: 가는 잉크 선
+    g.strokeStyle = INK; g.lineWidth = LINE; g.beginPath(); g.moveTo(0, groundY); g.lineTo(size.w, groundY); g.stroke();
 
     // 방울 만들기
     const sc = cloudScale(), cb = { bottom: cloud.y + R * 0.55 * sc.sy, half: R * 0.62 * sc.sx };

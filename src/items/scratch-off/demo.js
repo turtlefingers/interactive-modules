@@ -1,4 +1,5 @@
 import { clamp, localPoint, fitCanvas } from "../../lib/util.js";
+import { TONE } from "../../lib/draw.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -7,8 +8,8 @@ export default function demo(api) {
     .scratch-off-root { position: absolute; inset: 0; cursor: crosshair; background: var(--board);
       background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
       background-size: 100px 100px; }
-    .scratch-off-card { position: absolute; border-radius: 16px; overflow: hidden; background: var(--note);
-      border: 1px solid rgba(0,0,0,.14); display: flex; flex-direction: column; align-items: center; justify-content: center;
+    .scratch-off-card { position: absolute; border-radius: 16px; overflow: hidden; background: ${TONE[0]};
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
       text-align: center; gap: 10px; padding: 24px; }
     .scratch-off-card .scratch-off-small { font-size: 13px; color: var(--ink-2); position: relative; }
     .scratch-off-card .scratch-off-big { font-size: clamp(30px, 6.4vw, 58px); font-weight: 800; letter-spacing: -.045em;
@@ -47,25 +48,18 @@ export default function demo(api) {
     return c;
   };
 
-  // 덮개 그림 (은박 + 글씨 + 타일 선)
+  // 덮개 그림: 톤 면 하나 + 잉크 글씨 (타일 사이 선은 두르지 않는다)
   function buildArt() {
     art = makeCanvas(C.w, C.h);
     const a = art.getContext("2d");
     a.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
     a.save();
     a.beginPath(); a.roundRect(0, 0, C.w, C.h, 16); a.clip();
-    a.fillStyle = "#cbc5b9"; a.fillRect(0, 0, C.w, C.h);
+    a.fillStyle = TONE[2]; a.fillRect(0, 0, C.w, C.h);
     a.textAlign = "center"; a.textBaseline = "middle";
-    a.fillStyle = "#5d5b57";
+    a.fillStyle = TONE[5];
     a.font = `700 ${clamp(C.w / 14, 22, 36)}px Pretendard Variable, Pretendard, system-ui, sans-serif`;
     a.fillText("여기를 긁어보세요", C.w / 2, C.h / 2);
-    if (ts >= 6) {
-      a.strokeStyle = "rgba(0,0,0,.09)"; a.lineWidth = 1;
-      a.beginPath();
-      for (let x = ts; x < C.w; x += ts) { a.moveTo(x + 0.5, 0); a.lineTo(x + 0.5, C.h); }
-      for (let y = ts; y < C.h; y += ts) { a.moveTo(0, y + 0.5); a.lineTo(C.w, y + 0.5); }
-      a.stroke();
-    }
     a.restore();
   }
 
