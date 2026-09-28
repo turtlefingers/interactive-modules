@@ -1,19 +1,24 @@
 import { clamp, lerp, fitCanvas } from "../../lib/util.js";
 import { ILLO, TONE, LINE, line as inkLine, zz, dot, ellipse } from "../../lib/draw.js";
-import { drawHumaaan, preload, outfit } from "../../lib/figure.js";
+import { drawPeep, peepBox, preload, outfit } from "../../lib/figure.js";
 
 const STAGE_NAME = ["깨어 있음", "하품", "졸림", "잠", "화면보호기"];
 const SAVER_AFTER = 4; // 잠든 뒤 화면보호기까지(초)
 
-// 사람(Humaaans): 깨어 있을 땐 서 있고, 잠들면 앉은 자세 그림으로 바뀐다. 옷 색은 파랑 하나.
-const STAND = { head: "Short", torso: "TurtleNeck", bottom: "SkinnyJeans", colors: outfit(ILLO.blue) };
-const SIT = { head: "Short", torso: "Hoodie", bottom: "SweatPants", posture: "sitting", colors: outfit(ILLO.blue) };
+// 사람(Open Peeps): 깨어 있을 땐 서 있고(차분한 얼굴), 졸리면 피곤한 얼굴, 잠들면 눈 감은 앉은 자세 그림으로 바뀐다. 깜짝 깰 땐 놀란 얼굴. 채움 색은 파랑 하나.
+const STAND = { body: "ShirtBW", face: "Calm", hair: "Short", colors: outfit(ILLO.blue) };
+const DROWSY = { ...STAND, face: "Tired" };
+const STARTLE = { ...STAND, face: "Awe" };
+const SIT = { body: "MediumBW", face: "EyesClosed", hair: "Short", colors: outfit(ILLO.blue) };
+const ALL = [STAND, DROWSY, STARTLE, SIT];
+// 앉은 그림의 키: 서 있는 그림과 같은 축척이 되도록 경계 상자 비율로 맞춘다
+const sitScale = () => peepBox(SIT).h / peepBox(STAND).h;
 
 export default function demo(api) {
   const { el, S } = api;
   const { g, size } = fitCanvas(api);
   el.style.cursor = "default";
-  preload([STAND, SIT]);
+  preload(ALL);
   const FF = getComputedStyle(el).fontFamily || "sans-serif";
   const C = { board: api.color("--board"), note: api.color("--note"), ink: api.color("--ink"), ink3: api.color("--ink-3"), accent: api.color("--accent") };
 
@@ -84,9 +89,10 @@ export default function demo(api) {
 
     // 발밑 그림자 (톤)
     ellipse(g, cx, gy + 2, H * .2 * (1 + asleep * .5), H * .025, { fill: TONE[1] });
-    // 서 있는 그림 ↔ 앉아서 잠든 그림 (같은 사람, 교차 페이드)
-    if (asleep < .995) drawHumaaan(g, STAND, cx, gy + jump, H, { alpha: 1 - asleep, rotate: tilt, squash: -(breath + stretch) });
-    if (asleep > .005) drawHumaaan(g, SIT, cx, gy, H * 400 / 480, { alpha: asleep, rotate: slump + tilt, squash: -breath });
+    // 서 있는 그림 ↔ 앉아서 잠든 그림 (같은 사람, 교차 페이드). 서 있을 땐 표정만 바꾼다: 깜짝 > 졸림 > 차분
+    const awake = ks >= 0 && ks < 1.5 ? STARTLE : st === 1 || st === 2 ? DROWSY : STAND;
+    if (asleep < .995) drawPeep(g, awake, cx, gy + jump, H, { alpha: 1 - asleep, rotate: tilt, squash: -(breath + stretch) });
+    if (asleep > .005) drawPeep(g, SIT, cx, gy, H * sitScale(), { alpha: asleep, rotate: slump + tilt, squash: -breath });
 
     // 느낌표 (가는 잉크 선 하나 + 점)
     if (t - startleT < 900) {

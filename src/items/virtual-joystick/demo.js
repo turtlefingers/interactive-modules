@@ -1,11 +1,11 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
 import { ILLO, TONE } from "../../lib/draw.js";
-import { drawHumaaan, preload, outfit } from "../../lib/figure.js";
+import { drawPeep, preload, outfit } from "../../lib/figure.js";
 
-// 사람(Humaaans): 서기 / 걷기 / 달리기(Sprint) 자세. 왼쪽으로 갈 땐 flip.
-const STAND = { head: "Short", torso: "TurtleNeck", bottom: "SkinnyJeans", colors: outfit(ILLO.blue) };
-const WALK = { ...STAND, bottom: "SkinnyJeansWalk" };
-const RUN = { ...STAND, bottom: "Sprint" };
+// 사람(Open Peeps): 서기(ShirtBW) / 걷기(WalkingBW) / 달리기(WalkingFilled, 세기 0.5 초과) 자세. 기본 그림은 오른쪽을 보므로 왼쪽으로 갈 땐 flip.
+const STAND = { body: "ShirtBW", face: "Calm", hair: "Short", colors: outfit(ILLO.blue) };
+const WALK = { ...STAND, body: "WalkingBW" };
+const RUN = { ...STAND, body: "WalkingFilled" };
 const both = o => ({ R: o, L: { ...o, flip: true } });
 const FIG = { stand: both(STAND), walk: both(WALK), run: both(RUN) };
 
@@ -93,7 +93,7 @@ export default function demo(api) {
     const moving = sp > 0.03;
     const fig = moving && o.mag > 0.5 ? FIG.run : moving ? FIG.walk : FIG.stand;
     const flip = Math.cos(hero.face) < 0;
-    drawHumaaan(g, flip ? fig.L : fig.R, hero.x, hero.y + HERO_H / 2 - bob, HERO_H, { rotate: (flip ? -1 : 1) * sp * 0.06 });
+    drawPeep(g, flip ? fig.L : fig.R, hero.x, hero.y + HERO_H / 2 - bob, HERO_H, { rotate: (flip ? -1 : 1) * sp * 0.06 });
   }
   function drawJoystick(o) {
     if (joy.vis < 0.01) return;

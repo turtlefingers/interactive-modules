@@ -1,6 +1,6 @@
 import { clamp, dist, localPoint } from "../../lib/util.js";
 import { ILLO, TONE } from "../../lib/draw.js";
-import { humaaanSVG, outfit } from "../../lib/figure.js";
+import { peepSVG, peepBox, outfit } from "../../lib/figure.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -45,27 +45,32 @@ export default function demo(api) {
   const gridEl = document.createElement("div"); gridEl.className = "drag-and-drop-gridlines"; root.appendChild(gridEl);
   const tray = document.createElement("div"); tray.className = "drag-and-drop-tray"; tray.innerHTML = "<span>파츠</span>"; root.appendChild(tray);
 
-  /* ---------- 캐릭터: Humaaans 사람 (서 있음). 260×340 상자 안에 세로 맞춤으로 들어간다 ---------- */
+  /* ---------- 캐릭터: Open Peeps 사람 (서 있음). 경계 상자를 재서 높이 340(배율 1 기준) 상자에 세로 맞춤으로 넣는다 ---------- */
   const INK = ILLO.ink;
+  const FIG = { body: "ShirtBW", face: "Calm", hair: "Short", colors: outfit(ILLO.blue) };
+  const BOX = peepBox(FIG);                 // peepInner 좌표계 {x, y, w, h}
+  const CH = 340, U = CH / BOX.h, CW = BOX.w * U;   // U: 그림 단위 → 배율 1 px
   const charEl = document.createElement("div");
   charEl.className = "drag-and-drop-char";
-  charEl.innerHTML = humaaanSVG({ head: "Short", torso: "TurtleNeck", bottom: "SkinnyJeans", colors: outfit(ILLO.blue) });
+  charEl.innerHTML = peepSVG(FIG);
   root.appendChild(charEl);
 
   /* ---------- 파츠: 외곽선 없는 납작한 실루엣. 안경테만 1.5px 가는 선 ----------
-     자리(slot)는 260×340 캐릭터 상자 기준 좌표: 머리 위, 얼굴, 목, 손. 스티커는 아무 데나 */
+     자리(slot)는 peepInner 좌표(머리 그룹 translate(225 0), 짧은 머리의 머리통 x 270~665 · y 110~585, 얼굴 translate(384 186))로 적고
+     캐릭터 상자(CW×CH) 기준 px로 바꿔 둔다: 머리 위, 눈, 목, 손. 스티커는 아무 데나 */
+  const at = (ix, iy) => [(ix - BOX.x) * U, (iy - BOX.y) * U];
   const THIN = `fill="none" stroke="${INK}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"`;
   const starPath = (cx, cy, r) => Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; return `${i ? "L" : "M"}${(cx + Math.cos(a) * rr).toFixed(1)} ${(cy + Math.sin(a) * rr).toFixed(1)}`; }).join(" ") + " Z";
   const PARTS = [
-    { id: "hat", name: "모자", w: 110, h: 70, slot: [132, 34],
+    { id: "hat", name: "모자", w: 66, h: 42, slot: at(467, 110),
       svg: `<svg viewBox="0 0 110 70"><path d="M14 54 C14 14 96 14 96 54 Z" fill="${ILLO.blue}"/><rect x="6" y="48" width="98" height="16" rx="8" fill="${ILLO.blue}"/><circle cx="55" cy="14" r="7" fill="${ILLO.blue}"/></svg>` },
-    { id: "glasses", name: "안경", w: 110, h: 44, slot: [138, 76],
+    { id: "glasses", name: "안경", w: 52, h: 21, slot: at(484, 305),
       svg: `<svg viewBox="0 0 110 44"><circle cx="30" cy="24" r="16" ${THIN}/><circle cx="80" cy="24" r="16" ${THIN}/><path d="M46 22 Q55 15 64 22" ${THIN}/><path d="M14 20 L4 14 M96 20 L106 14" ${THIN}/></svg>` },
-    { id: "scarf", name: "목도리", w: 100, h: 74, slot: [130, 128],
+    { id: "scarf", name: "목도리", w: 62, h: 46, slot: at(460, 620),
       svg: `<svg viewBox="0 0 100 74"><path d="M12 12 Q50 34 88 12 L90 30 Q50 52 10 30 Z" fill="${TONE[4]}"/><path d="M58 32 L76 30 L80 70 L62 72 Z" fill="${TONE[4]}"/></svg>` },
-    { id: "bag", name: "가방", w: 70, h: 96, slot: [62, 236],
+    { id: "bag", name: "가방", w: 50, h: 68, slot: at(-140, 1780),
       svg: `<svg viewBox="0 0 70 96"><path d="M22 34 C22 6 48 6 48 34" fill="none" stroke="${TONE[5]}" stroke-width="5" stroke-linecap="round"/><path d="M8 34 H62 L58 92 H12 Z" fill="${TONE[5]}"/></svg>` },
-    { id: "sticker", name: "스티커", w: 64, h: 64, slot: null,
+    { id: "sticker", name: "스티커", w: 50, h: 50, slot: null,
       svg: `<svg viewBox="0 0 64 64"><path d="${starPath(32, 32, 28)}" fill="${ILLO.blue}"/></svg>` }
   ];
   const slotCount = PARTS.filter(p => p.slot).length;
@@ -85,24 +90,24 @@ export default function demo(api) {
 
   /* ---------- 배치 ---------- */
   const L = { s: 1, cx: 0, cy: 0, cells: [] };
-  const slotPos = d => ({ x: L.cx + (d.slot[0] - 130) * L.s, y: L.cy + (d.slot[1] - 170) * L.s });
+  const slotPos = d => ({ x: L.cx + (d.slot[0] - CW / 2) * L.s, y: L.cy + (d.slot[1] - CH / 2) * L.s });
   const put = (p, x, y) => { p.x = x; p.y = y; p.node.style.transform = `translate(${x - p.d.w * L.s / 2}px, ${y - p.d.h * L.s / 2}px)`; };
   const layout = () => {
     const w = el.clientWidth, h = el.clientHeight;
     let tr;
     if (w >= 640) {
-      L.s = clamp(Math.min(h * 0.68 / 340, w * 0.4 / 260), 0.5, 1.5);
+      L.s = clamp(Math.min(h * 0.68 / CH, w * 0.4 / CW), 0.5, 1.5);
       L.cx = w * 0.33; L.cy = h * 0.54;
       tr = { x: w * 0.6, y: h * 0.16, w: w * 0.35, h: h * 0.72 };
       L.cells = [0, 1, 2, 3, 4, 5].map(k => ({ x: tr.x + tr.w * (k % 2 ? 0.72 : 0.28), y: tr.y + tr.h * (0.2 + Math.floor(k / 2) * 0.3) }));
     } else {
-      L.s = clamp(Math.min(h * 0.46 / 340, w * 0.62 / 260), 0.4, 1.2);
+      L.s = clamp(Math.min(h * 0.46 / CH, w * 0.62 / CW), 0.4, 1.2);
       L.cx = w * 0.5; L.cy = h * 0.37;
       tr = { x: w * 0.04, y: h * 0.68, w: w * 0.92, h: h * 0.29 };
       L.cells = [0, 1, 2, 3, 4, 5].map(k => ({ x: tr.x + tr.w * (0.18 + (k % 3) * 0.32), y: tr.y + tr.h * (Math.floor(k / 3) ? 0.72 : 0.34) }));
     }
     Object.assign(tray.style, { left: tr.x + "px", top: tr.y + "px", width: tr.w + "px", height: tr.h + "px" });
-    Object.assign(charEl.style, { width: 260 * L.s + "px", height: 340 * L.s + "px", transform: `translate(${L.cx - 130 * L.s}px, ${L.cy - 170 * L.s}px)` });
+    Object.assign(charEl.style, { width: CW * L.s + "px", height: CH * L.s + "px", transform: `translate(${L.cx - CW / 2 * L.s}px, ${L.cy - CH / 2 * L.s}px)` });
     parts.forEach(p => {
       const pw = p.d.w * L.s, ph = p.d.h * L.s;
       p.node.style.width = pw + "px"; p.node.style.height = ph + "px";

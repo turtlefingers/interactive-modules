@@ -1,20 +1,20 @@
 import { clamp, dist } from "../../lib/util.js";
 import { ILLO, TONE } from "../../lib/draw.js";
-import { humaaanInner, outfit } from "../../lib/figure.js";
+import { peepSVG, outfit } from "../../lib/figure.js";
 
 const HEART = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 // 하트는 외곽선 없는 실루엣. 깨진 하트는 같은 실루엣에 종이색 가는 금 하나
 const heartSVG = fill => `<svg viewBox="0 0 24 24"><path d="${HEART}" fill="${fill}"/></svg>`;
 const brokenSVG = `<svg viewBox="0 0 24 24"><path d="${HEART}" fill="${ILLO.red}"/><path d="M12 4.6 10.2 8.6l2.8 2.4-2.2 3.6 1.6 3.2" fill="none" stroke="${ILLO.paper}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
-// 사진: 톤 면으로만 만든 언덕 세 겹과 그 앞에 선 사람 하나 (강조색은 사람의 옷 하나)
-const PHOTO = `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+// 사진: 톤 면으로만 만든 언덕 세 겹과 그 앞에 선 사람 하나 (강조색은 사람의 옷 하나).
+// 사람은 경계 상자에 맞춘 peepSVG를 안쪽 <svg>로 넣는다: 세로가 길어 높이에 맞고, 상자 바닥(y 96)이 앞 언덕에 닿는다
+const photoSVG = () => `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
   <rect x="-5" y="-5" width="110" height="110" fill="${ILLO.paper}"/>
   <path d="M-5 62 Q20 44 45 58 T105 52 V105 H-5 Z" fill="${TONE[1]}"/>
   <path d="M-5 78 Q30 62 58 76 T105 70 V105 H-5 Z" fill="${TONE[2]}"/>
   <path d="M-5 92 Q35 84 70 92 T105 88 V105 H-5 Z" fill="${TONE[3]}"/>
-  <svg x="44" y="38" width="46" height="58" viewBox="0 0 380 480">${
-    humaaanInner({ head: "Curly", torso: "LongSleeve", bottom: "SkinnyJeans", colors: outfit(ILLO.orange), flip: true })
-  }</svg>
+  ${peepSVG({ body: "WalkingBW", face: "Smile", hair: "ShortCurly", colors: outfit(ILLO.orange), flip: true })
+    .replace("<svg ", '<svg x="46" y="36" width="40" height="60" ')}
 </svg>`;
 
 export default function demo(api) {
@@ -52,7 +52,7 @@ export default function demo(api) {
   card.className = "dtl-card";
   card.innerHTML = `
     <div class="dtl-head"><div class="dtl-ava"></div><span>paper.studio</span><span class="more">···</span></div>
-    <div class="dtl-photo">${PHOTO}</div>
+    <div class="dtl-photo">${photoSVG()}</div>
     <div class="dtl-actions">
       <button class="dtl-btn dtl-like" title="좋아요"><svg viewBox="0 0 24 24"><path d="${HEART}"/></svg></button>
       <button class="dtl-btn dtl-ico" title="댓글"><svg viewBox="0 0 24 24"><path d="M20.5 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.6-4.7A8.5 8.5 0 1 1 20.5 11.5z"/></svg></button>
@@ -126,7 +126,7 @@ export default function demo(api) {
       const bit = document.createElement("div");
       bit.className = "dtl-bit";
       bit.style.cssText = `width:${s}px;height:${s}px;left:${x - s / 2}px;top:${y - s / 2}px`;
-      bit.innerHTML = heartSVG(i % 3 ? ILLO.red : ILLO.pink);
+      bit.innerHTML = heartSVG(ILLO.red);
       photo.appendChild(bit);
       const dx = Math.cos(ang) * d, dy = Math.sin(ang) * d;
       const rot = (Math.random() - .5) * 90;

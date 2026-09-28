@@ -1,12 +1,12 @@
 import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
 import { TONE, LINE, line as inkLine } from "../../lib/draw.js";
-import { drawHumaaan, preload, PEOPLE } from "../../lib/figure.js";
+import { drawPeep, peepRatio, preload, PEOPLE } from "../../lib/figure.js";
 
 const A0 = 1.5;         // 기준 비율
 const BAR = 28;         // 제목 줄 높이
 const HINT = { handle: "창 모서리를 끌기", window: "브라우저 창 크기를 바꿔 보기" };
-// 사람 셋(Humaaans): 옷은 서로 다르되 색은 파랑·주황 둘, 나머지는 톤
-const FIGS = [PEOPLE[0], PEOPLE[1], { ...PEOPLE[3], bottom: "SkinnyJeans" }];
+// 사람 셋(Open Peeps): 자세와 채움 색이 서로 다르다(파랑·주황·초록). 쌓이는 장면이라 모두 똑바로 선 자세
+const FIGS = [{ ...PEOPLE[0], body: "ShirtBW" }, PEOPLE[1], { ...PEOPLE[2], body: "CrossedArmsBW" }];
 
 export default function demo(api) {
   const { el, S } = api;
@@ -115,14 +115,18 @@ export default function demo(api) {
   let Rs = null;
   const chars = sizes.map(k => ({ k, d: 1, v: 0, x: null, y: null }));
   const KH = 2.2;                                            // 키 = R × k × KH
-  const sqOf = d => clamp(1 - d, -.35, .45);                 // 세로 배율 → drawHumaaan squash (눌림 +, 늘어남 −)
+  const sqOf = d => clamp(1 - d, -.35, .45);                 // 세로 배율 → drawPeep squash (눌림 +, 늘어남 −)
   const heightOf = (R, c) => R * c.k * KH * (1 - sqOf(c.d)); // 실제로 그려지는 키
+  const widthOf = (R, c, i) => R * c.k * KH * peepRatio(FIGS[i]); // 그려지는 폭 (경계 상자 비율)
 
   function slots(cw, ch, r) {
     const a = cw / ch;
     const n = chars.length;
     if (!S.layout || a >= 1.25) return chars.map((c, i) => ({ x: cw * (i + 1) / (n + 1), stack: -1 }));
-    if (a >= .8) return [{ x: cw * .5 - r * 1.2, stack: -1 }, { x: cw * .5, stack: "pyr" }, { x: cw * .5 + r * 1.2, stack: -1 }];
+    if (a >= .8) {
+      const gap = Math.max(r * 1.2, widthOf(r, chars[1], 1) * .55 + Math.max(widthOf(r, chars[0], 0), widthOf(r, chars[2], 2)) * .45);
+      return [{ x: cw * .5 - gap, stack: -1 }, { x: cw * .5, stack: "pyr" }, { x: cw * .5 + gap, stack: -1 }];
+    }
     return chars.map((c, i) => ({ x: cw * .5, stack: i }));
   }
 
@@ -173,7 +177,7 @@ export default function demo(api) {
       }
       if (c.x === null) { c.x = tx; c.y = ty; }
       c.x = lerp(c.x, tx, .14); c.y = lerp(c.y, ty, .14);
-      drawHumaaan(g, FIGS[i], c.x, c.y, H, { squash });
+      drawPeep(g, FIGS[i], c.x, c.y, H, { squash });
     });
     g.restore();
 

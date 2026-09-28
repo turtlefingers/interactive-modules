@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>사람 · 동물 런타임 확인 · 인터랙티브 모듈들</title>
+<title>사람 그림 런타임 확인 · 인터랙티브 모듈들</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   body { margin: 0; background: #f4f2ee; font-family: "Pretendard Variable", sans-serif; color: #1b1b1a; padding: 28px; }
@@ -44,23 +44,6 @@
     drawPeep(g, sit, 1000, 262, 160);
     drawPeep(g, wheel, 1130, 262, 170);
     drawPeep(g, bust, 1240, 262, 120);
-    requestAnimationFrame(loop);
-  })();
-</script>
-<h2>Canvas: drawDoodle() — OpenMoji 선 아이콘 (동물 · 자연 · 사물, 잉크 · 강조색 · 뒤집기 · 회전)</h2>
-<canvas id="dd" width="1300" height="230"></canvas>
-<script type="module">
-  import { drawDoodle } from "./src/lib/doodle.js";
-  import { ILLO, TONE } from "./src/lib/draw.js";
-  const cv = document.getElementById("dd"), g = cv.getContext("2d"), dpr = devicePixelRatio || 1;
-  cv.width = 1300 * dpr; cv.height = 230 * dpr; cv.style.width = "1300px"; cv.style.height = "230px"; g.scale(dpr, dpr);
-  const row1 = ["cat", "bird", "dove", "fish", "bee", "ladybug", "rabbit", "dog", "owl", "butterfly", "snail", "duck"];
-  const row2 = ["cloud", "sun", "moon", "seedling", "tree", "flower", "mountain", "balloon", "cup", "house", "bulb", "box", "book", "flag", "target", "heart", "dice", "magnet", "pizza", "carrot"];
-  let t = 0;
-  (function loop() {
-    t += 0.03; g.clearRect(0, 0, 1300, 230);
-    row1.forEach((n, i) => drawDoodle(g, n, 60 + i * 105, 105, 84, { color: i % 4 === 1 ? ILLO.orange : ILLO.ink, flip: i % 2 === 1, angle: n === "bird" ? Math.sin(t) * 0.2 : 0 }));
-    row2.forEach((n, i) => drawDoodle(g, n, 40 + i * 64, 215, 54, { color: i % 5 === 2 ? ILLO.blue : ILLO.ink, lw: 2.4 }));
     requestAnimationFrame(loop);
   })();
 </script>

@@ -1,10 +1,10 @@
 import { clamp, mod, rng, fitCanvas } from "../../lib/util.js";
 import { ILLO, TONE } from "../../lib/draw.js";
-import { drawHumaaan, preload, outfit } from "../../lib/figure.js";
+import { drawPeep, preload, outfit } from "../../lib/figure.js";
 
-// 사람(Humaaans)은 옆모습이라, 위에서 본 장면이어도 옆에서 본 사람을 가로 방향으로만 뒤집어 쓴다.
-const STAND = { head: "Curly", torso: "Hoodie", bottom: "SkinnyJeans", colors: outfit(ILLO.orange) };
-const WALK = { ...STAND, bottom: "SkinnyJeansWalk" };
+// 사람(Open Peeps)은 옆모습이라, 위에서 본 장면이어도 옆에서 본 사람을 가로 방향으로만 뒤집어 쓴다. 채움은 장면의 강조색(주황) 하나.
+const STAND = { body: "ShirtBW", face: "Calm", hair: "ShortCurly", colors: outfit(ILLO.orange) };
+const WALK = { ...STAND, body: "WalkingBW" };
 const FIG = { stand: { R: STAND, L: { ...STAND, flip: true } }, walk: { R: WALK, L: { ...WALK, flip: true } } };
 
 export default function demo(api) {
@@ -112,7 +112,7 @@ export default function demo(api) {
   const drawChar = (x, y, moving) => {
     const step = moving ? Math.abs(Math.sin(P.walk)) : 0;
     const fig = moving ? FIG.walk : FIG.stand;
-    drawHumaaan(g, P.hface < 0 ? fig.L : fig.R, x, y - step * 3, CH, { squash: step * 0.04 + P.bump * 0.18 });
+    drawPeep(g, P.hface < 0 ? fig.L : fig.R, x, y - step * 3, CH, { squash: step * 0.04 + P.bump * 0.18 });
   };
 
   api.frame(dt => {

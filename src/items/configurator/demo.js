@@ -1,31 +1,31 @@
 import { ILLO, TONE } from "../../lib/draw.js";
-import { humaaanSVG, humaaanInner, outfit } from "../../lib/figure.js";
+import { peepSVG, peepInner, outfit } from "../../lib/figure.js";
 
 export default function demo(api) {
   const { el, S } = api;
   const BASE = 12000;
 
-  /* ---------- 옵션: Humaaans 부품을 고른다 (사람은 직접 그리지 않는다) ----------
-     머리 · 상의 · 하의는 부품 이름, 옷 색은 outfit()으로 만든 색 세트, 자세는 서기/앉기.
-     앉은 자세에는 하의 부품이 넷뿐이라 서 있는 하의마다 대응하는 앉은 하의를 둔다. */
+  /* ---------- 옵션: Open Peeps 부품을 고른다 (사람은 직접 그리지 않는다) ----------
+     자세는 서 있는 몸(body) 이름, 표정 · 머리 · 안경은 머리 부품 이름, 옷 색은 outfit()으로 만든 한 색.
+     view는 썸네일 viewBox(peepInner 좌표계: 머리 그룹은 translate(225 0), 머리통은 대략 x 270~665 · y 110~585). */
   const GROUPS = [
-    { key: "head", name: "머리", view: "100 10 180 160", options: [
-      { name: "짧은 머리", part: "Short", price: 0 }, { name: "포니테일", part: "Pony", price: 0 }, { name: "곱슬", part: "Curly", price: 1000 },
-      { name: "아프로", part: "Afro", price: 1000 }, { name: "히잡", part: "Hijab", price: 0 }, { name: "수염", part: "ShortBeard", price: 1500 }] },
-    { key: "torso", name: "상의", view: "40 95 300 270", options: [
-      { name: "터틀넥", part: "TurtleNeck", price: 0 }, { name: "후드", part: "Hoodie", price: 3000 }, { name: "재킷", part: "Jacket", price: 4000 },
-      { name: "긴팔", part: "LongSleeve", price: 0 }, { name: "트렌치코트", part: "TrenchCoat", price: 8000 }, { name: "가운", part: "LabCoat", price: 5000 }] },
-    { key: "bottom", name: "하의", view: "20 200 340 280", options: [
-      { name: "스키니진", part: "SkinnyJeans", sit: "SkinnyJeans", price: 0 }, { name: "치마", part: "Skirt", sit: "SkinnyJeans", price: 2000 },
-      { name: "반바지", part: "Shorts", sit: "SkinnyJeans", price: 1500 }, { name: "통바지", part: "BaggyPants", sit: "BaggyPants", price: 2500 },
-      { name: "조깅복", part: "Jogging", sit: "SweatPants", price: 2000 }, { name: "트레이닝", part: "SweatPants", sit: "SweatPants", price: 1000 }] },
+    { key: "body", name: "자세", type: "body", options: [
+      { name: "서기", part: "ShirtBW", price: 0 }, { name: "걷기", part: "WalkingBW", price: 1000 }, { name: "가리키기", part: "PointingFingerBW", price: 1500 },
+      { name: "팔짱", part: "CrossedArmsBW", price: 1000 }, { name: "기대기", part: "EasingBW", price: 2000 }, { name: "쉬기", part: "RestingBW", price: 2000 }] },
+    { key: "face", name: "표정", view: "330 130 400 400", options: [
+      { name: "미소", part: "Smile", price: 0 }, { name: "차분", part: "Calm", price: 0 }, { name: "장난", part: "Cheeky", price: 1000 },
+      { name: "활짝", part: "SmileBig", price: 1000 }, { name: "진지", part: "Serious", price: 0 }, { name: "눈감음", part: "EyesClosed", price: 500 }] },
+    { key: "hair", name: "머리", view: "215 -40 660 700", options: [
+      { name: "짧은 머리", part: "Short", price: 0 }, { name: "웨이브", part: "ShortWavy", price: 1000 }, { name: "번", part: "Bun", price: 1000 },
+      { name: "긴 머리", part: "Long", price: 1500 }, { name: "아프로", part: "Afro", price: 1500 }, { name: "터번", part: "Turban", price: 2000 }] },
+    { key: "accessory", name: "안경", view: "260 120 460 400", options: [
+      { name: "없음", part: "None", price: 0 }, { name: "동그란", part: "GlassRound", price: 2000 },
+      { name: "보잉", part: "GlassAviator", price: 3000 }, { name: "선글라스", part: "SunglassWayfarer", price: 4000 }] },
     { key: "color", name: "옷 색", type: "color", options: [
       { name: "파랑", c: ILLO.blue, price: 0 }, { name: "주황", c: ILLO.orange, price: 0 },
-      { name: "초록", c: ILLO.green, price: 0 }, { name: "라일락", c: ILLO.lilac, price: 1000 }] },
-    { key: "posture", name: "자세", type: "posture", view: "0 0 380 480", options: [
-      { name: "서기", posture: "standing", price: 0 }, { name: "앉기", posture: "sitting", price: 2000 }] }
+      { name: "초록", c: ILLO.green, price: 0 }, { name: "라일락", c: ILLO.lilac, price: 1000 }] }
   ];
-  const sel = { head: 0, torso: 0, bottom: 0, color: 0, posture: 0 };
+  const sel = { body: 0, face: 0, hair: 0, accessory: 0, color: 0 };
   const won = n => n.toLocaleString("ko-KR") + "원";
   const G = key => GROUPS.find(g => g.key === key);
   const cur = key => G(key).options[sel[key]];
@@ -33,19 +33,16 @@ export default function demo(api) {
   const COMBOS = GROUPS.reduce((m, gr) => m * gr.options.length, 1);
 
   /** 지금 조합으로 만든 사람 옵션 */
-  const figOpts = () => {
-    const posture = cur("posture").posture;
-    const b = cur("bottom");
-    return { head: cur("head").part, torso: cur("torso").part, bottom: posture === "sitting" ? b.sit : b.part, posture, colors: outfit(cur("color").c) };
-  };
-  /* 썸네일: 그 부위만 조립 좌표 그대로 그리고 viewBox로 잘라 본다. 색은 톤으로 두어 강조색은 결과물에만 쓴다 */
+  const figOpts = () => ({
+    body: cur("body").part, face: cur("face").part, hair: cur("hair").part, accessory: cur("accessory").part, colors: outfit(cur("color").c)
+  });
+  /* 썸네일: 자세는 몸만 경계 상자에 맞춘 SVG로, 머리 부품은 몸 없이(body: "none") 조립 좌표 그대로 그리고 머리 둘레를 viewBox로 잘라 본다.
+     색은 톤으로 두어 강조색은 결과물에만 쓴다. 표정·안경 썸네일에는 머리통을 그려 주는 짧은 머리를 깔아 둔다 */
   const THUMB = outfit(TONE[3]);
-  const NONE = "-";
   const thumb = (gr, o) => {
-    if (gr.type === "posture") return `<svg viewBox="${gr.view}">${humaaanInner({ head: "Short", torso: "TurtleNeck", bottom: "SkinnyJeans", posture: o.posture, colors: THUMB })}</svg>`;
-    const opts = { head: NONE, torso: NONE, bottom: NONE, colors: THUMB };
-    opts[gr.key] = o.part;
-    return `<svg viewBox="${gr.view}">${humaaanInner(opts)}</svg>`;
+    if (gr.type === "body") return peepSVG({ body: o.part, face: "none", hair: "none", colors: THUMB });
+    const opts = { body: "none", face: gr.key === "face" ? o.part : "Calm", hair: gr.key === "hair" ? o.part : "Short", accessory: gr.key === "accessory" ? o.part : "None", colors: THUMB };
+    return `<svg viewBox="${gr.view}">${peepInner(opts)}</svg>`;
   };
 
   api.css(`
@@ -127,7 +124,7 @@ export default function demo(api) {
     if (key === lastKey) return;
     lastKey = key;
     const [front, back] = layers;
-    back.innerHTML = humaaanSVG(figOpts());
+    back.innerHTML = peepSVG(figOpts());
     back.classList.add("on"); front.classList.remove("on");
     layers = [back, front];
   };

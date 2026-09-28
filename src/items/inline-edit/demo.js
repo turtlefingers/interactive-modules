@@ -1,5 +1,5 @@
 import { ILLO, TONE } from "../../lib/draw.js";
-import { humaaanInner, outfit } from "../../lib/figure.js";
+import { peepSVG, outfit } from "../../lib/figure.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -8,7 +8,7 @@ export default function demo(api) {
     .ile-demo { position: absolute; inset: 0; display: grid; place-items: center; background: var(--board); padding: 20px; }
     .ile-card { width: min(440px, 100%); background: var(--note); border: 1px solid var(--ink-3); border-radius: 8px; padding: 28px 28px 34px; }
     .ile-top { display: flex; align-items: center; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
-    /* 아바타: Humaaans 사람의 머리와 어깨를 원으로 잘라 넣는다 (외곽선 없음). 이름 첫 글자는 작은 배지로 */
+    /* 아바타: Open Peeps 상반신(bust)을 원으로 잘라 넣는다 (외곽선 없음). 이름 첫 글자는 작은 배지로 */
     .ile-ava { flex: none; position: relative; width: 56px; height: 56px; }
     .ile-ava .ile-bust { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: ${TONE[1]}; }
     .ile-ava svg { display: block; width: 100%; height: 100%; }
@@ -63,9 +63,10 @@ export default function demo(api) {
   </div>`;
   el.appendChild(root);
   const ava = root.querySelector(".ile-ava");
-  ava.innerHTML = `<div class="ile-bust"><svg viewBox="100 20 180 180" preserveAspectRatio="xMidYMid slice">${
-    humaaanInner({ head: "Pony", torso: "TurtleNeck", bottom: "SkinnyJeans", colors: outfit(ILLO.blue) })
-  }</svg></div><b></b>`;
+  // 상반신은 세로로 길어서 너비를 원에 맞추고 위쪽(머리·어깨)을 보여준다
+  ava.innerHTML = `<div class="ile-bust">${
+    peepSVG({ body: "Hoodie", face: "Smile", hair: "Bun", colors: outfit(ILLO.blue) }).replace("<svg ", '<svg preserveAspectRatio="xMidYMin slice" ')
+  }</div><b></b>`;
   const avaInitial = ava.querySelector("b");
   FIELDS.forEach(F => {
     F.el = root.querySelector(`.ile-field[data-f="${F.f}"]`);
