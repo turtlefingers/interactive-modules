@@ -51,7 +51,7 @@ export default function demo(api) {
   /* ---------- 캐릭터: Open Peeps 사람 (서 있음). 파츠를 붙이면 그 부품(모자·안경·수염)을 쓴 모습으로 다시 그린다 ----------
      경계 상자는 기본 모습과 다 붙인 모습의 합집합으로 고정해, 부품이 바뀌어도 그림이 움직이지 않게 한다.
      높이 340(배율 1 기준) 상자에 세로 맞춤으로 넣는다 */
-  const COLORS = outfit(ILLO.green);
+  const COLORS = outfit(ILLO.paper);
   const BASE = { body: "RestingBW", face: "Calm", hair: "Short", accessory: "None", facialHair: "None", colors: COLORS };
   const WEAR = { hat: ["hair", "Beanie"], glasses: ["accessory", "GlassRound"], beard: ["facialHair", "Full"] };
   const FULL = { ...BASE, hair: "Beanie", accessory: "GlassRound", facialHair: "Full" };
