@@ -6,7 +6,7 @@
    - INPUT_BADGES: 카테고리(입력 방식)를 나타내는 작은 배지
    ============================================================ */
 import {
-  ToggleRight, Flag, ZoomIn, Heart, PencilLine, Egg, Magnet, Orbit, CloudDrizzle, Hand,
+  ToggleRight, Flag, ZoomIn, Heart, PencilLine, Magnet, Orbit, CloudDrizzle, Hand,
   GitBranch, Dices, Undo2, GalleryHorizontal, Rotate3d, Command, KeyboardMusic, MessageCircleMore,
   MousePointer2, MouseLeft, MousePointerClick, MouseRight, Mouse, Timer, Pointer, HandGrab, MoveVertical, SquareMousePointer,
   Keyboard, Touchpad, AppWindowMac
@@ -148,7 +148,7 @@ const CUSTOM = {
 /* ---------- 의미가 분명한 Lucide 아이콘 ---------- */
 const LUCIDE = {
   "toggle": ToggleRight, "click-to-target": Flag, "double-click-zoom": ZoomIn, "double-tap-like": Heart,
-  "inline-edit": PencilLine, "easter-egg": Egg, "magnet": Magnet, "orbit": Orbit, "squeeze": CloudDrizzle,
+  "inline-edit": PencilLine, "magnet": Magnet, "orbit": Orbit, "squeeze": CloudDrizzle,
   "pan": Hand, "branching-choice": GitBranch, "randomizer": Dices, "undo-redo": Undo2, "carousel": GalleryHorizontal,
   "keyboard-orbit": Rotate3d, "shortcut": Command, "keyboard-instrument": KeyboardMusic, "chat": MessageCircleMore
 };

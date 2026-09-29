@@ -282,7 +282,7 @@ reg("flower", "꽃", ["drop-zone", "page-visibility"], {
 }, { color: ILLO.pink });
 
 /* ======================= 나무 (작은) ======================= */
-reg("tree", "나무", ["drop-zone", "easter-egg", "before-after"], {
+reg("tree", "나무", ["drop-zone", "before-after"], {
   A: { label: "둥근 수관 · 가는 줄기", draw(g, x, y, h, o) {
     const u = h / 84, col = o.color || GREEN;
     g.save(); g.translate(x, y);
@@ -431,7 +431,7 @@ reg("cloud", "구름", ["squeeze"], {
 }, { color: ILLO.paper });
 
 /* ======================= 달 ======================= */
-reg("moon", "달", ["easter-egg"], {
+reg("moon", "달", [], {
   A: { label: "보름달 · 크레이터 하나", draw(g, x, y, h, o) {
     const u = h / 84, col = o.color || ILLO.paper, cy = y - 50 * u;
     circle(g, x, cy, 23 * u, { fill: col });
@@ -487,7 +487,7 @@ function catHead(g, u, col, hx, hy, r, { tilt = 0, flip = false, flat = 0, whisk
 const paw = (g, u, col, x, y, r = 5.5) => ellipse(g, x * u, (y - 2.4) * u, r * u, 2.5 * u, { fill: col });
 const leg = (g, u, col, x0, y0, x1, y1, w = 5.5) => tube(g, [[x0 * u, y0 * u], [x1 * u, y1 * u]], { color: col, w: w * u });
 
-reg("cat", "고양이", ["rub", "easter-egg"], {
+reg("cat", "고양이", ["rub"], {
   A: { label: "앉음 · 꼬리는 뒤로 길게", draw(g, x, y, h, o) {
     const u = h / 84, col = o.color || TONE[5], sw = Math.sin(tt(o) * 1.5) * 4;
     g.save(); g.translate(x, y);
@@ -608,7 +608,7 @@ reg("cat", "고양이", ["rub", "easter-egg"], {
 }, { color: TONE[5] });
 
 /* ======================= 새 (앉은 모습) ======================= */
-reg("bird", "새", ["easter-egg"], {
+reg("bird", "새", [], {
   A: { label: "통통한 참새 · 가지 위", draw(g, x, y, h, o) {
     const u = h / 84, col = o.color || TONE[5], bob = Math.sin(tt(o) * 2) * 0.6 * u;
     g.save(); g.translate(x, y - 10 * u);
@@ -689,7 +689,7 @@ function minnow(g, u, col, x, y, L, wag, eye = true) {
   g.restore();
 }
 
-reg("fish", "물고기", ["easter-egg"], {
+reg("fish", "물고기", [], {
   A: { label: "금붕어 · 부채꼬리", draw(g, x, y, h, o) {
     fishFrame(g, x, y, h, o, (u, col, wag) => {
       g.save(); g.translate(-9 * u, 0); g.rotate(wag * 0.7);
@@ -836,7 +836,7 @@ function rabHead(g, u, col, x, y, { tilt = 0, r = 10, eye = true } = {}) {
 /** 앞으로 뻗은 긴 뒷발 */
 const hindFoot = (g, u, col, x, y, L = 12) => ellipse(g, x * u, (y - 2.4) * u, L * u, 2.6 * u, { fill: col });
 
-reg("rabbit", "토끼", ["easter-egg"], {
+reg("rabbit", "토끼", [], {
   A: { label: "앉아서 경계 · 귀 쫑긋", draw(g, x, y, h, o) {
     const u = h / 84, col = o.color || TONE[4], tw = Math.sin(tt(o) * 1.7) * 0.03;
     g.save(); g.translate(x, y);
@@ -979,7 +979,7 @@ function owlTufts(g, u, col, cx, cy, k = 1) {
   tri(g, [cx - 12 * u, cy], [cx - 16 * u, cy - 12 * u * k], [cx - 5 * u, cy - 4 * u], col);
   tri(g, [cx + 10 * u, cy], [cx + 15 * u, cy - 11 * u * k], [cx + 4 * u, cy - 4 * u], col);
 }
-reg("owl", "올빼미", ["easter-egg"], {
+reg("owl", "올빼미", [], {
   A: { label: "둥근 달걀 몸 · 가지 위", draw(g, x, y, h, o) {
     const u = h / 84, col = o.color || TONE[4], blink = ((tt(o) * 0.5) % 1) > 0.94;
     g.save(); g.translate(x, y - 8 * u);

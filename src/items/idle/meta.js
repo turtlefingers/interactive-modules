@@ -27,7 +27,7 @@ export default {
   },
   related: [
     { label: "헷갈리는 개념", items: [{ id: "page-visibility", text: "탭 이탈 반응 (자리를 비운 것을 탭으로 앎)" }, { id: "cooldown", text: "쿨다운 (기다려야 다시 쓸 수 있음)" }] },
-    { label: "함께 쓰이는 것", items: [{ id: "look-at", text: "바라보기 (깨어 있을 때 커서 보기)" }, { id: "easter-egg", text: "이스터에그 (기다린 사람만 보는 것)" }] }
+    { label: "함께 쓰이는 것", items: [{ id: "look-at", text: "바라보기 (깨어 있을 때 커서 보기)" }] }
   ],
   references: [
     { name: "위키백과 · Attract mode", url: "https://en.wikipedia.org/wiki/Attract_mode", note: "오락실 기계가 손님이 없을 때 스스로 데모를 보여주는 상태다." },

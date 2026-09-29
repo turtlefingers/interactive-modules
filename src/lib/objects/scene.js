@@ -14,7 +14,7 @@ const lit = (o, base) => (st(o) > 0.02 ? o.accent : base);
 
 /* ---------- 집 ---------- */
 registerObject("house", {
-  label: "집", group: G, demos: ["easter-egg"], height: 84, color: ILLO.orange,
+  label: "집", group: G, demos: [], height: 84, color: ILLO.orange,
   variants: {
     A: {
       label: "낮은 박공 · 마루가 한쪽으로 치우친 볼륨",
@@ -164,7 +164,7 @@ registerObject("mountain-range", {
 
 /* ---------- 연못 ---------- */
 registerObject("pond", {
-  label: "연못", group: G, demos: ["easter-egg"], height: 84, color: ILLO.blue,
+  label: "연못", group: G, demos: [], height: 84, color: ILLO.blue,
   variants: {
     A: {
       label: "타원 연못 · 파문 한 줄",

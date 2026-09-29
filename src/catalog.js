@@ -19,7 +19,7 @@ export const categories = [
     items: ["double-click-zoom", "double-tap-like", "inline-edit"] },
   { id: "rightclick", name: "우클릭", en: "Right Click",
     desc: "보조 버튼이다. 기본 메뉴를 대신하거나 숨은 층을 연다.",
-    items: ["context-menu", "easter-egg"] },
+    items: ["context-menu"] },
   { id: "move", name: "마우스 움직임", en: "Mouse Move",
     desc: "누르지 않고 움직이기만 한다. 커서의 위치, 방향, 속도, 거리를 읽는다.",
     items: ["cursor-follow", "cursor-trail", "look-at", "mouse-look", "mouse-parallax", "shake-to-cancel", "proximity", "magnet", "flee", "orbit", "cursor-emitter", "before-after", "crosshair"] },

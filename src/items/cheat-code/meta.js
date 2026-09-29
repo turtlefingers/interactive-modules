@@ -27,7 +27,7 @@ export default {
   },
   related: [
     { label: "헷갈리는 개념", items: [{ id: "shortcut", text: "단축키 (동시에 누름)" }, { id: "passcode", text: "암호 입력 (틀림 피드백이 핵심)" }] },
-    { label: "함께 쓰이는 것", items: [{ id: "easter-egg", text: "이스터에그" }] }
+    { label: "함께 쓰이는 것", items: [{ id: "idle", text: "대기 상태 (기다린 사람만 보는 것)" }] }
   ],
   references: [
     { name: "Konami Code — Wikipedia", url: "https://en.wikipedia.org/wiki/Konami_Code", note: "그라디우스에서 시작된 가장 유명한 치트 코드와, 이를 숨겨둔 웹사이트들의 역사다." },
