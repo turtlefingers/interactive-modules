@@ -65,9 +65,9 @@ export function peepBox(opts) {
 }
 
 /* ---------- 부품 하나만 따로 (모자·안경·수염을 파츠처럼 쓸 때) ----------
-   kind: "hair" | "accessory" | "facialHair". 좌표는 peepInner 와 같다(머리 그룹 translate(225 0) 포함). */
-const PART_DICT = { hair: HAIR, accessory: ACCESSORIES, facialHair: FACIALHAIR };
-const PART_OFFSET = { hair: [225, 0], accessory: [225 + 47, 241], facialHair: [225 + 123, 338] };
+   kind: "hair" | "accessory" | "facialHair" | "face". 좌표는 peepInner 와 같다(머리 그룹 translate(225 0) 포함). */
+const PART_DICT = { hair: HAIR, accessory: ACCESSORIES, facialHair: FACIALHAIR, face: FACE };
+const PART_OFFSET = { hair: [225, 0], accessory: [225 + 47, 241], facialHair: [225 + 123, 338], face: [225 + 159, 186] };
 /** 부품 하나의 <g> 조각 (peepInner 좌표계) */
 export function peepPartInner(kind, name, colors = {}) {
   const [ox, oy] = PART_OFFSET[kind] || [0, 0];
