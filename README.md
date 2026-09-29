@@ -53,13 +53,21 @@ npm run preview   # 빌드 결과 미리보기
 
 빌드 결과는 순수 정적 파일이라 어느 정적 호스팅에나 올릴 수 있다. 경로는 상대 경로(`base: "./"`)로 만들어서 하위 폴더에 올려도 동작한다.
 
-## 배포 (GitHub Pages)
+## 배포
 
-`.github/workflows/deploy.yml`이 `main` 브랜치에 푸시할 때마다 빌드해서 GitHub Pages에 올린다.
+빌드 결과(`dist/`)는 순수 정적 파일이다. 아래 두 방법 중 하나를 쓴다. 두 설정 모두 저장소에 들어 있다.
 
-1. 이 폴더를 GitHub 저장소로 푸시한다.
-2. 저장소 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 바꾼다.
-3. `main`에 푸시하거나, Actions 탭에서 워크플로를 직접 실행한다.
+### Vercel
+
+1. Vercel에서 이 저장소를 Import 한다. `vercel.json`이 빌드 설정(Vite, `npm run build`, `dist`)을 알려 주므로 따로 고칠 것이 없다.
+2. 항목 주소는 `/<id>/` 꼴로 끝에 `/`가 붙도록 맞춰 둔다(`trailingSlash`).
+3. 환경변수는 필요 없다.
+
+### GitHub Pages
+
+1. 저장소 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 바꾼다.
+2. `main`에 푸시하면 `.github/workflows/deploy.yml`이 빌드해서 올린다. 주소는 `https://<계정>.github.io/<저장소>/`이다.
+3. 경로는 모두 상대 경로(`base: "./"`)라 하위 폴더 주소에서도 동작한다.
 
 ## 폴더 구조
 
