@@ -35,7 +35,6 @@ export default {
     { name: "WAI-ARIA Authoring Practices — Accordion Pattern", url: "https://www.w3.org/WAI/ARIA/apg/patterns/accordion/", note: "아코디언 제목 버튼과 펼침 영역의 구조와 키보드 동작이다." },
     { name: "Material Design 3 — Tabs", url: "https://m3.material.io/components/tabs/overview", note: "밑줄 인디케이터가 미끄러지는 탭의 표준 모습이다." }
   ],
-  tags: ["Mouse", "Keyboard", "Click", "Reveal", "UI"],
   reads: "누른 제목(또는 방향키로 옮긴 포커스) — 몇 번째 제목이 선택되었는지로 보여줄 내용을 정한다.",
   readouts: [
     { key: "form", label: "지금 형태" },

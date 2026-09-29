@@ -33,7 +33,6 @@ export default {
   references: [
     { name: "Apple HIG — Game controls", url: "https://developer.apple.com/design/human-interface-guidelines/game-controls", note: "터치 화면의 가상 조작 요소를 어디에, 어떤 크기로 둘지 안내한다." }
   ],
-  tags: ["Mouse", "Drag", "Translate", "Follow", "UI"],
   reads: "받침 중심에서 손잡이까지의 벡터 — 거리는 세기(0~1, 데드존 적용), 방향은 각도로 읽어 캐릭터의 이동 속도와 방향으로 바꾼다.",
   readouts: [
     { key: "mag", label: "세기 0.00~1.00" },

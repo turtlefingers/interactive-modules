@@ -35,7 +35,6 @@ export default {
     { name: "Wikipedia — Click wheel", url: "https://en.wikipedia.org/wiki/Click_wheel", note: "아이팟의 원형 터치 휠은 손가락의 각도 변화를 읽는 대표적인 회전 입력이다." },
     { name: "Ableton Live", url: "https://www.ableton.com/en/live/", note: "노브를 원이 아니라 위아래로 끌어서 돌리는 음악 소프트웨어의 대표적인 방식이다." }
   ],
-  tags: ["Mouse", "Drag", "Rotate", "Physics", "Snap"],
   reads: "손잡이 중심에서 커서를 바라보는 각도(atan2)를 읽고, 직전 각도와의 차이를 쌓아 회전량으로 쓴다. 원판은 손을 떼는 순간의 회전 속도도 읽는다.",
   readouts: [
     { key: "ptr", label: "포인터 각도 °" },

@@ -34,7 +34,6 @@ export default {
   references: [
     { name: "Apple HIG · Gestures", url: "https://developer.apple.com/design/human-interface-guidelines/gestures", note: "길게 누르기(long press)와 누르고 있기의 표준 쓰임을 설명한다." }
   ],
-  tags: ["Mouse", "Press", "Scale", "Timer", "Count"],
   reads: "누르고 있는 시간 — 누른 순간부터 뗄 때까지의 시간이 값의 증가량이 된다. 누르고 있는지 여부와 떼는 순간도 읽는다.",
   readouts: [
     { key: "hold", label: "누른 시간" },

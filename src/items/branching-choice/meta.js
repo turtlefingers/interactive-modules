@@ -35,7 +35,6 @@ export default {
     { name: "Choose Your Own Adventure (위키백과)", url: "https://en.wikipedia.org/wiki/Choose_Your_Own_Adventure", note: "선택에 따라 다른 쪽으로 넘어가는 게임북 시리즈다." },
     { name: "Black Mirror: Bandersnatch (위키백과)", url: "https://en.wikipedia.org/wiki/Black_Mirror:_Bandersnatch", note: "시청자가 선택지를 골라 줄거리가 갈라지는 인터랙티브 영화다." }
   ],
-  tags: ["Mouse", "Click", "Select", "State", "UI"],
   reads: "고른 선택지의 순서 — 지금까지 누른 버튼들이 이어진 경로가 다음 장면을 정한다.",
   readouts: [
     { key: "depth", label: "깊이 몇 번째 선택" },

@@ -34,7 +34,6 @@ export default {
     { name: "Squash and stretch — Wikipedia", url: "https://en.wikipedia.org/wiki/Squash_and_stretch", note: "디즈니 애니메이션 12원칙 중 첫 번째로, 점프에 무게감을 준다." },
     { name: "Celeste", url: "https://www.celestegame.com/", note: "코요테 타임, 점프 버퍼 같은 너그러운 조작으로 유명하다." }
   ],
-  tags: ["Keyboard", "Press", "Translate", "Physics", "Deform"],
   reads: "점프 키를 누른 순간과 뗀 순간, 그리고 ↓와 ←→를 누르고 있는 상태 — 누른 순간에 뛰고, 떼는 순간이 점프 높이를 정한다.",
   readouts: [
     { key: "keys", label: "누르고 있는 키" },

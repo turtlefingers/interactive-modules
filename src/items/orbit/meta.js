@@ -34,7 +34,6 @@ export default {
     { name: "three.js OrbitControls", url: "https://threejs.org/docs/#examples/en/controls/OrbitControls", note: "궤도 회전의 표준 구현이다. 감쇠, 자동 회전, 각도 제한 옵션이 이 데모의 변주와 같다." },
     { name: "Sketchfab", url: "https://sketchfab.com/", note: "누른 채 끌어서 돌려 보는 3D 모델 뷰어의 대표 사례다." }
   ],
-  tags: ["Mouse", "Move", "Rotate", "Camera"],
   reads: "올려서 기울일 때는 화면 가운데를 0으로 한 커서의 정규화 위치(-1~1)를, 누르고 돌릴 때는 누른 뒤 움직인 거리(Δx, Δy)를 읽어 수평 · 수직 회전 각도로 바꾼다.",
   readouts: [
     { key: "yaw", label: "수평 회전 각도" },

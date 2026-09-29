@@ -34,7 +34,6 @@ export default {
     { name: "Angry Birds (Wikipedia)", url: "https://en.wikipedia.org/wiki/Angry_Birds", note: "당겨서 날리는 조작을 대중화한 게임이다. 당긴 거리와 각도가 곧 힘과 방향이다." },
     { name: "Cue sports (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cue_sports", note: "당구의 조준과 쿠션 반사는 이 데모의 위에서 본 구성과 같다." }
   ],
-  tags: ["Mouse", "Drag", "Launch", "Physics"],
   reads: "공에서 당긴 벡터 — 당긴 거리(힘)와 방향(각도). 떼는 순간의 손 속도는 읽지 않는다.",
   readouts: [
     { key: "pull", label: "당긴 거리 px" },

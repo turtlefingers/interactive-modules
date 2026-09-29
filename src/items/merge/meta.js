@@ -34,7 +34,6 @@ export default {
     { name: "2048 (Wikipedia)", url: "https://en.wikipedia.org/wiki/2048_(video_game)", note: "같은 숫자끼리 합쳐 두 배가 되는 규칙이다. 머지 게임 규칙의 원형 중 하나다." },
     { name: "Agar.io (Wikipedia)", url: "https://en.wikipedia.org/wiki/Agar.io", note: "작은 것을 흡수한 만큼 커지는 성장 규칙을 보여준다." }
   ],
-  tags: ["Mouse", "Drag", "Scale", "Morph"],
   reads: "놓는 순간 조각이 대상과 겹쳤는지, 그리고 조각의 크기. 끄는 동안에는 대상까지의 거리를 읽어 미리 반응한다.",
   readouts: [
     { key: "near", label: "대상까지 거리 px" },

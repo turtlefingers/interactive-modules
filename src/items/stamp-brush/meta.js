@@ -30,7 +30,6 @@ export default {
     { label: "함께 쓰이는 것", items: [{ id: "cursor-trail", text: "커서 트레일" }, { id: "undo-redo", text: "실행 취소 · 다시 실행" }] }
   ],
   references: [],
-  tags: ["Mouse", "Drag", "Draw", "Spawn"],
   reads: "누른 채 움직인 누적 거리와 진행 방향 — 거리가 간격을 넘을 때마다 한 번 찍고, 방향으로 모양의 각도를 정한다.",
   readouts: [
     { key: "count", label: "찍힌 모양" },

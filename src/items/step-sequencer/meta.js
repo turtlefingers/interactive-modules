@@ -36,7 +36,6 @@ export default {
     { name: "Roland TR-808 (위키백과)", url: "https://en.wikipedia.org/wiki/Roland_TR-808", note: "16개의 스텝 버튼으로 리듬을 짜는 드럼 머신의 원형이다." },
     { name: "Music sequencer (위키백과)", url: "https://en.wikipedia.org/wiki/Music_sequencer", note: "스텝 시퀀서를 포함한 시퀀서의 역사와 종류를 정리했다." }
   ],
-  tags: ["Mouse", "Click", "State", "Timer", "Sound"],
   reads: "칸마다 켜짐·꺼짐 상태 — 재생 막대가 지나가는 순간 그 세로줄에서 켜진 칸들을 읽어 소리와 움직임을 낸다.",
   readouts: [
     { key: "step", label: "지금 스텝" },

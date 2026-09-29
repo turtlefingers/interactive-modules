@@ -33,7 +33,6 @@ export default {
   references: [
     { name: "Wikipedia — Cursor (user interface)", url: "https://en.wikipedia.org/wiki/Cursor_(user_interface)", note: "마우스 포인터와 포인터 자국(pointer trails)의 역사를 다룬다." }
   ],
-  tags: ["Mouse", "Move", "Draw", "Timer"],
   reads: "커서의 위치와 그 위치가 찍힌 시각. 두 위치 사이의 거리와 시간으로 빠르기도 읽는다.",
   readouts: [
     { key: "points", label: "남아 있는 점 개수" },

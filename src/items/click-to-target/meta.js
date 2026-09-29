@@ -35,7 +35,6 @@ export default {
     { name: "Boids · Craig Reynolds", url: "https://www.red3d.com/cwr/boids/", note: "무리 지어 움직이는 개체들의 세 가지 규칙(분리, 정렬, 응집)을 설명한다." },
     { name: "The Nature of Code", url: "https://natureofcode.com/", note: "자율 에이전트와 무리 움직임을 차근차근 만들어 보는 책이다. 온라인으로 무료로 읽을 수 있다." }
   ],
-  tags: ["Mouse", "Click", "Attract", "Follow", "Spawn"],
   reads: "클릭한 위치 — 클릭한 좌표가 목표점이 되고, 개체마다 목표까지의 거리와 방향을 매 순간 계산한다.",
   readouts: [
     { key: "target", label: "목표 위치" },

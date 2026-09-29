@@ -34,7 +34,6 @@ export default {
     { name: "Operation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Operation_(game)", note: "몸에서 부위를 조심스럽게 빼내는 보드게임이다. 분리 순간의 긴장감이 핵심이다." },
     { name: "Mr. Potato Head (Wikipedia)", url: "https://en.wikipedia.org/wiki/Mr._Potato_Head", note: "파츠를 뺐다 끼웠다 하는 장난감이다. 다시 붙이기 변주의 원형이다." }
   ],
-  tags: ["Mouse", "Drag", "Translate", "Deform"],
   reads: "누른 지점에서 당긴 거리 — 저항 한계를 넘었는지. 넘은 뒤에는 포인터 위치, 놓을 때는 원래 자리와의 거리.",
   readouts: [
     { key: "pull", label: "당긴 거리 px" },

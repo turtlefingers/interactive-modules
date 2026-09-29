@@ -31,7 +31,6 @@ export default {
     { label: "함께 쓰이는 것", items: [{ id: "idle", text: "대기 상태 (멈추면 되돌아감)" }] }
   ],
   references: [],
-  tags: ["Mouse", "Drag", "Count", "Reveal", "State"],
   reads: "대상 위에서 누른 채 움직인 누적 거리와 방향을 바꾼 횟수 — 대상 밖의 움직임은 세지 않는다.",
   readouts: [
     { key: "amount", label: "누적된 변화" },

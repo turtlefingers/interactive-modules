@@ -34,7 +34,6 @@ export default {
     { name: "MDN · BroadcastChannel", url: "https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel", note: "같은 사이트의 여러 창과 탭이 서로 메시지를 주고받는 통로다." },
     { name: "MDN · Window.screenX", url: "https://developer.mozilla.org/en-US/docs/Web/API/Window/screenX", note: "모니터 왼쪽 끝에서 창까지의 거리다. 창을 옮겨도 이벤트가 없어 계속 읽어야 한다." }
   ],
-  tags: ["Window", "Data", "Follow", "Drag"],
   reads: "각 창의 모니터 기준 위치(screenX, screenY)와 창 안에서 구슬의 위치. 다른 창들이 보낸 위치를 받아 내 창 기준으로 바꾼다.",
   readouts: [
     { key: "count", label: "연결된 다른 창" },

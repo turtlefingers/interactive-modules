@@ -33,7 +33,6 @@ export default {
   references: [
     { name: "Vampire Survivors (위키백과)", url: "https://en.wikipedia.org/wiki/Vampire_Survivors", note: "가까운 경험치 보석을 끌어당기는 반경이 성장 요소로 쓰인다." }
   ],
-  tags: ["Mouse", "Move", "Attract", "Follow", "Physics"],
   reads: "커서 위치와 각 개체까지의 거리 — 거리가 반경보다 작아지는 순간 개체의 상태가 「붙음」으로 바뀌고, 그 뒤로는 커서 위치를 목표로 따라온다.",
   readouts: [
     { key: "near", label: "가장 가까운 자유 개체까지" },

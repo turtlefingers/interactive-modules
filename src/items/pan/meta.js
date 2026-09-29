@@ -33,7 +33,6 @@ export default {
     { name: "Google Maps", url: "https://www.google.com/maps", note: "팬의 표준이다. 관성과 확대가 결합된 형태다." },
     { name: "Weird Christmas ~ Create your card!", url: "http://christmas.rogue.studio/", note: "넓은 보드를 끌어 다니며 요소를 발견하는 구조다." }
   ],
-  tags: ["Mouse", "Drag", "Translate", "Camera"],
   reads: "위치 변화량 — 누른 뒤 움직인 거리(Δx, Δy). 관성을 쓰면 손을 떼는 순간의 속도도 읽는다.",
   readouts: [
     { key: "dx", label: "Δx 누른 뒤 가로 이동" },

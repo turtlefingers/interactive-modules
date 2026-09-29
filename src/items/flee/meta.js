@@ -34,7 +34,6 @@ export default {
     { name: "Craig Reynolds — Steering Behaviors For Autonomous Characters", url: "https://www.red3d.com/cwr/steer/", note: "Flee, Arrive, Wander 같은 조종 행동의 원전이다." },
     { name: "Boids (위키백과)", url: "https://en.wikipedia.org/wiki/Boids", note: "응집, 정렬, 분리 세 규칙으로 무리 움직임을 만든다." }
   ],
-  tags: ["Mouse", "Move", "Repel", "Physics"],
   reads: "커서 위치와 각 개체까지의 거리 — 반경 안이면 개체가 커서 반대 방향을 목표 속도로 삼는다. 커서 속도는 읽지 않고 거리만 읽는다.",
   readouts: [
     { key: "near", label: "가장 가까운 사람까지" },

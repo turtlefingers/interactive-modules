@@ -33,7 +33,6 @@ export default {
     { name: "Apple HIG · Toggles", url: "https://developer.apple.com/design/human-interface-guidelines/toggles", note: "켜고 끄는 스위치의 표준 모양과 쓰는 때를 설명한다." },
     { name: "Material Design 3 · Switch", url: "https://m3.material.io/components/switch/overview", note: "스위치 손잡이와 트랙의 상태 표현 기준이다." }
   ],
-  tags: ["Mouse", "Click", "State", "Rotate", "UI"],
   reads: "클릭 — 클릭할 때마다 지금 상태 번호를 하나씩 넘긴다. 입력의 위치나 세기는 읽지 않고, 지금 몇 번째 상태인지만 기억한다.",
   readouts: [
     { key: "state", label: "지금 상태" },

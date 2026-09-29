@@ -33,7 +33,6 @@ export default {
     { name: "MDN — CSS Custom Highlight API", url: "https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API", note: "글자 범위에 원하는 모양의 표시를 입히는 웹 표준이다." },
     { name: "MDN — Selection", url: "https://developer.mozilla.org/en-US/docs/Web/API/Selection", note: "브라우저 기본 선택이 시작점(anchor)과 끝점(focus)으로 이루어진다는 것을 설명한다." }
   ],
-  tags: ["Mouse", "Drag", "Select", "UI"],
   reads: "누른 지점과 현재 포인터 위치를 각각 가장 가까운 글자 경계로 바꾼 두 값(시작점과 끝점) — 그 사이의 글자들이 글의 순서대로 선택된다.",
   readouts: [
     { key: "chars", label: "선택한 글자 수" },

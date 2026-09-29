@@ -35,7 +35,6 @@ export default {
     { name: "Chrome Music Lab", url: "https://musiclab.chromeexperiments.com/", note: "누구나 두드려서 음악을 배우는 웹 실험 모음이다." },
     { name: "Web Audio API — MDN", url: "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API", note: "브라우저에서 음을 직접 만드는 방법이다." }
   ],
-  tags: ["Keyboard", "Type", "Sound", "Spawn", "Scale"],
   reads: "어떤 키를 눌렀는지(키의 위치) — 키마다 정해진 음 높이와 도형이 있고, 누른 순간 한 번 울리고 그린다.",
   readouts: [
     { key: "key", label: "누른 키" },

@@ -32,7 +32,6 @@ export default {
   references: [
     { name: "Wikipedia — Dock (macOS)", url: "https://en.wikipedia.org/wiki/Dock_(macOS)", note: "커서 근처 아이콘이 커지는 확대(magnification)의 대표 사례다." }
   ],
-  tags: ["Mouse", "Move", "Scale", "Attract", "Deform"],
   reads: "개체마다 자기 원래 자리에서 커서까지의 거리. 반경 안이면 거리를 0~1 세기로 바꿔 반응 크기를 정한다. 누르고 있을 때만 모드에서는 누름 여부도 읽는다.",
   readouts: [
     { key: "cursor", label: "커서 위치" },

@@ -30,7 +30,6 @@ export default {
     { label: "함께 쓰이는 것", items: [{ id: "fling", text: "던지기" }, { id: "drop-zone", text: "드롭 존" }, { id: "press-and-hold", text: "누르고 있기" }] }
   ],
   references: [],
-  tags: ["Mouse", "Drag", "Physics", "Snap", "State"],
   reads: "누른 지점에서 포인터까지의 거리(장력) — 이 거리가 대상별 경계를 넘는지 계속 비교한다. 뽑힌 뒤에는 포인터 위치와 놓는 순간의 속도를 읽는다.",
   readouts: [
     { key: "dist", label: "당긴 거리" },

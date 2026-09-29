@@ -33,7 +33,6 @@ export default {
     { name: "MDN · Page Visibility API", url: "https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API", note: "탭이 보이는지 숨겨졌는지와 그 변화를 알려주는 웹 표준이다." },
     { name: "MDN · visibilitychange 이벤트", url: "https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilitychange_event", note: "탭을 떠나고 돌아오는 순간에 발생한다. 떠날 때 저장할 것을 저장하는 자리이기도 하다." }
   ],
-  tags: ["Window", "State", "Timer", "Morph"],
   reads: "탭이 보이는지 숨겨졌는지와, 숨겨졌다가 다시 보이기까지 걸린 시간.",
   readouts: [
     { key: "vis", label: "탭 상태" },

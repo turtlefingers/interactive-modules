@@ -32,7 +32,6 @@ export default {
   references: [
     { name: "Artillery game · 위키백과", url: "https://en.wikipedia.org/wiki/Artillery_game", note: "각도를 정해 한 발씩 포물선으로 쏘는 게임 장르를 정리한다." }
   ],
-  tags: ["Mouse", "Click", "Launch", "Physics"],
   reads: "클릭한 순간과 그 위치 — 누르는 순간 한 번 발사하고, 포대에서 클릭한 곳을 향하는 방향(각도)을 읽는다.",
   readouts: [
     { key: "count", label: "발사 수" },

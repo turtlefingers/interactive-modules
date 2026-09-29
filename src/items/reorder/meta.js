@@ -34,7 +34,6 @@ export default {
     { name: "SortableJS", url: "https://sortablejs.github.io/Sortable/", note: "순서 바꾸기 목록과 격자의 여러 변주를 직접 끌어볼 수 있는 예제 모음이다." },
     { name: "FLIP Your Animations (Paul Lewis)", url: "https://aerotwist.com/blog/flip-your-animations/", note: "다른 항목이 비켜나는 움직임을 부드럽게 만드는 FLIP 기법의 원문이다." }
   ],
-  tags: ["Mouse", "Drag", "Translate", "Snap", "UI"],
   reads: "끄는 항목의 위치 — 가장 가까운 칸이 몇 번째인지. 목록 가장자리까지의 거리도 읽어 자동 스크롤 속도를 정한다.",
   readouts: [
     { key: "from", label: "잡은 항목" },

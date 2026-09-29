@@ -33,7 +33,6 @@ export default {
     { name: "Cookie Clicker", url: "https://orteil.dashnet.org/cookieclicker/", note: "클릭 한 번이 +1이 되는 구조를 게임 전체로 키운 대표작이다." },
     { name: "Incremental game · 위키백과", url: "https://en.wikipedia.org/wiki/Incremental_game", note: "클릭해서 수치를 쌓는 장르의 역사와 구조를 정리한다." }
   ],
-  tags: ["Mouse", "Click", "Count", "Spawn", "State"],
   reads: "클릭 횟수 — 버튼을 누르고 뗀 순간마다 한 번씩 센다. 콤보를 켜면 클릭 사이의 시간 간격도 읽는다.",
   readouts: [
     { key: "clicks", label: "클릭 수" },

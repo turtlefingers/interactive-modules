@@ -36,7 +36,6 @@ export default {
     { name: "Carousels — Nielsen Norman Group", url: "https://www.nngroup.com/articles/designing-effective-carousels/", note: "자동 넘김과 인디케이터 설계에서 주의할 점을 다룬다." },
     { name: "Carousels Tutorial — W3C WAI", url: "https://www.w3.org/WAI/tutorials/carousels/", note: "키보드 조작과 자동 넘김 멈춤 같은 접근성 기준이다." }
   ],
-  tags: ["Keyboard", "Press", "Translate", "Snap", "UI"],
   reads: "← →를 누른 순간 — 누를 때마다 목표 번호를 하나 늘리거나 줄이고, 화면은 그 번호를 향해 부드럽게 따라간다.",
   readouts: [
     { key: "index", label: "지금 항목" },

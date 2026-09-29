@@ -34,7 +34,6 @@ export default {
     { name: "Mega Man — Wikipedia", url: "https://en.wikipedia.org/wiki/Mega_Man", note: "차지 샷이라는 이름을 굳힌 시리즈다. 모으는 단계에 따라 색과 소리가 바뀐다." },
     { name: "KeyboardEvent.repeat — MDN", url: "https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/repeat", note: "누르고 있을 때 반복되는 입력을 걸러내는 방법이다." }
   ],
-  tags: ["Keyboard", "Press", "Timer", "Launch", "Scale"],
   reads: "Space를 누른 시간 — 누른 순간부터 떼는 순간까지의 시간을 게이지(0~100%)로 바꾸고, 떼는 순간의 값으로 발사 세기를 정한다.",
   readouts: [
     { key: "hold", label: "누른 시간" },

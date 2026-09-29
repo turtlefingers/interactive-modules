@@ -35,7 +35,6 @@ export default {
     { name: "Tank controls — Wikipedia", url: "https://en.wikipedia.org/wiki/Tank_controls", note: "캐릭터 기준으로 전진과 회전을 나누는 상대 좌표 조작이다." },
     { name: "KeyboardEvent.code — MDN", url: "https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code", note: "입력 언어와 상관없이 키의 물리적 위치를 읽는 방법이다." }
   ],
-  tags: ["Keyboard", "Press", "Translate", "Rotate", "Physics"],
   reads: "누르고 있는 방향키의 조합 — 매 프레임 눌린 키들로 가로·세로 입력 벡터(-1~1)를 만들고, 그 방향과 길이로 속도를 정한다.",
   readouts: [
     { key: "keys", label: "누르고 있는 키" },

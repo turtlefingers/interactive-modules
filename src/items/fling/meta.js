@@ -34,7 +34,6 @@ export default {
     { name: "Material Design — Gestures", url: "https://m2.material.io/design/interaction/gestures.html", note: "플링을 빠르게 튕겨 보내는 제스처로 정의한다." },
     { name: "Android GestureDetector.OnGestureListener", url: "https://developer.android.com/reference/android/view/GestureDetector.OnGestureListener", note: "onFling이 손을 떼는 순간의 x, y 속도를 넘겨준다." }
   ],
-  tags: ["Mouse", "Drag", "Launch", "Physics"],
   reads: "놓기 직전의 속도 — 마지막 90ms 동안 움직인 거리와 방향. 잡고 끌어온 전체 거리는 읽지 않는다.",
   readouts: [
     { key: "release", label: "놓는 순간 속도 px/frame" },

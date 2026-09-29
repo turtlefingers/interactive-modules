@@ -33,7 +33,6 @@ export default {
   references: [
     { name: "Shoot 'em up · 위키백과", url: "https://en.wikipedia.org/wiki/Shoot_%27em_up", note: "누르고 있으면 계속 쏘는 조작이 표준이 된 장르다." }
   ],
-  tags: ["Mouse", "Press", "Launch", "Particle", "Spawn"],
   reads: "누르고 있는지 여부와 누른 시간 — 누르는 동안 정해진 간격마다 한 발씩 발사한다. 조준을 켜면 포인터 위치(방향)도 읽는다.",
   readouts: [
     { key: "hold", label: "누른 시간" },

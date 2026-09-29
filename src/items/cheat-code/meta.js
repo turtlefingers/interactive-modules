@@ -33,7 +33,6 @@ export default {
     { name: "Konami Code — Wikipedia", url: "https://en.wikipedia.org/wiki/Konami_Code", note: "그라디우스에서 시작된 가장 유명한 치트 코드와, 이를 숨겨둔 웹사이트들의 역사다." },
     { name: "Cheating in video games — Wikipedia", url: "https://en.wikipedia.org/wiki/Cheating_in_video_games", note: "치트 코드가 개발자의 테스트 도구에서 놀이 문화가 된 과정이다." }
   ],
-  tags: ["Keyboard", "Press", "State", "Reveal"],
   reads: "누른 키의 순서 — 누를 때마다 지금까지의 입력 끝부분이 정답 순서의 앞부분과 몇 개 겹치는지를 센다. 시간 제한을 켜면 키 사이 간격도 읽는다.",
   readouts: [
     { key: "matched", label: "맞춘 개수" },

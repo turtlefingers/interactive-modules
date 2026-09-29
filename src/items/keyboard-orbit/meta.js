@@ -34,7 +34,6 @@ export default {
     { name: "OrbitControls — three.js docs", url: "https://threejs.org/docs/#examples/en/controls/OrbitControls", note: "궤도 회전의 표준 구현이다. 위아래 각도 제한과 관성(damping) 옵션이 이 데모의 변주와 같다." },
     { name: "model-viewer", url: "https://modelviewer.dev/", note: "웹에서 3D 제품을 보여주는 구글의 도구로, 방향키로도 돌릴 수 있다." }
   ],
-  tags: ["Keyboard", "Press", "Rotate", "Camera"],
   reads: "누르고 있는 방향키 — ←→는 좌우 회전 속도, ↑↓는 위아래 회전 속도가 된다. 단계 회전에서는 누른 순간마다 정해진 각도를 더한다.",
   readouts: [
     { key: "keys", label: "누르고 있는 키" },

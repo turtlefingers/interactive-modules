@@ -33,7 +33,6 @@ export default {
     { name: "Quick, Draw!", url: "https://quickdraw.withgoogle.com/", note: "자유 그리기로 그린 그림을 AI가 맞히는 구글의 실험이다." },
     { name: "MDN — Pointer events", url: "https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events", note: "마우스, 터치, 펜 입력을 하나로 다루는 방법과 합쳐진 이벤트를 설명한다." }
   ],
-  tags: ["Mouse", "Drag", "Draw"],
   reads: "누른 채 움직이는 동안 들어오는 포인터 위치의 연속(궤적)과 점 사이의 속도 — 손을 떼면 한 획으로 묶는다.",
   readouts: [
     { key: "points", label: "지금 획의 입력점" },

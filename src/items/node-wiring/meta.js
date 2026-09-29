@@ -35,7 +35,6 @@ export default {
     { name: "VCV Rack", url: "https://vcvrack.com/", note: "모듈러 신시사이저의 패치 케이블 꽂기를 화면 위에서 그대로 재현한다." },
     { name: "Blender Manual — Node Editor", url: "https://docs.blender.org/manual/en/latest/interface/controls/nodes/index.html", note: "단자의 종류와 연결 규칙이 잘 정리되어 있다." }
   ],
-  tags: ["Mouse", "Drag", "Draw", "Snap", "Data"],
   reads: "누른 단자(출력인지 입력인지), 끄는 동안 커서 위치, 그리고 가장 가까운 연결 가능한 단자까지의 거리를 읽는다. 놓는 순간 그 거리가 기준 안이면 연결한다.",
   readouts: [
     { key: "from", label: "끌기 시작한 단자" },

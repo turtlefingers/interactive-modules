@@ -33,7 +33,6 @@ export default {
     { name: "Instagram", url: "https://www.instagram.com/", note: "사진을 두 번 탭하면 하트가 터지는 동작의 원조다." },
     { name: "TikTok", url: "https://www.tiktok.com/", note: "영상 위를 두 번 탭하면 누른 자리에 하트가 뜬다. 연타하면 하트가 계속 쏟아진다." }
   ],
-  tags: ["Mouse", "DoubleClick", "State", "Count", "Particle"],
   reads: "두 클릭 사이 시간 간격과 두 번째로 누른 위치. 위치는 하트가 나타날 자리가 된다.",
   readouts: [
     { key: "likes", label: "좋아요 수" },

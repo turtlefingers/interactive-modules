@@ -35,7 +35,6 @@ export default {
     { name: "Undo (위키백과)", url: "https://en.wikipedia.org/wiki/Undo", note: "되돌리기의 역사와 한 줄 기록, 여러 갈래 기록 방식을 정리했다." },
     { name: "Apple Human Interface Guidelines — Undo and redo", url: "https://developer.apple.com/design/human-interface-guidelines/undo-and-redo", note: "되돌리기 버튼과 단축키, 무엇을 되돌렸는지 알리는 방법을 다룬다." }
   ],
-  tags: ["Mouse", "Keyboard", "Click", "State", "UI"],
   reads: "작업 기록과 지금 위치 — 되돌리기는 위치를 한 칸 앞으로, 다시하기는 한 칸 뒤로 옮기고, 새 작업은 위치 뒤의 기록을 버린다.",
   readouts: [
     { key: "pos", label: "기록 위치" },

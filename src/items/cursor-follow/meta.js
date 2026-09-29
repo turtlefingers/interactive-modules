@@ -34,7 +34,6 @@ export default {
     { name: "MDN — Element: mousemove event", url: "https://developer.mozilla.org/en-US/docs/Web/API/Element/mousemove_event", note: "커서 위치를 읽는 기본 이벤트다." },
     { name: "Wikipedia — Linear interpolation", url: "https://en.wikipedia.org/wiki/Linear_interpolation", note: "남은 거리의 일부씩 다가가는 lerp의 원리다." }
   ],
-  tags: ["Mouse", "Move", "Follow", "Translate"],
   reads: "커서의 현재 위치(x, y). 개체는 매 프레임 자기 위치와 커서 사이의 남은 거리를 계산해 그 일부만큼 다가간다.",
   readouts: [
     { key: "cursor", label: "커서 위치" },

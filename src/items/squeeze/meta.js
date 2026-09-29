@@ -31,7 +31,6 @@ export default {
     { label: "함께 쓰이는 것", items: [{ id: "cursor-morph", text: "커서 모양 바꾸기" }, { id: "drop-zone", text: "드롭 존 (떨어진 자리에서 무언가 자람)" }] }
   ],
   references: [],
-  tags: ["Mouse", "Press", "Spawn", "Physics", "Deform"],
   reads: "누른 시간(짜는 세기)과 누른 채 움직인 커서의 위치·가로 속도 — 세기는 나오는 양을, 위치는 떨어지는 자리를 정한다.",
   readouts: [
     { key: "hold", label: "누른 시간" },

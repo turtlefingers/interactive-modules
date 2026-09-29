@@ -33,7 +33,6 @@ export default {
     { name: "Wikipedia — xeyes", url: "https://en.wikipedia.org/wiki/Xeyes", note: "커서를 눈으로 쫓는 X 윈도 시스템의 고전 프로그램이다." },
     { name: "MDN — Math.atan2()", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2", note: "두 점 사이의 각도를 구하는 함수다. 바라보기 계산의 핵심이다." }
   ],
-  tags: ["Mouse", "Move", "Rotate", "Follow"],
   reads: "커서의 위치. 개체마다 자기 중심에서 커서까지의 방향(각도)과 거리를 따로 계산한다.",
   readouts: [
     { key: "cursor", label: "커서 위치" },

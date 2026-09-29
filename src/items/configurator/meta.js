@@ -35,7 +35,6 @@ export default {
     { name: "Nike By You", url: "https://www.nike.com/nike-by-you", note: "운동화의 부위마다 색과 소재를 골라 바로 보는 대표적인 제품 컨피규레이터다." },
     { name: "Picrew", url: "https://picrew.me/", note: "부위별 버튼을 눌러 캐릭터를 만드는 아바타 메이커 모음이다." }
   ],
-  tags: ["Mouse", "Click", "Select", "Morph", "UI"],
   reads: "그룹마다 고른 옵션 하나 — 다섯 그룹의 선택값 조합으로 결과물과 가격이 정해진다.",
   readouts: [
     { key: "pick", label: "방금 고른 옵션" },

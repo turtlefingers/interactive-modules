@@ -33,7 +33,6 @@ export default {
   references: [
     { name: "TradingView", url: "https://www.tradingview.com/", note: "크로스헤어의 표준에 가깝다. 스냅, 축 이름표, 머리글 값 표시가 모두 들어 있다." }
   ],
-  tags: ["Mouse", "Move", "Data", "UI"],
   reads: "커서의 x 위치 — 그래프 폭에 대한 비율을 데이터 순번으로 환산해 가장 가까운 지점을 고른다. 스냅을 끄면 커서의 y도 읽어 가로선 높이와 그 높이의 값을 보여준다.",
   readouts: [
     { key: "cx", label: "커서 x" },

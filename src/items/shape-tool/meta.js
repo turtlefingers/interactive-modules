@@ -34,7 +34,6 @@ export default {
     { name: "Figma", url: "https://www.figma.com/", note: "R, O 키로 사각형과 타원 도구를 켜고 Shift와 Alt로 비율과 기준점을 바꾼다." },
     { name: "Sketchpad (Ivan Sutherland, 1963)", url: "https://en.wikipedia.org/wiki/Sketchpad", note: "두 점을 찍어 도형을 만드는 방식의 출발점이다." }
   ],
-  tags: ["Mouse", "Drag", "Draw", "Scale"],
   reads: "누른 위치와 현재 커서 위치 두 점을 읽고, 두 점의 가로 · 세로 차이로 도형의 크기를 정한다. Shift와 Alt 키가 눌렸는지도 계속 읽는다.",
   readouts: [
     { key: "start", label: "시작점 x, y" },

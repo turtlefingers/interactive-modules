@@ -34,7 +34,6 @@ export default {
     { name: "Trello", url: "https://trello.com/", note: "카드와 목록 제목을 누르면 그 자리에서 입력칸으로 바뀐다." },
     { name: "Figma", url: "https://www.figma.com/", note: "레이어 이름을 더블클릭하면 제자리에서 이름을 바꾼다." }
   ],
-  tags: ["Mouse", "DoubleClick", "State", "UI"],
   reads: "어느 글자 칸을 두 번 눌렀는지와 누른 위치(커서를 놓을 자리), 그리고 편집 중에 누르는 Enter · Esc 키.",
   readouts: [
     { key: "mode", label: "모드" },

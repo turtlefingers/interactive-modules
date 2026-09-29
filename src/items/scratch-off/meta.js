@@ -30,7 +30,6 @@ export default {
     { label: "함께 쓰이는 것", items: [{ id: "freehand", text: "자유 그리기 (경로를 그대로 남김)" }, { id: "break-apart", text: "떼어내기" }] }
   ],
   references: [],
-  tags: ["Mouse", "Drag", "Reveal", "Particle", "Physics"],
   reads: "누른 채 지나간 경로 — 직전 위치와 현재 위치를 잇는 선분과 브러시 반지름으로 덮개 타일을 떼어내고, 떼어낸 비율을 누적한다.",
   readouts: [
     { key: "pct", label: "드러난 비율" },

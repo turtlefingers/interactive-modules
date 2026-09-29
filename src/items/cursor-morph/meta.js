@@ -34,7 +34,6 @@ export default {
     { name: "Apple HIG · Pointing devices", url: "https://developer.apple.com/design/human-interface-guidelines/pointing-devices", note: "iPadOS 포인터가 버튼 모양으로 변해 감싸는 방식의 원칙을 설명한다." },
     { name: "MDN · cursor", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/cursor", note: "운영체제가 제공하는 기본 커서 모양의 목록이다. 이것만으로는 모핑이 되지 않는다." }
   ],
-  tags: ["Mouse", "Hover", "Morph", "Scale", "Follow"],
   reads: "포인터 위치와, 그 위치 아래에 있는 요소의 종류(문단, 버튼, 링크, 사진 등). 감싸기 상태에서는 대상 버튼의 크기와 위치도 읽는다.",
   readouts: [
     { key: "zone", label: "올라간 영역" },

@@ -6,7 +6,26 @@
 - `<id>`는 `src/catalog.js`에 적힌 주소다. 주소가 곧 URL(`/<id>/`)이 된다.
 - 명칭과 뉘앙스는 프로젝트 루트의 `NAMING-REVIEW.md`를 따른다.
 - 새 npm 패키지를 추가하지 않는다. Canvas 2D, DOM/CSS(3D transform 포함), SVG, Web Audio만 쓴다.
-- 다른 항목 폴더나 공통 파일(`src/lib`, `src/pages`, `src/styles`, `catalog.js`)은 건드리지 않는다.
+- 다른 항목 폴더나 공통 파일(`src/lib`, `src/pages`, `src/styles`)은 건드리지 않는다. `catalog.js`는 새 항목을 목차에 올릴 때만 고친다(아래 0절).
+- 태그는 `meta.js`에 적지 않는다. 항목의 분류와 태그는 모두 `catalog.js`에 있다.
+
+---
+
+## 0. catalog.js — 목차와 태그
+
+목차는 **4부(누가 움직이는가) → 중분류(무엇을 읽는가) → 항목**의 두 층이다. 기준은 `handoff/theory/인터랙션-모듈-사전-분류체계-리서치.md` 6절이다.
+
+- `PARTS`: 4부와 그 안의 중분류(`groups`). 중분류마다 `id`("1-5"), `name`, `sub`, `desc`(한두 문장, ~이다체), `items`(항목 id 순서)가 있다. 제3부와 제4부는 이름 없는 중분류 하나(`name: null`)만 둔다.
+- `FACETS`: 태그 어휘. 값마다 주소용 영문 `id`와 화면용 한국어 `ko`가 있다.
+  - `effects` 효과 12 · `inputs` 입력 방식 12 · `timing` 시간 구조 7 — 메인 페이지 필터로 쓴다(`?effect=` `?input=` `?timing=`).
+  - `buxton` Buxton 상태 5 · `reads` 읽는 값 11 — 데이터로만 둔다.
+- `TAXONOMY`: 항목마다 `{ effects, inputs, timing, buxton, reads }`. 값은 `FACETS`의 한국어 이름으로 적고, 어휘 밖의 말을 새로 만들지 않는다. 입력이 전혀 없는 항목(예: 창 크기 반응)은 `inputs: []`.
+- `order`(전체 순서), `placeOf(id)`(→ `{ part, group }`)는 여기서 계산된다. 이전 · 다음 버튼과 `/dev/qa.html`이 `order`를 쓴다.
+
+**새 항목을 올릴 때**
+1. 알맞은 중분류의 `items`에 id를 넣는다. 한 항목은 한 자리에만 둔다. 다른 자리와 겹치는 성격은 태그로 표현한다.
+2. `TAXONOMY`에 같은 id로 한 줄을 더한다(효과 1~2, 입력 방식 1~2, 시간 1~2, Buxton, 읽는 값).
+3. 개발 서버 콘솔에 `[catalog]` 경고가 없는지 본다(목차와 TAXONOMY가 어긋나거나 어휘 밖의 값이 있으면 알린다).
 
 ---
 
@@ -16,7 +35,7 @@
 export default {
   name: "팬", nameEn: "Pan",              // NAMING-REVIEW.md의 확정 명칭
   aliases: ["Board 이동", "패닝"],          // 다른 이름: 노션 원래 이름, 다른 후보 명칭, 흔한 한국어 표현
-  input: "누르고 움직이기",                  // 입력 (카테고리 이름 또는 더 구체적인 입력)
+  input: "누르고 움직이기",                  // 입력 (입력 방식 이름 또는 더 구체적인 입력)
   effect: "보이는 영역 전체 이동",            // 효과: 짧은 명사구
   definition: "넓은 지면을 손으로 끌어 둘러보기", // 한 줄 정의: 20자 안팎
   hint: "누른 채 끌어서 둘러보기",            // 스테이지 왼쪽 위 안내. 무엇을 해보면 되는지 12자 안팎
@@ -30,7 +49,6 @@ export default {
     { label: "함께 쓰이는 것", items: [{ id: "zoom", text: "확대 · 축소" }] }
   ],
   references: [{ name: "Google Maps", url: "https://...", note: "한 줄 코멘트." }],
-  tags: ["Mouse", "Drag", "Translate"],    // catalog.js의 TAGS 어휘에서만 3~5개 (입력 1 + 동작 1 + 효과 1~3)
   reads: "이 인터랙션이 읽는 입력값 설명 한 문장",
   readouts: [{ key: "dx", label: "Δx 누른 뒤 가로 이동" }],   // 실시간 수치 2~4개 (2×2 격자로 보인다)
   variations: [                            // 변주 3~6개
@@ -134,5 +152,5 @@ export default function demo(api) {
 
 ```bash
 node --check src/items/<id>/demo.js
-node -e 'import("./src/items/<id>/meta.js").then(m=>{const d=m.default;const need=["name","nameEn","input","effect","definition","hint","description","uses","designPoints","prompts","tags","reads","readouts","variations"];const miss=need.filter(k=>!(k in d));if(miss.length)throw new Error("missing "+miss);console.log("ok",d.name)})'
+node -e 'import("./src/items/<id>/meta.js").then(m=>{const d=m.default;const need=["name","nameEn","input","effect","definition","hint","description","uses","designPoints","prompts","reads","readouts","variations"];const miss=need.filter(k=>!(k in d));if(miss.length)throw new Error("missing "+miss);console.log("ok",d.name)})'
 ```

@@ -34,7 +34,6 @@ export default {
     { name: "Button mashing — Wikipedia", url: "https://en.wikipedia.org/wiki/Button_mashing", note: "연타의 정의와 게임에서 쓰이는 방식을 정리했다." },
     { name: "Track & Field (video game) — Wikipedia", url: "https://en.wikipedia.org/wiki/Track_%26_Field_(video_game)", note: "두 버튼을 번갈아 두드려 달리는 연타 게임의 원조다. 한국에서는 하이퍼 올림픽으로 알려졌다." }
   ],
-  tags: ["Keyboard", "Press", "Count", "Timer", "State"],
   reads: "누른 횟수와 빠르기 — 누른 순간마다 게이지를 올리고, 최근 1초 동안 누른 횟수로 빠르기를 잰다.",
   readouts: [
     { key: "taps", label: "누른 횟수" },

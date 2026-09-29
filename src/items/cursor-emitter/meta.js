@@ -33,7 +33,6 @@ export default {
   references: [
     { name: "Particle system (위키백과)", url: "https://en.wikipedia.org/wiki/Particle_system", note: "이미터, 수명, 중력으로 입자를 다루는 방식의 기본 개념이다." }
   ],
-  tags: ["Mouse", "Move", "Spawn", "Particle"],
   reads: "커서 위치와 흐르는 시간 — 커서가 화면 안에 있는지만 확인하고, 시간에 비례해 입자를 만든다. 커서 속도는 입자가 출발하는 방향에만 조금 섞는다.",
   readouts: [
     { key: "rate", label: "지난 1초 동안 생긴 수" },

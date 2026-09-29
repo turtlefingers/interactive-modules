@@ -34,7 +34,6 @@ export default {
     { name: "Wikipedia — Parallax scrolling", url: "https://en.wikipedia.org/wiki/Parallax_scrolling", note: "2D 게임에서 여러 겹 배경으로 깊이를 만든 역사를 다룬다." },
     { name: "Parallax Engine (wagerfield/parallax)", url: "https://github.com/wagerfield/parallax", note: "커서 위치와 기기 기울기에 반응하는 여러 층 패럴랙스 라이브러리다." }
   ],
-  tags: ["Mouse", "Move", "Parallax", "Translate", "Camera"],
   reads: "스테이지 가운데를 0, 가장자리를 ±1로 둔 커서의 상대 위치(x, y). 각 층은 이 값에 자기 깊이를 곱한 만큼 움직인다.",
   readouts: [
     { key: "ratio", label: "커서 상대 위치 x, y" },

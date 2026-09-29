@@ -36,7 +36,6 @@ export default {
     { name: "MDN — WheelEvent", url: "https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent", note: "휠과 트랙패드 입력의 값(deltaY, ctrlKey)을 읽는 방법이다." },
     { name: "Apple HIG — Gestures", url: "https://developer.apple.com/design/human-interface-guidelines/gestures", note: "핀치로 확대하는 제스처의 기본 규칙이다." }
   ],
-  tags: ["Trackpad", "Pinch", "Scale", "Camera"],
   reads: "핀치의 벌어진 정도(트랙패드는 Ctrl이 붙은 휠 값, 터치는 두 손가락 사이 거리의 비율)와 그 순간의 커서 위치(확대 기준점)를 읽는다.",
   readouts: [
     { key: "scale", label: "배율 %" },

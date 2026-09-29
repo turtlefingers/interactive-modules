@@ -33,7 +33,6 @@ export default {
   references: [
     { name: "Apple HIG — Undo and redo", url: "https://developer.apple.com/design/human-interface-guidelines/undo-and-redo", note: "흔들어서 실행 취소(Shake to Undo)를 다룬다." }
   ],
-  tags: ["Mouse", "Move", "State", "Physics", "Count"],
   reads: "커서 움직임의 방향 전환. 한 방향으로 움직인 거리, 방향이 바뀐 시각을 기록해 최근 시간 창 안의 전환 횟수를 센다.",
   readouts: [
     { key: "rev", label: "방향 전환 · 시간 창 안" },

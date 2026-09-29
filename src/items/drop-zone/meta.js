@@ -33,7 +33,6 @@ export default {
     { name: "Apple HIG — Drag and drop", url: "https://developer.apple.com/design/human-interface-guidelines/drag-and-drop", note: "놓을 수 있는 목적지를 끄는 동안 강조하라고 권한다." },
     { name: "MDN — dragover event", url: "https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dragover_event", note: "개체가 목적지 위에 있는 동안 계속 알려주는 이벤트다. 영역 강조를 여기서 한다." }
   ],
-  tags: ["Mouse", "Drag", "Spawn", "Morph"],
   reads: "끄는 동안 개체가 어느 영역 위에 있는지, 그 자리가 비어 있는지. 놓는 순간의 위치가 영역 안이면 그 x 위치에 새것을 만든다.",
   readouts: [
     { key: "pos", label: "포인터 위치" },

@@ -35,7 +35,6 @@ export default {
     { name: "Scroll-driven Animations 예제 모음", url: "https://scroll-driven-animations.style/", note: "진행 막대, 가로 이동, 패럴랙스 같은 스크롤 연동 예제를 모아 두었다." },
     { name: "Parallax scrolling (위키백과)", url: "https://en.wikipedia.org/wiki/Parallax_scrolling", note: "고전 게임에서 시작된 층별 속도 차이 기법의 역사다." }
   ],
-  tags: ["Wheel", "Trackpad", "Scroll", "Translate", "Parallax"],
   reads: "휠 · 트랙패드의 스크롤 변화량(deltaY, deltaX) — 입력이 들어올 때마다 목표 위치에 더하고, 그 누적값을 전체 길이로 나눈 진행도로 보드를 옮긴다.",
   readouts: [
     { key: "delta", label: "마지막 스크롤 입력량" },

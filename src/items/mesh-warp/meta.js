@@ -35,7 +35,6 @@ export default {
     { name: "Wikipedia — Image warping", url: "https://en.wikipedia.org/wiki/Image_warping", note: "격자를 기준으로 이미지를 휘게 하는 방법의 개요다." },
     { name: "World of Goo", url: "https://2dboy.com/", note: "스프링으로 이어진 점들이 늘어나고 출렁이는 감각을 게임 전체로 만든 사례다." }
   ],
-  tags: ["Mouse", "Drag", "Deform", "Physics"],
   reads: "누른 위치에서 가장 가까운 꼭짓점과, 그 꼭짓점을 누른 뒤 끈 거리(Δx, Δy)를 읽는다. 주변 점은 잡은 점까지의 거리로 끌려오는 양이 정해진다.",
   readouts: [
     { key: "vertex", label: "잡은 꼭짓점 (열, 행)" },

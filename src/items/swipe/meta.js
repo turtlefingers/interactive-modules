@@ -35,7 +35,6 @@ export default {
     { name: "Material Design — Gestures", url: "https://m2.material.io/design/interaction/gestures.html", note: "스와이프로 치우기(swipe to dismiss)와 기준 거리 피드백을 다룬다." },
     { name: "Tinder", url: "https://tinder.com/", note: "카드를 좌우로 넘겨 고르는 스와이프를 서비스의 상징으로 만들었다." }
   ],
-  tags: ["Mouse", "Drag", "Translate", "Snap", "UI"],
   reads: "누른 뒤 한 방향으로 움직인 거리(Δx)와 손을 떼는 순간의 속도를 읽는다. 둘 중 하나라도 기준을 넘으면 실행한다.",
   readouts: [
     { key: "dx", label: "Δx 민 거리" },

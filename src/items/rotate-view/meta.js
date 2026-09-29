@@ -33,7 +33,6 @@ export default {
     { name: "Procreate", url: "https://procreate.com/", note: "두 손가락으로 캔버스를 돌리고 확대하는 드로잉 앱의 표준이다." },
     { name: "Apple HIG — Gestures", url: "https://developer.apple.com/design/human-interface-guidelines/gestures", note: "두 손가락 회전 제스처의 기본 규칙이다." }
   ],
-  tags: ["Trackpad", "Pinch", "Rotate", "Camera", "Snap"],
   reads: "두 손가락을 잇는 선의 각도 변화(터치), Shift가 눌린 휠 값(데스크톱), 또는 R을 누른 채 끌 때 화면 가운데에서 커서까지의 각도 변화를 읽는다. 그리고 회전 기준점의 위치를 읽는다.",
   readouts: [
     { key: "angle", label: "화면 각도 °" },

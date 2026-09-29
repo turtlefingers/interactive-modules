@@ -33,7 +33,6 @@ export default {
     { name: "MDN · ResizeObserver", url: "https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver", note: "창 전체가 아니라 요소 하나의 크기 변화를 알려준다." },
     { name: "위키백과 · Squash and stretch", url: "https://en.wikipedia.org/wiki/Squash_and_stretch", note: "디즈니 애니메이션 12원칙의 첫 번째, 찌그러지고 늘어나기다." }
   ],
-  tags: ["Window", "Deform", "Physics", "Scale"],
   reads: "창(요소)의 가로 · 세로 크기와 비율, 그리고 크기가 바뀌는 빠르기(초당 px).",
   readouts: [
     { key: "size", label: "창 크기 가로 × 세로" },

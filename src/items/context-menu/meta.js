@@ -34,7 +34,6 @@ export default {
     { name: "Apple HIG · Context menus", url: "https://developer.apple.com/design/human-interface-guidelines/context-menus", note: "자주 쓰는 명령만 짧게 담고, 같은 기능을 다른 곳에서도 찾을 수 있게 하라고 권한다." },
     { name: "Figma", url: "https://www.figma.com/", note: "캔버스와 레이어에서 우클릭하면 대상에 맞는 긴 메뉴가 열린다." }
   ],
-  tags: ["Mouse", "RightClick", "UI", "Select"],
   reads: "우클릭한 순간의 커서 위치와 그 아래에 있는 대상. 위치는 메뉴를 열 자리가 되고, 대상은 메뉴의 항목을 정한다.",
   readouts: [
     { key: "button", label: "누른 버튼" },

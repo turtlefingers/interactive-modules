@@ -36,7 +36,6 @@ export default {
     { name: "Faceted search (위키백과)", url: "https://en.wikipedia.org/wiki/Faceted_search", note: "여러 분류 기준을 조합해 좁혀가는 검색 방식이다." },
     { name: "Isotope", url: "https://isotope.metafizzy.co/", note: "필터 버튼을 누르면 격자가 미끄러지며 다시 배치되는 레이아웃 예시들이다." }
   ],
-  tags: ["Mouse", "Click", "Select", "Translate", "Count"],
   reads: "켜진 칩들의 조합과 결합 방식(AND / OR) — 이 조건으로 목록의 각 항목이 남을지 빠질지 정한다.",
   readouts: [
     { key: "count", label: "남은 개수" },

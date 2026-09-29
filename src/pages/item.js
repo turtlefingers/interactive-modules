@@ -1,6 +1,6 @@
 /* 상세 페이지 (/<id>/) */
 import "../styles/style.css";
-import { catOf, order } from "../catalog.js";
+import { order, placeOf, TAXONOMY, FILTERS, facetValue, partAnchor, groupAnchor } from "../catalog.js";
 import { items, loadDemo, itemHref, homeHref } from "../lib/items.js";
 import { createRuntime } from "../lib/runtime.js";
 
@@ -11,15 +11,29 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 const segs = location.pathname.split("/").filter(Boolean);
 const id = new URLSearchParams(location.search).get("id") || (segs.at(-1) === "item.html" ? "pan" : segs.at(-1)) || "pan";
 const meta = items[id];
-const cat = catOf(id);
+const place = placeOf(id);
 
 $(".logo").href = homeHref();
 const idx = order.indexOf(id);
 const setNav = (el, target) => { if (target) el.href = itemHref(target); else el.setAttribute("aria-disabled", "true"); };
 setNav($("#prevBtn"), order[idx - 1]); setNav($("#nextBtn"), order[idx + 1]);
-$("#crumb").innerHTML = cat
-  ? `<a class="hide-sm" href="${homeHref("#" + cat.id)}">${esc(cat.name)}</a><span class="hide-sm sep">/</span><b>${esc(meta ? meta.name : id)}</b>`
+// 경로: 제N부 이름 / 중분류 이름 / 항목 (제3·4부는 중분류가 없다)
+$("#crumb").innerHTML = place
+  ? `<a class="hide-sm" href="${homeHref("#" + partAnchor(place.part))}">${esc(place.part.no)} ${esc(place.part.name)}</a><span class="hide-sm sep">/</span>`
+    + (place.group.name ? `<a class="hide-sm" href="${homeHref("#" + groupAnchor(place.group))}">${esc(place.group.name)}</a><span class="hide-sm sep">/</span>` : "")
+    + `<b>${esc(meta ? meta.name : id)}</b>`
   : `<b>${esc(id)}</b>`;
+
+/* 태그 캡슐: 효과 · 입력 · 시간 세 줄. 누르면 그 필터를 건 메인 페이지로 간다 */
+const SHORT = { effects: "효과", inputs: "입력", timing: "시간" };
+function facetTagsHTML() {
+  const row = TAXONOMY[id] || {};
+  return FILTERS.map(f => {
+    const caps = (row[f.key] || []).map(ko => facetValue(f.key, ko)).filter(Boolean)
+      .map(v => `<a class="tag" href="${homeHref("", `?${f.param}=${v.id}`)}" title="${esc(f.label)} 「${esc(v.ko)}」 항목 모두 보기">${esc(v.ko)}</a>`);
+    return caps.length ? `<div class="tag-row"><b>${SHORT[f.key]}</b><div class="tags">${caps.join("")}</div></div>` : "";
+  }).join("");
+}
 
 if (!meta) {
   document.title = "준비 중 · 인터랙티브 모듈들";
@@ -90,7 +104,7 @@ function renderSidebar(I, S) {
     </section>` : ""}
 
     <div class="meta concept">
-      <div class="tags">${I.tags.map(t => `<a class="tag" href="${homeHref("", "?tag=" + encodeURIComponent(t))}" title="${esc(t)} 태그가 붙은 항목 보기">${esc(t)}</a>`).join("")}</div>
+      ${facetTagsHTML()}
       ${(I.aliases || []).length ? `<div class="aka"><b>다른 이름</b>${I.aliases.map(esc).join(", ")}</div>` : ""}
     </div>
 

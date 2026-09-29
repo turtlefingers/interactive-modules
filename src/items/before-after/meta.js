@@ -32,7 +32,6 @@ export default {
   references: [
     { name: "JuxtaposeJS (Knight Lab)", url: "https://juxtapose.knightlab.com/", note: "기자와 디자이너를 위한 전후 비교 슬라이더 도구다. 뉴스 인터랙티브에서 널리 쓰였다." }
   ],
-  tags: ["Mouse", "Move", "Reveal", "UI"],
   reads: "커서의 한 축 위치 — 가로 분할이면 x만, 세로 분할이면 y만 읽어서 화면 폭(또는 높이)에 대한 비율로 바꾼다. 나머지 축은 무시한다.",
   readouts: [
     { key: "pointer", label: "커서 위치 (한 축)" },

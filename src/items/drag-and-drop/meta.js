@@ -38,7 +38,6 @@ export default {
     { name: "MDN — HTML Drag and Drop API", url: "https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API", note: "웹에서 끌어다 놓기를 다루는 기본 개념을 정리한다." },
     { name: "Mr. Potato Head (Wikipedia)", url: "https://en.wikipedia.org/wiki/Mr._Potato_Head", note: "몸에 파츠를 끼워 꾸미는 장난감이다. 자리 스냅 놀이의 원형이다." }
   ],
-  tags: ["Mouse", "Drag", "Translate", "Snap"],
   reads: "누른 지점과 개체의 간격, 움직이는 포인터 위치, 그리고 놓는 순간의 위치가 어느 자리나 격자 칸에 해당하는지.",
   readouts: [
     { key: "pos", label: "개체 위치 x, y" },

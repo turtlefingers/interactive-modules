@@ -35,7 +35,6 @@ export default {
     { name: "Apple HIG · Gestures", url: "https://developer.apple.com/design/human-interface-guidelines/gestures", note: "두 번 탭하기를 확대 · 축소의 표준 제스처로 정리한다." },
     { name: "MDN · dblclick 이벤트", url: "https://developer.mozilla.org/en-US/docs/Web/API/Element/dblclick_event", note: "브라우저가 판정하는 더블클릭 이벤트다. 간격 기준은 운영체제 설정을 따른다." }
   ],
-  tags: ["Mouse", "DoubleClick", "Scale", "Camera"],
   reads: "두 클릭 사이 시간 간격과 거리, 그리고 누른 위치. 간격이 기준보다 짧고 거리가 가까우면 더블클릭이다.",
   readouts: [
     { key: "gap", label: "두 클릭 간격 ms" },

@@ -34,7 +34,6 @@ export default {
     { name: "Gacha game (위키백과)", url: "https://en.wikipedia.org/wiki/Gacha_game", note: "등급별 확률로 캐릭터와 아이템을 뽑는 게임 장르를 정리했다." },
     { name: "Random.org — Dice Roller", url: "https://www.random.org/dice/", note: "대기 잡음으로 만든 진짜 무작위로 주사위를 굴린다." }
   ],
-  tags: ["Mouse", "Click", "Timer", "Rotate", "Data"],
   reads: "버튼을 누른 순간 — 그 순간 무작위로 결과를 정하고, 정해진 시간 동안 연출한 뒤 보여준다.",
   readouts: [
     { key: "last", label: "마지막 결과" },

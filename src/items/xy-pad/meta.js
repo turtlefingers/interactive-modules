@@ -34,7 +34,6 @@ export default {
     { name: "Kaoss Pad — 위키백과(영문)", url: "https://en.wikipedia.org/wiki/Kaoss_Pad", note: "손가락으로 면을 문질러 두 효과 값을 동시에 조절하는 대표적인 XY 패드 장비다." },
     { name: "MDN — Web Audio API", url: "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API", note: "패드 값을 소리의 높이나 빠르기로 바꿀 때 쓰는 브라우저 기능이다." }
   ],
-  tags: ["Mouse", "Drag", "Data", "Sound", "UI"],
   reads: "누른 채 움직이는 포인터의 패드 안 위치 — 가로와 세로를 각각 0~1 값으로 바꿔 두 값을 동시에 읽는다.",
   readouts: [
     { key: "x", label: "x 값 (가로)" },

@@ -34,7 +34,6 @@ export default {
     { name: "Little Alchemy 2", url: "https://littlealchemy2.com/", note: "네 원소에서 시작해 수백 개의 조합을 찾아가는 대표적인 조합 게임이다." },
     { name: "Infinite Craft", url: "https://neal.fun/infinite-craft/", note: "끝없이 새 조합이 나오는 웹 조합 놀이다." }
   ],
-  tags: ["Mouse", "Click", "Select", "Spawn", "State"],
   reads: "칸에 넣은 재료의 조합 — 순서와 상관없이 어떤 재료들이 모였는지를 조합표와 맞춰본다.",
   readouts: [
     { key: "slots", label: "채운 칸" },

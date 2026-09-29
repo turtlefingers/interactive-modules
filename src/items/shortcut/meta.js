@@ -34,7 +34,6 @@ export default {
     { name: "Mac keyboard shortcuts — Apple Support", url: "https://support.apple.com/en-us/102650", note: "사용자가 이미 몸으로 익힌 단축키 목록이다. 이것과 겹치지 않게 설계한다." },
     { name: "Figma", url: "https://www.figma.com/", note: "⌘D, ⌘G, ⇧+방향키 같은 편집 단축키와 단축키 목록 패널의 좋은 예다." }
   ],
-  tags: ["Keyboard", "Press", "Spawn", "Select", "UI"],
   reads: "동시에 눌린 키 조합 — 글자 키가 눌린 순간 보조 키(⌘/Ctrl, ⇧, ⌥)가 함께 눌려 있는지를 보고 명령을 고른다.",
   readouts: [
     { key: "keys", label: "누르고 있는 키" },

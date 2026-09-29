@@ -32,7 +32,6 @@ export default {
   references: [
     { name: "League of Legends", url: "https://www.leagueoflegends.com/", note: "스킬 아이콘 위를 원형 스윕과 숫자로 덮는 쿨다운 표시의 대표 사례다." }
   ],
-  tags: ["Mouse", "Click", "Timer", "State", "UI"],
   reads: "클릭한 순간과 그 뒤로 흐른 시간 — 사용한 순간부터 시간을 재서 정해진 시간이 지나기 전의 클릭은 막는다.",
   readouts: [
     { key: "left", label: "남은 시간" },

@@ -34,7 +34,6 @@ export default {
     { name: "위키백과 · Screensaver", url: "https://en.wikipedia.org/wiki/Screensaver", note: "입력이 없는 시간이 지나면 켜지는 화면보호기의 역사다." },
     { name: "MDN · Idle Detection API", url: "https://developer.mozilla.org/en-US/docs/Web/API/Idle_Detection_API", note: "페이지 밖을 포함해 사용자가 자리를 비웠는지 알려주는 실험적 기능이다." }
   ],
-  tags: ["Mouse", "Idle", "Timer", "State"],
   reads: "마지막 입력(움직임, 클릭, 키, 휠) 뒤로 흐른 시간. 입력이 들어오는 순간 0으로 돌아간다.",
   readouts: [
     { key: "idle", label: "멈춘 시간" },

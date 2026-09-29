@@ -35,7 +35,6 @@ export default {
     { name: "ELIZA — Wikipedia", url: "https://en.wikipedia.org/wiki/ELIZA", note: "정해진 규칙만으로도 사람들이 대화 상대로 느꼈던 최초의 챗봇이다." },
     { name: "Composition events — MDN", url: "https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent", note: "한글처럼 글자를 조합하는 입력을 다룰 때 알아야 하는 이벤트다." }
   ],
-  tags: ["Keyboard", "Type", "Spawn", "Timer", "UI"],
   reads: "보낸 문장 — Enter를 누른 순간의 문장에서 아는 낱말을 찾아 답을 고르고, 답의 길이로 입력 중 표시 시간을 정한다.",
   readouts: [
     { key: "msgs", label: "말풍선 수" },

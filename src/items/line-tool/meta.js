@@ -34,7 +34,6 @@ export default {
     { name: "Sketchpad (Ivan Sutherland, 1963)", url: "https://en.wikipedia.org/wiki/Sketchpad", note: "라이트 펜으로 두 점을 찍어 직선을 긋던 최초의 그래픽 편집기다." },
     { name: "Figma", url: "https://www.figma.com/", note: "L 키로 선 도구를 켜고 Shift로 45° 단위로 고정한다." }
   ],
-  tags: ["Mouse", "Drag", "Draw", "Snap"],
   reads: "누른 위치(시작점)와 현재 커서 위치 두 점을 읽는다. 두 점 사이의 거리가 길이, atan2로 구한 방향이 각도가 된다. Shift 키가 눌렸는지도 읽는다.",
   readouts: [
     { key: "start", label: "시작점 x, y" },

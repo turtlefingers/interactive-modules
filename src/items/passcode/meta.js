@@ -33,7 +33,6 @@ export default {
     { name: "Personal identification number — Wikipedia", url: "https://en.wikipedia.org/wiki/Personal_identification_number", note: "PIN의 역사와 자릿수, 시도 제한 같은 보안 관례를 정리했다." },
     { name: "Vibration API — MDN", url: "https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API", note: "틀렸을 때 휴대폰을 짧게 진동시키는 방법이다(지원하는 기기에서만)." }
   ],
-  tags: ["Keyboard", "Type", "State", "Reveal", "UI"],
   reads: "누른 숫자와 그 개수 — 숫자를 하나씩 쌓다가 정해진 자릿수가 되는 순간 정답과 비교한다. 제한을 켜면 틀린 횟수도 센다.",
   readouts: [
     { key: "entered", label: "넣은 자릿수" },

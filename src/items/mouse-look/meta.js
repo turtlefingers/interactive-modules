@@ -33,7 +33,6 @@ export default {
   references: [
     { name: "Wikipedia — Mouselook", url: "https://en.wikipedia.org/wiki/Mouselook", note: "마우스로 시점을 돌리는 게임 조작의 역사를 다룬다." }
   ],
-  tags: ["Mouse", "Move", "Camera", "Translate"],
   reads: "스테이지 안에서 커서의 상대 위치(가로·세로 비율 0~1). 가장자리 방식에서는 커서가 가장자리에서 얼마나 가까운지를 읽는다.",
   readouts: [
     { key: "ratio", label: "커서 비율 x, y" },
