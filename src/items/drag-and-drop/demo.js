@@ -51,8 +51,8 @@ export default function demo(api) {
   /* ---------- 캐릭터: Open Peeps 사람 (서 있음). 파츠를 붙이면 그 부품(모자·안경·수염)을 쓴 모습으로 다시 그린다 ----------
      경계 상자는 기본 모습과 다 붙인 모습의 합집합으로 고정해, 부품이 바뀌어도 그림이 움직이지 않게 한다.
      높이 340(배율 1 기준) 상자에 세로 맞춤으로 넣는다 */
-  const COLORS = outfit(ILLO.blue);
-  const BASE = { body: "ShirtBW", face: "Calm", hair: "Short", accessory: "None", facialHair: "None", colors: COLORS };
+  const COLORS = outfit(ILLO.green);
+  const BASE = { body: "RestingBW", face: "Calm", hair: "Short", accessory: "None", facialHair: "None", colors: COLORS };
   const WEAR = { hat: ["hair", "Beanie"], glasses: ["accessory", "GlassRound"], beard: ["facialHair", "Full"] };
   const FULL = { ...BASE, hair: "Beanie", accessory: "GlassRound", facialHair: "Full" };
   const union = (a, b) => { const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y); return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y }; };
@@ -85,7 +85,7 @@ export default function demo(api) {
     partDef("glasses", "안경", ...WEAR.glasses),
     partDef("beard", "수염", ...WEAR.beard),
     { id: "sticker", name: "스티커", w: 40 + PAD * 2, h: 40 + PAD * 2, slot: null,
-      svg: `<svg viewBox="0 0 64 64"><path d="${starPath(32, 32, 28)}" fill="${ILLO.blue}"/></svg>` }
+      svg: `<svg viewBox="0 0 64 64"><path d="${starPath(32, 32, 28)}" fill="${ILLO.orange}"/></svg>` }
   ];
   const slotCount = PARTS.filter(p => p.slot).length;
 
