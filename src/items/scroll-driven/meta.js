@@ -33,7 +33,10 @@ export default {
   references: [
     { name: "MDN — CSS scroll-driven animations", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_scroll-driven_animations", note: "스크롤 진행도에 애니메이션을 묶는 웹 표준 기능의 설명이다." },
     { name: "Scroll-driven Animations 예제 모음", url: "https://scroll-driven-animations.style/", note: "진행 막대, 가로 이동, 패럴랙스 같은 스크롤 연동 예제를 모아 두었다." },
-    { name: "Parallax scrolling (위키백과)", url: "https://en.wikipedia.org/wiki/Parallax_scrolling", note: "고전 게임에서 시작된 층별 속도 차이 기법의 역사다." }
+    { name: "Parallax scrolling (위키백과)", url: "https://en.wikipedia.org/wiki/Parallax_scrolling", note: "고전 게임에서 시작된 층별 속도 차이 기법의 역사다." },
+    { name: "The Boat (SBS)", url: "https://www.sbs.com.au/theboat/", note: "스크롤하는 만큼 만화 칸들이 겹겹의 깊이 속을 지나가며 피난선 이야기가 한 칸씩 펼쳐진다." },
+    { name: "Nike Better World (archive)", url: "https://web.archive.org/web/20110106031017/http://nikebetterworld.com/index", note: "스크롤하면 배경 이미지와 앞의 글·사진이 서로 다른 속도로 움직이는 패럴랙스 스크롤의 초기 대표작이다." },
+    { name: "Firewatch", url: "https://www.firewatchgame.com/", note: "스크롤을 내리면 산과 숲을 그린 여덟 겹의 키아트 층이 서로 다른 속도로 올라가 깊이가 생긴다." }
   ],
   reads: "휠 · 트랙패드의 스크롤 변화량(deltaY, deltaX) — 입력이 들어올 때마다 목표 위치에 더하고, 그 누적값을 전체 길이로 나눈 진행도로 보드를 옮긴다.",
   readouts: [

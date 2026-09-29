@@ -31,7 +31,9 @@ export default {
   ],
   references: [
     { name: "Quick, Draw!", url: "https://quickdraw.withgoogle.com/", note: "자유 그리기로 그린 그림을 AI가 맞히는 구글의 실험이다." },
-    { name: "MDN — Pointer events", url: "https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events", note: "마우스, 터치, 펜 입력을 하나로 다루는 방법과 합쳐진 이벤트를 설명한다." }
+    { name: "MDN — Pointer events", url: "https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events", note: "마우스, 터치, 펜 입력을 하나로 다루는 방법과 합쳐진 이벤트를 설명한다." },
+    { name: "Draw a Stickman (Episode 1)", url: "https://drawastickman.com/episode1", note: "빈 종이에 마우스로 직접 그린 선이 그대로 졸라맨 주인공이 되어 모험을 떠난다." },
+    { name: "Silk", url: "http://weavesilk.com/", note: "누른 채 그린 선이 대칭으로 복제되며 빛나는 실처럼 흘러내려 한 획이 무늬가 된다." }
   ],
   reads: "누른 채 움직이는 동안 들어오는 포인터 위치의 연속(궤적)과 점 사이의 속도 — 손을 떼면 한 획으로 묶는다.",
   readouts: [

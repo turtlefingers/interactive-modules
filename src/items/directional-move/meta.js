@@ -33,7 +33,8 @@ export default {
   references: [
     { name: "Arrow keys — Wikipedia", url: "https://en.wikipedia.org/wiki/Arrow_keys", note: "방향키와 WASD 배치가 어떻게 굳어졌는지 정리되어 있다." },
     { name: "Tank controls — Wikipedia", url: "https://en.wikipedia.org/wiki/Tank_controls", note: "캐릭터 기준으로 전진과 회전을 나누는 상대 좌표 조작이다." },
-    { name: "KeyboardEvent.code — MDN", url: "https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code", note: "입력 언어와 상관없이 키의 물리적 위치를 읽는 방법이다." }
+    { name: "KeyboardEvent.code — MDN", url: "https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code", note: "입력 언어와 상관없이 키의 물리적 위치를 읽는 방법이다." },
+    { name: "Bruno Simon", url: "https://bruno-simon.com/", note: "방향키나 WASD로 작은 차를 몰아 3D 섬을 돌아다니며 포트폴리오 작업을 찾아간다." }
   ],
   reads: "누르고 있는 방향키의 조합 — 매 프레임 눌린 키들로 가로·세로 입력 벡터(-1~1)를 만들고, 그 방향과 길이로 속도를 정한다.",
   readouts: [

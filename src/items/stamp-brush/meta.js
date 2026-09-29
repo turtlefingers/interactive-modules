@@ -29,7 +29,9 @@ export default {
     { label: "헷갈리는 개념", items: [{ id: "freehand", text: "자유 그리기 (경로가 선으로 이어짐)" }, { id: "cursor-emitter", text: "커서 이미터 (시간마다 입자를 내뿜음)" }] },
     { label: "함께 쓰이는 것", items: [{ id: "cursor-trail", text: "커서 트레일" }, { id: "undo-redo", text: "실행 취소 · 다시 실행" }] }
   ],
-  references: [],
+  references: [
+    { name: "Texter", url: "https://tholman.com/texter/", note: "누른 채 끌면 지나간 경로를 따라 문장의 글자가 하나씩 찍히고, 빠르게 끌수록 글자가 커진다." }
+  ],
   reads: "누른 채 움직인 누적 거리와 진행 방향 — 거리가 간격을 넘을 때마다 한 번 찍고, 방향으로 모양의 각도를 정한다.",
   readouts: [
     { key: "count", label: "찍힌 모양" },

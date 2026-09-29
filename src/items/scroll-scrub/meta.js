@@ -33,7 +33,9 @@ export default {
     { name: "Apple — AirPods Pro", url: "https://www.apple.com/airpods-pro/", note: "스크롤에 맞춰 제품이 돌고 열리는 이미지 시퀀스의 대표 사례다." },
     { name: "CSS-Tricks — Let's Make One of Those Fancy Scrolling Animations Used on Apple Product Pages", url: "https://css-tricks.com/lets-make-one-of-those-fancy-scrolling-animations-used-on-apple-product-pages/", note: "프레임을 미리 불러와 스크롤 진행도로 캔버스에 그리는 방법을 차근차근 설명한다." },
     { name: "GSAP — ScrollTrigger", url: "https://gsap.com/docs/v3/Plugins/ScrollTrigger/", note: "scrub 옵션이 스크롤 위치를 애니메이션 재생 위치에 묶는다. 숫자를 주면 늦게 따라가며 부드러워진다." },
-    { name: "MDN — animation-timeline", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timeline", note: "애니메이션의 시간축을 스크롤 진행도로 바꾸는 웹 표준 기능이다." }
+    { name: "MDN — animation-timeline", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timeline", note: "애니메이션의 시간축을 스크롤 진행도로 바꾸는 웹 표준 기능이다." },
+    { name: "MANA yerba mate", url: "https://en.manayerbamate.com/", note: "스크롤을 내리면 화면에 고정된 3D 캔이 스크롤 위치에 맞춰 한 바퀴 돌고, 원형 카드판이 함께 회전한다." },
+    { name: "Every Last Drop", url: "https://everylastdrop.co.uk/", note: "스크롤을 내리면 한 사람의 하루 장면이 스크롤 위치에 맞춰 이어 재생되고, 올리면 거꾸로 되감긴다." }
   ],
   reads: "스크롤 영역의 현재 스크롤 위치(scrollTop) — 이것을 스크롤할 수 있는 전체 길이로 나눈 진행도로 몇 번째 프레임(또는 영상의 몇 초)을 보여줄지 정한다.",
   readouts: [
