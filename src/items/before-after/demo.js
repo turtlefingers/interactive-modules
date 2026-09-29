@@ -1,7 +1,7 @@
 import { clamp, localPoint, fitCanvas } from "../../lib/util.js";
 import { ILLO, TONE } from "../../lib/draw.js";
 import "../../lib/objects/index.js";
-import { drawObject } from "../../lib/objects.js";
+import { drawObject, SKY } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -24,37 +24,24 @@ export default function demo(api) {
   const FILTER_NAMES = { gray: "흑백", sepia: "빈티지", invert: "반전", pixel: "픽셀" };
 
   /* ---------- 그림: 카탈로그 풍경 (sun-disc · mountain-range · hill-set · bush-tree).
-     원본 쪽은 채도 있는 색으로 칠한다 — 흑백·빈티지 필터와의 차이가 한눈에 읽혀야 하기 때문이다.
-     카탈로그 사물은 톤(회갈색)으로 그려지므로, 층마다 오프스크린에 그린 뒤 'color' 블렌드로 색조만 입힌다 (명암은 그대로). ---------- */
+     원본 쪽은 채도 있는 색 — 사물 색조는 카탈로그 팔레트(objects/palette.js)가 입히고, 하늘은 SKY. 필터와의 차이가 한눈에 읽힌다. ---------- */
   const before = document.createElement("canvas"), after = document.createElement("canvas"), tmp = document.createElement("canvas");
-  const layerA = document.createElement("canvas"), layerB = document.createElement("canvas");
-  const COLORS = { sky: "#d6e6f3", mountain: "#5a80b8", hill: "#5aa060", tree: "#245c3a" };
-  const tinted = (c, w, h, dpr, color, draw) => {
-    layerA.width = layerB.width = Math.round(w * dpr); layerA.height = layerB.height = Math.round(h * dpr);
-    const a = layerA.getContext("2d"); a.setTransform(dpr, 0, 0, dpr, 0, 0); draw(a);
-    const b = layerB.getContext("2d"); b.setTransform(1, 0, 0, 1, 0, 0);
-    b.globalCompositeOperation = "source-over"; b.drawImage(layerA, 0, 0);
-    b.globalCompositeOperation = "color"; b.fillStyle = color; b.fillRect(0, 0, layerB.width, layerB.height);
-    b.globalCompositeOperation = "destination-in"; b.drawImage(layerA, 0, 0);
-    b.globalCompositeOperation = "source-over";
-    c.drawImage(layerB, 0, 0, w, h);
-  };
-  const drawScene = (c, w, h, dpr) => {
-    c.fillStyle = COLORS.sky; c.fillRect(0, 0, w, h);
+  const drawScene = (c, w, h) => {
+    c.fillStyle = SKY; c.fillRect(0, 0, w, h);
     const m = Math.min(w, h);
     // 넓은 사물은 옆으로 이어 붙인다 (교대로 뒤집어 이음새를 맞춘다). 아래는 fill 색으로 채운다
-    const tile = (k2, name, base, oh, wf, fill) => {
+    const tile = (name, base, oh, wf, fill) => {
       const W = Math.round(oh * wf), n = Math.ceil(w / W) + 2, y = Math.round(base);
-      k2.fillStyle = fill; k2.fillRect(-10, y - 1, w + 20, h - y + 11);
-      for (let k = 0; k < n; k++) drawObject(k2, name, Math.round(w / 2) + (k - Math.floor(n / 2)) * W, y, W / wf, { flip: k % 2 === 1 });
+      c.fillStyle = fill; c.fillRect(-10, y - 1, w + 20, h - y + 11);
+      for (let k = 0; k < n; k++) drawObject(c, name, Math.round(w / 2) + (k - Math.floor(n / 2)) * W, y, W / wf, { flip: k % 2 === 1 });
     };
     const sh = m * 0.36;
     drawObject(c, "sun-disc", w * 0.7 - sh * 0.08, h * 0.3 + sh * 0.55, sh, { color: ILLO.orange });
-    tinted(c, w, h, dpr, COLORS.mountain, k2 => tile(k2, "mountain-range", h * 0.64, h * 0.19, 3.2, TONE[1]));
-    tinted(c, w, h, dpr, COLORS.hill, k2 => tile(k2, "hill-set", h * 0.84, h * 0.25, 3, TONE[3]));
+    tile("mountain-range", h * 0.64, h * 0.19, 3.2, "#9fbad6");   // 산 아래는 옅은 파랑: 안개 낀 호수처럼 읽힌다
+    tile("hill-set", h * 0.84, h * 0.25, 3, "#4f9552");
     // 나무: 앞 들판에 선 가늘고 긴 어두운 실루엣
     [[0.08, 1.1], [0.14, 0.8], [0.3, 0.95], [0.52, 1.2], [0.6, 0.7], [0.78, 1.15], [0.85, 0.85], [0.95, 1]].forEach(([x, s], i) =>
-      drawObject(c, "bush-tree", w * x, h * 0.86 + s * m * 0.02, m * 0.16 * s, { color: COLORS.tree, flip: i % 3 === 1 }));
+      drawObject(c, "bush-tree", w * x, h * 0.86 + s * m * 0.02, m * 0.16 * s, { flip: i % 3 === 1 }));
   };
   const applyFilter = (src, dst, type, dpr) => {
     const W = src.width, H = src.height;
@@ -88,7 +75,7 @@ export default function demo(api) {
     if (!w || !h) return;
     before.width = tmp.width = Math.round(w * dpr); before.height = tmp.height = Math.round(h * dpr);
     const c = before.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawScene(c, w, h, dpr);
+    drawScene(c, w, h);
     applyFilter(before, after, S.filter, dpr);
     builtFor = `${w}x${h}@${dpr}`;
   };

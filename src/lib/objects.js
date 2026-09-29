@@ -9,10 +9,25 @@
            (x, y)는 아래 가운데, h는 높이. 색은 o.color(주색)와 o.accent(상태 강조색)만 쓴다.
    ============================================================ */
 import { PICKS, APPROVED_ALL } from "./objects/picks.js";
-export { PICKS, APPROVED_ALL };
+import { TINT, SKY } from "./objects/palette.js";
+export { PICKS, APPROVED_ALL, TINT, SKY };
 
 export const OBJECTS = {};
 export function registerObject(name, def) { OBJECTS[name] = def; }
+
+/* 색조 입히기: 오프스크린에 톤으로 그린 뒤 'color' 블렌드로 색조만 바꾸고, 원래 알파로 잘라낸다 */
+const offA = document.createElement("canvas"), offB = document.createElement("canvas");
+function drawTinted(g, v, h, o, tint) {
+  const dpr = window.devicePixelRatio || 1, W = Math.ceil(h * 4), H = Math.ceil(h * 2.2), by = Math.round(H * 0.8);
+  offA.width = offB.width = Math.ceil(W * dpr); offA.height = offB.height = Math.ceil(H * dpr);
+  const a = offA.getContext("2d"); a.setTransform(dpr, 0, 0, dpr, 0, 0); a.translate(W / 2, by);
+  v.draw(a, 0, 0, h, o);
+  const b = offB.getContext("2d"); b.setTransform(1, 0, 0, 1, 0, 0);
+  b.globalCompositeOperation = "source-over"; b.drawImage(offA, 0, 0);
+  b.globalCompositeOperation = "color"; b.fillStyle = tint; b.fillRect(0, 0, offB.width, offB.height);
+  b.globalCompositeOperation = "destination-in"; b.drawImage(offA, 0, 0);
+  g.drawImage(offB, -W / 2, -by, W, H);
+}
 
 export function drawObject(g, name, x, y, h, o = {}) {
   const def = OBJECTS[name]; if (!def) return false;
@@ -23,8 +38,10 @@ export function drawObject(g, name, x, y, h, o = {}) {
   g.translate(x, y);
   if (o.angle) g.rotate(o.angle);
   if (o.flip) g.scale(-1, 1);
-  // 등록 시 준 기본색(def.color)을 검사 페이지와 같게 기본으로 쓴다.
-  v.draw(g, 0, 0, h, { t: 0, state: 0, color: def.color, ...o });
+  // 등록 시 준 기본색(def.color)을 검사 페이지와 같게 기본으로 쓴다. 색조(TINT)가 있으면 입힌다.
+  const opts = { t: 0, state: 0, color: def.color, ...o };
+  const tint = o.tint === undefined ? TINT[name] : o.tint;
+  if (tint) drawTinted(g, v, h, opts, tint); else v.draw(g, 0, 0, h, opts);
   g.restore();
   return true;
 }

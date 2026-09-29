@@ -1,7 +1,7 @@
 import { rng, clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
 import { TONE as T, shape } from "../../lib/draw.js";
 import "../../lib/objects/index.js";
-import { drawObject } from "../../lib/objects.js";
+import { drawObject, SKY } from "../../lib/objects.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -11,7 +11,7 @@ export default function demo(api) {
   const NAME = ["해", "먼 산", "가까운 산", "언덕", "땅", "풀잎"];
 
   api.css(`
-    .mouse-parallax-demo { position: absolute; inset: 0; cursor: crosshair; touch-action: none; background: var(--board); overflow: hidden; }
+    .mouse-parallax-demo { position: absolute; inset: 0; cursor: crosshair; touch-action: none; background: ${SKY}; overflow: hidden; }
     .mouse-parallax-scene { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
     .mouse-parallax-guide { position: absolute; right: 16px; bottom: 16px; z-index: 40; pointer-events: none;
       background: var(--board); border: 1px solid var(--ink); border-radius: var(--r-box); padding: 8px 10px; transition: opacity .3s; }
@@ -51,7 +51,7 @@ export default function demo(api) {
   // 모든 층은 외곽선 없는 톤 면으로 그린다. 색은 해(강조색) 하나뿐이다
   const drawLayer = (i, w, h, ox, oy) => {
     g.save(); g.translate(i === 1 || i === 2 ? Math.round(ox) : ox, i === 1 || i === 2 ? Math.round(oy) : oy);
-    const fill = TONE[i];
+    const fill = i === 3 ? "#6fae63" : i === 4 ? "#4f9552" : TONE[i];   // 언덕·앞 들판은 초록 (사물 색조 팔레트와 맞춘다)
     const X0 = -w * 0.5, X1 = w * 1.5, BOT = h + 200;
     if (i === 0) {
       const sh = Math.min(w, h) * 0.3;
