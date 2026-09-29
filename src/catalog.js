@@ -34,7 +34,7 @@ export const categories = [
     items: ["pan", "slingshot", "fling", "drag-and-drop", "break-apart", "merge", "drop-zone", "reorder", "mesh-warp", "node-wiring", "line-tool", "shape-tool", "rotary-knob", "swipe", "pull-out"] },
   { id: "scroll", name: "스크롤", en: "Scroll",
     desc: "휠이나 트랙패드로 내린다. 스크롤한 양이 곧 진행도다.",
-    items: ["scroll-driven"] },
+    items: ["scroll-driven", "scroll-scrub"] },
   { id: "button", name: "버튼", en: "Button",
     desc: "입력은 클릭이지만, 버튼을 어떻게 배치하고 엮느냐가 경험을 만든다.",
     items: ["step-sequencer", "configurator", "branching-choice", "randomizer", "undo-redo", "filter-chips", "tabs-accordion", "crafting"] },

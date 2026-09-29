@@ -111,6 +111,8 @@ const CUSTOM = {
   "swipe": `<rect x="2.5" y="7.5" width="19" height="9" rx="4.5"/><circle cx="7" cy="12" r="2.6" fill="currentColor"/><path d="M12.5 10l2 2-2 2M16.5 10l2 2-2 2"/>`,
   // 스크롤한 만큼 진행된다
   "scroll-driven": `<rect x="3" y="3" width="13" height="18" rx="2"/><path d="M6 8h7M6 12h5"/><path d="M20 3v18" stroke-width="1.2"/><rect x="18.5" y="9" width="3" height="6" rx="1.5" fill="currentColor"/>`,
+  // 스크롤 막대의 위치가 곧 필름의 재생 위치다
+  "scroll-scrub": `<rect x="2.5" y="5" width="14" height="14" rx="2"/><path d="M2.5 8.5h14M2.5 15.5h14"/><path d="M8 10.3v3.4l3-1.7z" fill="currentColor" stroke-width="1.2"/><path d="M20.5 3v18" stroke-width="1.2"/>${dot(20.5, 12, 1.9)}`,
   // 켜진 칸을 재생선이 지나간다
   "step-sequencer": `<rect x="3" y="4" width="4" height="4" rx="1" fill="currentColor"/><rect x="10" y="4" width="4" height="4" rx="1"/><rect x="17" y="4" width="4" height="4" rx="1" fill="currentColor"/><rect x="3" y="11" width="4" height="4" rx="1"/><rect x="10" y="11" width="4" height="4" rx="1" fill="currentColor"/><rect x="17" y="11" width="4" height="4" rx="1"/><path d="M12 2v19" stroke-width="1.3"/>`,
   // 왼쪽 옵션을 고르면 오른쪽 결과가 바뀐다
