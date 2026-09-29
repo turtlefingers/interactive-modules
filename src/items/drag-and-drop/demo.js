@@ -1,8 +1,6 @@
 import { clamp, dist, localPoint } from "../../lib/util.js";
-import { ILLO, TONE } from "../../lib/draw.js";
-import { peepSVG, peepBox, outfit } from "../../lib/figure.js";
-import { objectCanvas } from "../../lib/objects.js";
-import "../../lib/objects/index.js";
+import { ILLO } from "../../lib/draw.js";
+import { peepSVG, peepBox, peepPartSVG, peepPartBox, outfit } from "../../lib/figure.js";
 
 export default function demo(api) {
   const { el, S } = api;
@@ -16,7 +14,8 @@ export default function demo(api) {
     .drag-and-drop-tray { position: absolute; border: 1px dashed rgba(0,0,0,.2); border-radius: 18px; pointer-events: none; }
     .drag-and-drop-tray span { position: absolute; left: 14px; top: 10px; font-size: 13px; color: var(--ink-3); }
     .drag-and-drop-char { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 1; }
-    .drag-and-drop-char svg, .drag-and-drop-part svg, .drag-and-drop-part canvas { display: block; width: 100% !important; height: 100% !important; overflow: visible; }
+    .drag-and-drop-char svg { display: block; width: 100% !important; height: 100% !important; overflow: visible; }
+    .drag-and-drop-part svg { position: absolute; display: block; overflow: visible; }
     .drag-and-drop-slot { position: absolute; left: 0; top: 0; border-radius: 50%; border: 2px dashed var(--ink-3);
       opacity: 0; transform: scale(.7); transition: opacity .2s, transform .25s cubic-bezier(.3,1.6,.5,1), background-color .2s, border-color .2s;
       pointer-events: none; z-index: 2; }
@@ -27,8 +26,8 @@ export default function demo(api) {
     .drag-and-drop-ghost { position: absolute; left: 0; top: 0; border: 2px dashed var(--accent); border-radius: 12px; opacity: 0;
       pointer-events: none; transition: opacity .15s; z-index: 3; }
     .drag-and-drop-ghost.is-shown { opacity: .8; }
-    .drag-and-drop-part { position: absolute; left: 0; top: 0; cursor: grab; touch-action: none;
-      transition: transform .38s cubic-bezier(.3,1.35,.5,1), opacity .3s; }
+    .drag-and-drop-part { position: absolute; left: 0; top: 0; cursor: grab; touch-action: none; }
+    .drag-and-drop-root.is-live .drag-and-drop-part { transition: transform .38s cubic-bezier(.3,1.35,.5,1), opacity .3s; }
     .drag-and-drop-part.is-held { transition: none; }
     .drag-and-drop-part.is-held.is-step { transition: transform .08s ease-out; }
     .drag-and-drop-part-in { width: 100%; height: 100%; transition: transform .22s cubic-bezier(.3,1.6,.5,1), filter .22s;
@@ -39,6 +38,8 @@ export default function demo(api) {
     .drag-and-drop-root:not(.lift) .drag-and-drop-part .drag-and-drop-part-in { transform: none; }
     .drag-and-drop-part { opacity: 1; }
     .drag-and-drop-root.blend .drag-and-drop-part { mix-blend-mode: multiply; opacity: .78; }
+    /* 붙은 파츠: 사람 그림이 그 파츠를 쓴 모습으로 다시 그려지므로 썸네일은 투명해진다(집을 수 있게 자리는 지킨다) */
+    .drag-and-drop-root .drag-and-drop-part.is-attached { opacity: 0; }
   `);
 
   const root = document.createElement("div");
@@ -47,28 +48,43 @@ export default function demo(api) {
   const gridEl = document.createElement("div"); gridEl.className = "drag-and-drop-gridlines"; root.appendChild(gridEl);
   const tray = document.createElement("div"); tray.className = "drag-and-drop-tray"; tray.innerHTML = "<span>파츠</span>"; root.appendChild(tray);
 
-  /* ---------- 캐릭터: Open Peeps 사람 (서 있음). 경계 상자를 재서 높이 340(배율 1 기준) 상자에 세로 맞춤으로 넣는다 ---------- */
-  const INK = ILLO.ink;
-  const FIG = { body: "ShirtBW", face: "Calm", hair: "Short", colors: outfit(ILLO.blue) };
-  const BOX = peepBox(FIG);                 // peepInner 좌표계 {x, y, w, h}
-  const CH = 340, U = CH / BOX.h, CW = BOX.w * U;   // U: 그림 단위 → 배율 1 px
+  /* ---------- 캐릭터: Open Peeps 사람 (서 있음). 파츠를 붙이면 그 부품(모자·안경·수염)을 쓴 모습으로 다시 그린다 ----------
+     경계 상자는 기본 모습과 다 붙인 모습의 합집합으로 고정해, 부품이 바뀌어도 그림이 움직이지 않게 한다.
+     높이 340(배율 1 기준) 상자에 세로 맞춤으로 넣는다 */
+  const COLORS = outfit(ILLO.blue);
+  const BASE = { body: "ShirtBW", face: "Calm", hair: "Short", accessory: "None", facialHair: "None", colors: COLORS };
+  const WEAR = { hat: ["hair", "Beanie"], glasses: ["accessory", "GlassRound"], beard: ["facialHair", "Full"] };
+  const FULL = { ...BASE, hair: "Beanie", accessory: "GlassRound", facialHair: "Full" };
+  const union = (a, b) => { const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y); return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y }; };
+  const BOX = union(peepBox(BASE), peepBox(FULL));   // peepInner 좌표계 {x, y, w, h}
+  const CH = 340, U = CH / BOX.h, CW = BOX.w * U;    // U: 그림 단위 → 배율 1 px
   const charEl = document.createElement("div");
   charEl.className = "drag-and-drop-char";
-  charEl.innerHTML = peepSVG(FIG);
   root.appendChild(charEl);
+  const worn = {};                                    // kind → 부품 이름 (붙은 것만)
+  const renderFigure = () => { charEl.innerHTML = peepSVG({ ...BASE, ...worn }, BOX); };
+  renderFigure();
 
-  /* ---------- 파츠: 사물 카탈로그(hat, glasses, scarf, bag)를 objectCanvas 로 그린다. 스티커만 실루엣 SVG ----------
-     자리(slot)는 peepInner 좌표(머리 그룹 translate(225 0), 짧은 머리의 머리통 x 270~665 · y 110~585, 얼굴 translate(384 186))로 적고
-     캐릭터 상자(CW×CH) 기준 px로 바꿔 둔다: 머리 위, 눈, 목, 손. 스티커는 아무 데나
-     w·h 는 배율 1일 때 파츠 상자 크기이며 캔버스 비례와 같아야 한다 (pad 가 음수면 사물 위 여백을 잘라 상자를 꼭 맞춘다) */
-  const at = (ix, iy) => [(ix - BOX.x) * U, (iy - BOX.y) * U];
+  /* ---------- 파츠: 사람 그림의 부품 그 자체를 잘라 낸 썸네일 (같은 선·같은 색). 스티커만 자리 없는 실루엣 ----------
+     자리(slot)는 그 부품의 경계 상자 가운데(peepInner 좌표: 머리 그룹 translate(225 0) 안의 hair / accessory(47 241) / facialHair(123 338))이고,
+     썸네일 viewBox 도 같은 상자이므로 자리에 맞춰 놓으면 사람 그림의 부품과 정확히 겹친다(그 뒤 그림을 다시 그리고 썸네일은 투명해진다).
+     썸네일 크기는 사람 그림과 같은 배율(U)이며, 집기 쉽도록 상자 둘레에 PAD px 를 더한다.
+     모자(Beanie)는 머리 부품에 머리통이 같이 들어 있어, 띠 아랫선(왼쪽 x 250·y≈215 → 오른쪽 x 600·y≈132)을 따라 비스듬히 오려 낸다 */
+  const PAD = 10;
+  const hatBox = peepPartBox("hair", "Beanie");
+  const HAT = { x: hatBox.x, y: hatBox.y, w: hatBox.w, h: 180 };
+  const hatClip = `M${HAT.x - 40} ${HAT.y - 40}H${HAT.x + HAT.w + 40}V119L${HAT.x - 40} 239Z`;
+  const partDef = (id, name, kind, part, extra = {}) => {
+    const box = extra.box || peepPartBox(kind, part);
+    return { id, name, kind, part, box, w: box.w * U + PAD * 2, h: box.h * U + PAD * 2, slot: [(box.x + box.w / 2 - BOX.x) * U, (box.y + box.h / 2 - BOX.y) * U],
+      svg: peepPartSVG(kind, part, { colors: COLORS, pad: 0, box, clip: extra.clip }) };
+  };
   const starPath = (cx, cy, r) => Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; return `${i ? "L" : "M"}${(cx + Math.cos(a) * rr).toFixed(1)} ${(cy + Math.sin(a) * rr).toFixed(1)}`; }).join(" ") + " Z";
   const PARTS = [
-    { id: "hat", name: "모자", w: 66, h: 44, slot: at(467, 110), obj: () => objectCanvas("hat", 40, { color: TONE[5] }, { w: 66, pad: 2 }) },
-    { id: "glasses", name: "안경", w: 70, h: 24, slot: at(484, 305), obj: () => objectCanvas("glasses", 40, { color: INK }, { w: 70, pad: -8 }) },
-    { id: "scarf", name: "목도리", w: 60, h: 44, slot: at(460, 620), obj: () => objectCanvas("scarf", 60, { color: ILLO.red }, { w: 60, pad: -8 }) },
-    { id: "bag", name: "가방", w: 40, h: 68, slot: at(-140, 1780), obj: () => objectCanvas("bag", 60, { color: TONE[4] }, { w: 40, pad: 4 }) },
-    { id: "sticker", name: "스티커", w: 50, h: 50, slot: null,
+    partDef("hat", "모자", ...WEAR.hat, { box: HAT, clip: hatClip }),
+    partDef("glasses", "안경", ...WEAR.glasses),
+    partDef("beard", "수염", ...WEAR.beard),
+    { id: "sticker", name: "스티커", w: 40 + PAD * 2, h: 40 + PAD * 2, slot: null,
       svg: `<svg viewBox="0 0 64 64"><path d="${starPath(32, 32, 28)}" fill="${ILLO.blue}"/></svg>` }
   ];
   const slotCount = PARTS.filter(p => p.slot).length;
@@ -77,14 +93,15 @@ export default function demo(api) {
   const parts = PARTS.map((d, i) => {
     const node = document.createElement("div");
     node.className = "drag-and-drop-part";
-    node.innerHTML = `<div class="drag-and-drop-part-in">${d.svg || ""}</div>`;
-    if (d.obj) node.firstElementChild.appendChild(d.obj());
+    node.innerHTML = `<div class="drag-and-drop-part-in">${d.svg}</div>`;
     node.style.zIndex = 10 + i;
     root.appendChild(node);
     let slotEl = null;
     if (d.slot) { slotEl = document.createElement("div"); slotEl.className = "drag-and-drop-slot"; root.appendChild(slotEl); }
-    return { d, i, node, slotEl, x: 0, y: 0, attached: false, moved: false, z: 10 + i };
+    return { d, i, node, slotEl, x: 0, y: 0, attached: false, moved: false, z: 10 + i, svg: node.querySelector("svg") };
   });
+  /* 붙였다 뗐다: 사람 그림을 다시 그린다 */
+  const wear = (p, on) => { if (!p.d.kind) return; if (on) worn[p.d.kind] = p.d.part; else delete worn[p.d.kind]; renderFigure(); };
   const ghost = document.createElement("div"); ghost.className = "drag-and-drop-ghost"; root.appendChild(ghost);
 
   /* ---------- 배치 ---------- */
@@ -108,8 +125,9 @@ export default function demo(api) {
     Object.assign(tray.style, { left: tr.x + "px", top: tr.y + "px", width: tr.w + "px", height: tr.h + "px" });
     Object.assign(charEl.style, { width: CW * L.s + "px", height: CH * L.s + "px", transform: `translate(${L.cx - CW / 2 * L.s}px, ${L.cy - CH / 2 * L.s}px)` });
     parts.forEach(p => {
-      const pw = p.d.w * L.s, ph = p.d.h * L.s;
+      const pw = p.d.w * L.s, ph = p.d.h * L.s, pad = PAD * L.s;
       p.node.style.width = pw + "px"; p.node.style.height = ph + "px";
+      Object.assign(p.svg.style, { left: pad + "px", top: pad + "px", width: pw - pad * 2 + "px", height: ph - pad * 2 + "px" });
       if (p.slotEl) {
         const sp = slotPos(p.d), r = Math.max(p.d.w, p.d.h) * L.s * 0.62;
         Object.assign(p.slotEl.style, { width: r * 2 + "px", height: r * 2 + "px", left: sp.x - r + "px", top: sp.y - r + "px" });
@@ -121,6 +139,8 @@ export default function demo(api) {
   };
   layout();
   api.onResize(layout);
+  // 첫 배치는 전환 없이 제자리에 놓고, 그 뒤부터 움직임에 전환을 건다 (처음 그릴 때 왼쪽 위에서 날아오지 않게)
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add("is-live")));
 
   const applyModes = () => {
     root.classList.toggle("show-grid", !!S.snapGrid);
@@ -158,7 +178,7 @@ export default function demo(api) {
     const pt = localPoint(root, e);
     drag.p = p; drag.ox = p.x - pt.x; drag.oy = p.y - pt.y; drag.sx = p.x; drag.sy = p.y; drag.moved = 0;
     drag.cand = { kind: "free", x: p.x, y: p.y };
-    if (p.attached) { p.attached = false; api.flash(`${p.d.name} 떼어냄`, "alt", 900); }
+    if (p.attached) { p.attached = false; wear(p, false); api.flash(`${p.d.name} 떼어냄`, "alt", 900); }
     if (S.front) { zTop++; p.node.style.zIndex = zTop; }
     p.node.classList.add("is-held"); p.node.classList.remove("is-attached");
     root.classList.add("is-dragging");
@@ -202,7 +222,8 @@ export default function demo(api) {
     put(p, c.x, c.y);
     if (c.kind === "slot") {
       p.attached = true;
-      p.node.classList.add("is-attached");
+      // 썸네일이 자리에 내려앉은 뒤(전환 .38s) 사람 그림을 그 부품을 쓴 모습으로 바꾸고 썸네일은 사라진다
+      api.timeout(() => { if (p.attached && drag.p !== p) { wear(p, true); p.node.classList.add("is-attached"); } }, 340);
       p.slotEl.classList.remove("is-pulse"); void p.slotEl.offsetWidth; p.slotEl.classList.add("is-pulse");
       const n = parts.filter(o => o.attached).length;
       api.flash(n === slotCount ? "모든 파츠를 붙였다" : `${p.d.name} 부착 · ${n} / ${slotCount}`, "ok");

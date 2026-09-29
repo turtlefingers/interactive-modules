@@ -64,9 +64,48 @@ export function peepBox(opts) {
   return box;
 }
 
-/** 완전한 SVG 문자열. viewBox는 그 조합의 경계 상자에 맞춘다 */
-export function peepSVG(opts = {}) {
-  const b = peepBox(opts);
+/* ---------- 부품 하나만 따로 (모자·안경·수염을 파츠처럼 쓸 때) ----------
+   kind: "hair" | "accessory" | "facialHair". 좌표는 peepInner 와 같다(머리 그룹 translate(225 0) 포함). */
+const PART_DICT = { hair: HAIR, accessory: ACCESSORIES, facialHair: FACIALHAIR };
+const PART_OFFSET = { hair: [225, 0], accessory: [225 + 47, 241], facialHair: [225 + 123, 338] };
+/** 부품 하나의 <g> 조각 (peepInner 좌표계) */
+export function peepPartInner(kind, name, colors = {}) {
+  const [ox, oy] = PART_OFFSET[kind] || [0, 0];
+  return `<g transform="translate(${ox} ${oy})">${fill((PART_DICT[kind] || {})[name] || "", { ...FIG, ...colors })}</g>`;
+}
+const partBoxCache = new Map();
+/** 부품 하나의 경계 상자 (peepInner 좌표계). 브라우저 밖에서는 대략값 */
+export function peepPartBox(kind, name) {
+  const key = kind + "|" + name;
+  if (partBoxCache.has(key)) return partBoxCache.get(key);
+  const [ox, oy] = PART_OFFSET[kind] || [0, 0];
+  let box = { x: ox, y: oy, w: 400, h: 300 };
+  if (typeof document !== "undefined") {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "1"); svg.setAttribute("height", "1");
+    svg.style.cssText = "position:absolute;left:-9999px;top:-9999px;visibility:hidden";
+    svg.innerHTML = peepPartInner(kind, name);
+    document.body.appendChild(svg);
+    try { const b = svg.firstElementChild.getBBox(); if (b.width > 0) box = { x: b.x + ox, y: b.y + oy, w: b.width, h: b.height }; } catch (e) {}
+    svg.remove();
+  }
+  partBoxCache.set(key, box);
+  return box;
+}
+/** 부품 하나를 담은 완전한 SVG 문자열. viewBox는 그 부품의 경계 상자(+pad)로, 사람 그림과 같은 선·색이다.
+    box: viewBox 를 직접 줄 때(peepInner 좌표), clip: 그 좌표계의 path d — 머리 부품에서 모자만 오려낼 때 쓴다 */
+let clipSeq = 0;
+export function peepPartSVG(kind, name, { colors = {}, pad = 6, box = null, clip = null } = {}) {
+  const b = box || peepPartBox(kind, name);
+  const inner = peepPartInner(kind, name, colors);
+  const id = clip ? `peep-clip-${++clipSeq}` : "";
+  const body = clip ? `<clipPath id="${id}"><path d="${clip}"/></clipPath><g clip-path="url(#${id})">${inner}</g>` : inner;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x - pad} ${b.y - pad} ${b.w + pad * 2} ${b.h + pad * 2}">${body}</svg>`;
+}
+
+/** 완전한 SVG 문자열. viewBox는 그 조합의 경계 상자에 맞춘다 (box를 주면 그 상자를 쓴다) */
+export function peepSVG(opts = {}, box = null) {
+  const b = box || peepBox(opts);
   const flipT = opts.flip ? `transform="translate(${2 * b.x + b.w},0) scale(-1,1)"` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x} ${b.y} ${b.w} ${b.h}"><g ${flipT}>${peepInner(opts)}</g></svg>`;
 }
