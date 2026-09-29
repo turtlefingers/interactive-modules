@@ -18,8 +18,8 @@
 <h2>Canvas: drawPeep() — 크기 · 회전 · 찌그러짐 · 앉기 · 상반신</h2>
 <canvas id="cv" width="1300" height="300"></canvas>
 <script type="module">
-  import { peepSVG, drawPeep, PEOPLE, preload, outfit, NAMES } from "./src/lib/figure.js";
-  import { ILLO, TONE } from "./src/lib/draw.js";
+  import { peepSVG, drawPeep, PEOPLE, preload, outfit, NAMES } from "../src/lib/figure.js";
+  import { ILLO, TONE } from "../src/lib/draw.js";
   console.log(NAMES);
   const dom = document.getElementById("dom");
   dom.innerHTML = PEOPLE.map((p, i) => peepSVG({ ...p, flip: i % 2 === 1 })).join("");

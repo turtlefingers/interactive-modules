@@ -1,4 +1,4 @@
-/* 검사 페이지(/objects.html)에서 고른 타입 (2026-09-29 확정). 비어 있으면 첫 번째 타입을 쓴다.
+/* 검사 페이지(/dev/objects.html)에서 고른 타입 (2026-09-29 확정). 비어 있으면 첫 번째 타입을 쓴다.
    재작업분(cat/fish/rabbit 10종, cookie/drum-kick 6종)은 2026-09-29 채팅에서 확정. house 는 세 타입 모두 승인 — 골고루 쓴다. */
 export const PICKS = {
   "sprout": "B", "carrot": "A", "weed": "B", "radish": "A", "flower": "B", "tree": "C", "bush-tree": "B", "seed": "B",

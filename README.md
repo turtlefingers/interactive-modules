@@ -66,22 +66,24 @@ src/
     draw.js           그리기 도구와 색 (ILLO, TONE)
   pages/              메인 · 항목 페이지
   styles/             스타일 (페이퍼 테마)
+dev/                  검수 · 테스트용 페이지 (배포 제외)
 vendor/open-peeps/    Open Peeps 원본 (CC0)
 scripts/build-peeps.cjs  Open Peeps → src/illo/peeps-parts.js 변환
 ```
 
 새 항목을 만들거나 고칠 때는 [AUTHORING.md](AUTHORING.md)를 먼저 읽는다. 글쓰기 규칙(~이다체), 데모 API, 그림 스타일이 정리되어 있다.
 
-### 개발용 페이지
+### 개발용 페이지 (`dev/`)
 
-배포에는 포함되지 않고 개발 서버에서만 쓴다.
+검수 · 테스트용 페이지는 `dev/`에 모여 있다. 개발 서버에서만 열리고 빌드(배포)에는 들어가지 않는다.
 
 | 페이지 | 용도 |
 |---|---|
-| `/qa.html` | 모든 항목을 차례로 띄워 오류가 없는지 확인 |
-| `/objects.html` | 사물 그림의 타입을 비교하고 고르는 검사 페이지 |
-| `/sheet.html?name=<사물>` | 사물 한 가지의 모든 타입을 한 장으로 렌더링 |
-| `/icons.html`, `/styles.html`, `/illo3.html` | 아이콘 · 스타일 · 사람 그림 시안 |
+| `/dev/qa.html` | 모든 항목을 차례로 띄워 오류가 없는지 확인 |
+| `/dev/objects.html` | 사물 그림의 타입을 비교하고 고르는 검사 페이지 |
+| `/dev/sheet.html?name=<사물>` | 사물 한 가지의 모든 타입을 한 장으로 렌더링 |
+| `/dev/people.html` | 사람 그림(Open Peeps) 조합 확인 |
+| `/dev/icons.html` | 메인 카드 아이콘 모아 보기 |
 
 ## 그림 스타일
 

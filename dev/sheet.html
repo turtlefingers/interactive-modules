@@ -5,9 +5,9 @@
 <body>
 <script type="module">
   // 검사용 시트: /sheet.html?name=cookie&cols=3 — 한 사물의 모든 타입을 한 장의 캔버스로 그린다 (채팅에 올릴 이미지용).
-  import "./src/lib/objects/index.js";
-  import { OBJECTS } from "./src/lib/objects.js";
-  import { TONE, ILLO } from "./src/lib/draw.js";
+  import "../src/lib/objects/index.js";
+  import { OBJECTS } from "../src/lib/objects.js";
+  import { TONE, ILLO } from "../src/lib/draw.js";
   const q = new URLSearchParams(location.search);
   const name = q.get("name"), cols = +(q.get("cols") || 3), states = (q.get("states") || "0.15,0.85").split(",").map(Number), zoom = +(q.get("zoom") || 1);
   const def = OBJECTS[name]; const keys = Object.keys(def.variants);

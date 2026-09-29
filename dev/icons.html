@@ -14,8 +14,8 @@
 <body>
 <div class="g" id="g"></div>
 <script type="module">
-  import { order } from "./src/catalog.js";
-  import { mainIcon } from "./src/icons.js";
+  import { order } from "../src/catalog.js";
+  import { mainIcon } from "../src/icons.js";
   document.getElementById("g").innerHTML = order.map(id => `<div class="c">${mainIcon(id, { size: 56, stroke: 1.75, cls: "" })}${id}</div>`).join("");
 </script>
 </body>
