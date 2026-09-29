@@ -6,4 +6,3 @@ dist
 .env.*
 .vite
 .claude/settings.local.json
-.vercel
