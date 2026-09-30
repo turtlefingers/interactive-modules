@@ -1,7 +1,7 @@
 export default {
   name: "커서 모핑", nameEn: "Cursor Morph",
   aliases: ["커서 모양 바뀌기", "Custom Cursor", "커스텀 커서", "Contextual Cursor"],
-  input: "올리기",
+  input: "커서 올리기",
   effect: "커서 모양이 영역에 맞게 녹아들며 바뀜",
   definition: "올린 대상에 따라 모양이 바뀌는 커서",
   hint: "여기저기 커서 올려보기",

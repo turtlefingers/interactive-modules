@@ -191,7 +191,7 @@ ul.plain li + li { margin-top: 4px; }
 .meta .aka { margin-top: 16px; }
 .tag-row { display: flex; align-items: baseline; gap: 4px; }
 .tag-row + .tag-row { margin-top: 8px; }
-.tag-row > b { flex: none; width: 36px; }
+.tag-row > b { flex: none; width: 64px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag {
   font-size: var(--fs-label); line-height: 1.5; color: var(--ink-2); text-decoration: none;
@@ -250,10 +250,10 @@ body.index .topbar { position: sticky; top: 0; }
 .hero p { font-size: var(--fs-lead); line-height: 1.65; color: var(--ink-2); margin: 16px 0 0; max-width: 640px; }
 .hero .count { font-size: var(--fs-label); color: var(--ink-3); margin-top: 20px; }
 
-/* 필터: 효과 · 입력 방식 · 시간 구조 */
+/* 필터: 무엇이 바뀌나 · 어떻게 조작하나 · 언제 반응하나 */
 .filters { padding: 8px 0 18px; }
 .filter-toggle { display: none; }
-.facet { display: grid; grid-template-columns: 84px 1fr; gap: 10px; align-items: start; }
+.facet { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: start; }
 .facet + .facet { margin-top: 10px; }
 .facet .lbl { font-size: var(--fs-label); color: var(--ink-2); font-weight: 600; padding-top: 5px; white-space: nowrap; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -271,7 +271,7 @@ body.index .topbar { position: sticky; top: 0; }
 .chip:disabled .c { display: none; }
 .chip:disabled:hover { border-color: var(--line); color: var(--ink-2); }
 .chip:focus-visible, .clear-btn:focus-visible, .filter-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.filter-hint { font-size: var(--fs-label); color: var(--ink-3); margin: 14px 0 0 94px; line-height: 1.6; }
+.filter-hint { font-size: var(--fs-label); color: var(--ink-3); margin: 14px 0 0 122px; line-height: 1.6; }
 
 /* 목차 바로가기 / 결과 수 (위에 붙는 줄) */
 .stickybar {

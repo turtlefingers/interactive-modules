@@ -28,7 +28,7 @@ export default {
   related: [
     { label: "입력만 다른 같은 효과", items: [{ id: "directional-move", text: "방향키 이동 (켜고 끄는 네 방향)" }] },
     { label: "헷갈리는 개념", items: [{ id: "xy-pad", text: "XY 패드 (누른 위치 자체가 값)" }, { id: "slingshot", text: "새총 (당긴 벡터로 한 번 날림)" }] },
-    { label: "함께 쓰이는 것", items: [{ id: "auto-fire", text: "연사" }, { id: "mouse-look", text: "시야 이동" }] }
+    { label: "함께 쓰이는 것", items: [{ id: "auto-fire", text: "연사" }, { id: "mouse-look", text: "보이는 영역 이동" }] }
   ],
   references: [
     { name: "Apple HIG — Game controls", url: "https://developer.apple.com/design/human-interface-guidelines/game-controls", note: "터치 화면의 가상 조작 요소를 어디에, 어떤 크기로 둘지 안내한다." }

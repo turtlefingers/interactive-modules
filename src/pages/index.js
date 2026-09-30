@@ -12,7 +12,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 
 const TAGS = Object.fromEntries(order.map(id => [id, tagsOf(id)]));
 const groupCount = PARTS.reduce((n, p) => n + p.groups.filter(g => g.name).length, 0);
-$("#count").textContent = `항목 ${order.length}개 · ${PARTS.length}부 · 중분류 ${groupCount}개`;
+$("#count").textContent = `항목 ${order.length}개 · ${PARTS.length}부 · 부 안의 묶음 ${groupCount}개`;
 
 /* 검색용 글: 이름, 다른 이름, 정의, 입력 → 효과, 한국어 태그, 자리 이름 */
 const HAY = Object.fromEntries(order.map(id => {
@@ -29,7 +29,7 @@ function badgeOf(id) {
 }
 function placeLabel(id) {
   const { part, group } = placeOf(id);
-  return group.name ? `${group.id} ${group.name}` : `${part.no} ${part.sub}`;
+  return group.name ? `${group.id} ${group.name}` : `${part.no} ${part.name}`;
 }
 function card(id, { withPlace = false } = {}) {
   const it = items[id];
@@ -66,7 +66,7 @@ const tocHTML = PARTS.map(p => `
   </section>`).join("");
 
 $("#jump").innerHTML = PARTS.map(p => `<span class="jump-part">
-    <a class="jp" href="#${partAnchor(p)}"><b>${esc(p.no)}</b> ${esc(p.id === "III" ? "자율 반응" : p.id === "IV" ? "환경과 부재" : p.name)}</a>
+    <a class="jp" href="#${partAnchor(p)}"><b>${esc(p.no)}</b> ${esc(p.short || p.name)}</a>
     ${p.groups.filter(g => g.name).map(g => `<a class="jg" href="#${groupAnchor(g)}" title="${esc(g.name)}">${esc(g.id)}</a>`).join("")}
   </span>`).join("");
 
@@ -74,7 +74,7 @@ $("#jump").innerHTML = PARTS.map(p => `<span class="jump-part">
 $("#facets").innerHTML = FILTERS.map(f => `
   <div class="facet" data-key="${f.key}">
     <span class="lbl">${esc(f.label)}</span>
-    <div class="chips">${FACETS[f.key].map(v => `<button class="chip" data-key="${f.key}" data-v="${v.id}" aria-pressed="false">${esc(v.ko)}<span class="c"></span></button>`).join("")}</div>
+    <div class="chips">${FACETS[f.key].map(v => `<button class="chip" data-key="${f.key}" data-v="${v.id}" aria-pressed="false"${v.desc ? ` title="${esc(v.desc)}"` : ""}>${esc(v.ko)}<span class="c"></span></button>`).join("")}</div>
   </div>`).join("");
 
 /* ---------- 상태 ---------- */
@@ -136,7 +136,7 @@ function render() {
   $("#empty").style.display = hits.length ? "none" : "block";
   $("#resultCount").innerHTML = `<b>${hits.length}</b>개 항목`;
   const parts = FILTERS.filter(f => state[f.key].size).map(f =>
-    `${esc(f.label)} ${FACETS[f.key].filter(v => state[f.key].has(v.id)).map(v => esc(v.ko)).join(", ")}`);
+    `${esc(f.short)}: ${FACETS[f.key].filter(v => state[f.key].has(v.id)).map(v => esc(v.ko)).join(", ")}`);
   if (words().length) parts.push(`검색 “${esc(state.q.trim())}”`);
   $("#activeSum").innerHTML = parts.join('<span class="sep">/</span>');
 }

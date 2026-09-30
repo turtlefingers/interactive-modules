@@ -24,14 +24,13 @@ $("#crumb").innerHTML = place
     + `<b>${esc(meta ? meta.name : id)}</b>`
   : `<b>${esc(id)}</b>`;
 
-/* 태그 캡슐: 효과 · 입력 · 시간 세 줄. 누르면 그 필터를 건 메인 페이지로 간다 */
-const SHORT = { effects: "효과", inputs: "입력", timing: "시간" };
+/* 태그 캡슐: 바뀌는 것 · 조작 · 반응 시점 세 줄. 누르면 그 필터를 건 메인 페이지로 간다 */
 function facetTagsHTML() {
   const row = TAXONOMY[id] || {};
   return FILTERS.map(f => {
     const caps = (row[f.key] || []).map(ko => facetValue(f.key, ko)).filter(Boolean)
-      .map(v => `<a class="tag" href="${homeHref("", `?${f.param}=${v.id}`)}" title="${esc(f.label)} 「${esc(v.ko)}」 항목 모두 보기">${esc(v.ko)}</a>`);
-    return caps.length ? `<div class="tag-row"><b>${SHORT[f.key]}</b><div class="tags">${caps.join("")}</div></div>` : "";
+      .map(v => `<a class="tag" href="${homeHref("", `?${f.param}=${v.id}`)}" title="${esc(v.desc ? v.desc + " " : "")}「${esc(v.ko)}」 항목 모두 보기">${esc(v.ko)}</a>`);
+    return caps.length ? `<div class="tag-row"><b>${esc(f.short)}</b><div class="tags">${caps.join("")}</div></div>` : "";
   }).join("");
 }
 

@@ -11,13 +11,13 @@
 <header class="topbar">
   <a class="logo" href="./">인터랙티브 모듈들</a>
   <div class="spacer"></div>
-  <input class="search" id="search" type="search" placeholder="이름, 다른 이름, 효과로 찾기" aria-label="항목 찾기" autocomplete="off">
+  <input class="search" id="search" type="search" placeholder="이름, 다른 이름, 바뀌는 것으로 찾기" aria-label="항목 찾기" autocomplete="off">
 </header>
 
 <div class="wrap">
   <div class="hero">
     <h1><span>인터랙티브</span> 모듈들</h1>
-    <p>마우스와 키보드로 만드는 웹 인터랙션을 누가 움직이는가(4부)와 무엇을 읽는가(중분류)로 나누어 정리했다. 무엇이 바뀌는지, 어떤 입력을 쓰는지, 언제 반응하는지는 아래 필터로 가로질러 찾는다. 항목을 열면 직접 만져 볼 수 있고, 정의와 쓰임, AI에게 줄 프롬프트까지 함께 볼 수 있다.</p>
+    <p>마우스와 키보드로 만드는 웹 인터랙션을 모아 두 단계로 나눴다. 먼저 무엇이 움직임을 일으키는지에 따라 4부로 나눈다. 사용자의 손이 움직이는지, 누르는 동작인지, 화면 속 개체가 스스로 움직이는지, 아무 조작이 없는 상황인지다. 그 안에서는 컴퓨터가 입력의 무엇을 읽는지(위치, 지나간 경로, 빠르기, 누른 시간 등)에 따라 다시 나눈다. 무엇이 바뀌는지, 어떻게 조작하는지, 언제 반응하는지는 아래 필터로 부를 가로질러 찾는다. 항목을 열면 직접 만져 볼 수 있고, 정의와 쓰임, AI에게 줄 프롬프트까지 함께 볼 수 있다.</p>
     <div class="count" id="count"></div>
   </div>
 
@@ -25,7 +25,7 @@
     <button class="filter-toggle" id="filterToggle" aria-expanded="false" aria-controls="facetRows">필터<span id="filterBadge"></span></button>
     <div class="facet-box" id="facetRows">
       <div id="facets"></div>
-      <p class="filter-hint">한 줄에서 여러 개를 고르면 그중 하나라도 맞는 항목이, 여러 줄에서 고르면 모두 맞는 항목만 남는다.</p>
+      <p class="filter-hint">한 줄에서 여러 개를 고르면 그중 하나라도 맞는 항목이, 여러 줄에서 고르면 모두 맞는 항목만 남는다. 칩 옆의 숫자는 그 칩을 더 골랐을 때 남는 항목 수다.</p>
     </div>
   </section>
 
