@@ -2,8 +2,8 @@ import { clamp, lerp, fitCanvas } from "../../lib/util.js";
 import { ILLO, TONE, LINE, line as inkLine } from "../../lib/draw.js";
 import { drawPeep, preload, outfit } from "../../lib/figure.js";
 
-// 사람(Open Peeps): 서 있을 땐 ShirtBW, 움직이거나 공중에 있을 땐 WalkingBW. 기본 그림은 오른쪽을 보므로 왼쪽을 볼 땐 flip.
-const STAND = { body: "ShirtBW", face: "Calm", hair: "Short", colors: outfit(ILLO.blue) };
+// 사람(Open Peeps): 서 있을 땐 ShirtPantsBW, 움직이거나 공중에 있을 땐 WalkingBW. 기본 그림은 오른쪽을 보므로 왼쪽을 볼 땐 flip.
+const STAND = { body: "ShirtPantsBW", face: "Calm", hair: "Short", colors: outfit(ILLO.paper) };
 const WALK = { ...STAND, body: "WalkingBW" };
 const FIG = { stand: { R: STAND, L: { ...STAND, flip: true } }, walk: { R: WALK, L: { ...WALK, flip: true } } };
 

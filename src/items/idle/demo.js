@@ -8,10 +8,10 @@ const STAGE_NAME = ["깨어 있음", "하품", "졸림", "잠", "화면보호기
 const SAVER_AFTER = 4; // 잠든 뒤 화면보호기까지(초)
 
 // 사람(Open Peeps): 깨어 있을 땐 서 있고(차분한 얼굴), 졸리면 피곤한 얼굴, 잠들면 눈 감은 앉은 자세 그림으로 바뀐다. 깜짝 깰 땐 놀란 얼굴. 채움 색은 파랑 하나.
-const STAND = { body: "ShirtBW", face: "Calm", hair: "Short", colors: outfit(ILLO.blue) };
+const STAND = { body: "ShirtPantsBW", face: "Calm", hair: "Short", colors: outfit(ILLO.paper) };
 const DROWSY = { ...STAND, face: "Tired" };
 const STARTLE = { ...STAND, face: "Awe" };
-const SIT = { body: "MediumBW", face: "EyesClosed", hair: "Short", colors: outfit(ILLO.blue) };
+const SIT = { body: "MediumBW", face: "EyesClosed", hair: "Short", colors: outfit(ILLO.paper) };
 const ALL = [STAND, DROWSY, STARTLE, SIT];
 // 앉은 그림의 키: 서 있는 그림과 같은 축척이 되도록 경계 상자 비율로 맞춘다
 const sitScale = () => peepBox(SIT).h / peepBox(STAND).h;

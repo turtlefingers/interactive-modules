@@ -1,195 +1,288 @@
-import { clamp, lerp, localPoint, fitCanvas } from "../../lib/util.js";
-import { TONE, LINE, line as inkLine } from "../../lib/draw.js";
-import { drawPeep, peepRatio, preload, PEOPLE } from "../../lib/figure.js";
+import { clamp, localPoint } from "../../lib/util.js";
+import { TONE } from "../../lib/draw.js";
 
-const A0 = 1.5;         // 기준 비율
-const BAR = 28;         // 제목 줄 높이
-const HINT = { handle: "창 모서리를 끌기", window: "브라우저 창 크기를 바꿔 보기" };
-// 사람 셋(Open Peeps): 자세와 채움 색이 서로 다르다(파랑·주황·초록). 쌓이는 장면이라 모두 똑바로 선 자세
-const FIGS = [{ ...PEOPLE[0], body: "ShirtBW" }, PEOPLE[1], { ...PEOPLE[2], body: "CrossedArmsBW" }];
+/* 창 크기 반응 — 데모 안의 가상 브라우저 창. 오른쪽 가장자리를 끌어 폭을 바꾸면 안의 페이지가 다시 짜인다.
+   페이지는 논리 폭(px) 그대로 만들고 통째로 축소해서 보여준다. 그래서 경계선(520 · 820 · 1100)이 실제 사이트의 px 값과 같다. */
+
+const P = "viewport-resize";
+const ZONES = [
+  { from: 0, name: "휴대폰", cols: 1, preset: 375 },
+  { from: 520, name: "태블릿", cols: 2, preset: 700 },
+  { from: 820, name: "노트북", cols: 3, preset: 960 },
+  { from: 1100, name: "넓은 화면", cols: 4, preset: 1320 }
+];
+const MINW = 360, MAXW = 1400;   // 가상 창 폭 범위 (논리 px)
+const START = 960;                // 처음 폭: 3칸
+const RANGE = MAXW;               // 자는 0 ~ 1400px
+const BAR = 30;                   // 창 제목 줄 높이 (스테이지 px)
+const TEXT_H = 66;                // 카드 글자 칸 높이 (논리 px)
+const DUR = 560;                  // 다시 배치 애니메이션 (ms)
+const STAGGER = 28;               // 카드마다 조금씩 늦게
+const CARDS = [
+  ["흔들리는 풀", "인터랙션 · 2026"], ["빛의 속도", "설치 · 2025"], ["손끝의 지도", "웹 · 2026"], ["느린 우편", "출판 · 2025"],
+  ["바람 기록", "사운드 · 2026"], ["접히는 방", "공간 · 2024"], ["밤의 목록", "웹 · 2025"], ["물결 연습", "영상 · 2026"]
+];
+const SHADE = [1, 2, 1, 3, 2, 1, 2, 1];   // 이미지 자리 톤 (TONE 번호)
+
+const zoneOf = W => { let z = ZONES[0]; for (const q of ZONES) if (W >= q.from) z = q; return z; };
+const ease = t => 1 - Math.pow(1 - t, 3);
 
 export default function demo(api) {
   const { el, S } = api;
 
   api.css(`
-    .vr-demo { position: absolute; inset: 0; background: var(--board); }
-    .vr-frame { position: absolute; border: 1.5px solid var(--ink); background: var(--note); }
-    .vr-bar { height: ${BAR}px; border-bottom: 1px solid var(--ink-3); display: flex; align-items: center; gap: 6px; padding: 0 10px;
-      font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; font-variant-numeric: tabular-nums; }
-    .vr-bar i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--ink-3); flex: none; }
-    .vr-bar span { margin-left: 6px; }
-    .vr-h { position: absolute; z-index: 3; touch-action: none; }
-    .vr-h.r { top: 0; right: -8px; width: 16px; height: 100%; cursor: ew-resize; }
-    .vr-h.b { left: 0; bottom: -8px; height: 16px; width: 100%; cursor: ns-resize; }
-    .vr-h.rb { right: -9px; bottom: -9px; width: 18px; height: 18px; cursor: nwse-resize; }
-    .vr-h.rb::after { content: ""; position: absolute; inset: 3px; background: var(--ink); }
-    .vr-demo.win .vr-h { display: none; }
-    .vr-demo canvas { pointer-events: none; z-index: 2; }
+    .${P}-root { position: absolute; inset: 0; background: var(--board); }
+    .${P}-ruler { position: absolute; height: 46px; }
+    .${P}-base { position: absolute; left: 0; right: 0; top: 24px; height: 1px; background: var(--ink-3); }
+    .${P}-tick { position: absolute; top: 18px; width: 1px; height: 13px; background: var(--ink-2); transition: opacity .3s; }
+    .${P}-tick.dim, .${P}-num.dim { opacity: .3; }
+    .${P}-num { position: absolute; top: 32px; transform: translateX(-50%); font-size: 13px; line-height: 14px; color: var(--ink-3);
+      font-variant-numeric: tabular-nums; white-space: nowrap; transition: opacity .3s; }
+    .${P}-zone { position: absolute; top: 0; transform: translateX(-50%); font-size: 13px; line-height: 16px; color: var(--ink-3); white-space: nowrap;
+      transition: color .2s; }
+    .${P}-zone.on { color: var(--ink); font-weight: 600; }
+    .${P}-dot { position: absolute; top: 19px; width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%; background: var(--accent); }
+    .${P}-info { position: absolute; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+    .${P}-now { font-size: 13px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .${P}-now b { font-size: 18px; color: var(--ink); font-weight: 700; margin-right: 6px; }
+    .${P}-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+    .${P}-presets button { font: inherit; font-size: 13px; color: var(--ink-2); background: transparent; border: 1px solid var(--toggle-off);
+      border-radius: var(--r-pill); padding: 0 12px; height: 32px; cursor: pointer; touch-action: manipulation; transition: background .15s, color .15s, border-color .15s; }
+    .${P}-presets button:hover { border-color: var(--ink-3); color: var(--ink); }
+    .${P}-presets button.on { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+    .${P}-frame { position: absolute; border: 1px solid var(--ink); border-radius: 8px; background: var(--note); overflow: hidden; }
+    .${P}-bar { height: ${BAR}px; box-sizing: border-box; display: flex; align-items: center; gap: 5px; padding: 0 8px; border-bottom: 1px solid var(--note-line);
+      background: ${TONE[0]}; }
+    .${P}-bar i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--ink-3); flex: none; }
+    .${P}-url { flex: 1; min-width: 0; height: 18px; margin-left: 6px; border-radius: 9px; background: var(--note); font-size: 12px; line-height: 18px;
+      color: var(--ink-2); padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .${P}-view { position: absolute; left: 0; right: 0; top: ${BAR}px; bottom: 0; overflow: hidden; }
+    .${P}-page { position: absolute; left: 0; top: 0; transform-origin: 0 0; background: var(--note); color: var(--ink); line-height: 1.3; }
+    .${P}-head { display: flex; align-items: center; justify-content: space-between; padding: 30px 40px 0; height: 88px; box-sizing: border-box; }
+    .${P}-logo { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+    .${P}-nav { display: flex; gap: 28px; font-size: 16px; color: var(--ink-2); transition: opacity .25s; }
+    .${P}-burger { position: absolute; right: 14px; top: 26px; width: 44px; height: 44px; display: grid; align-content: center; justify-items: center; gap: 6px;
+      opacity: 0; transition: opacity .25s; }
+    .${P}-burger i { display: block; width: 24px; height: 2px; background: var(--ink); }
+    .${P}-title { margin: 0; padding: 26px 40px 0; font-size: 60px; line-height: 1.12; font-weight: 700; letter-spacing: -.035em; word-break: keep-all; }
+    .${P}-lead { margin: 0; padding: 12px 40px 36px; font-size: 18px; color: var(--ink-2); }
+    .${P}-grid { position: relative; }
+    .${P}-card { position: absolute; left: 0; top: 0; border-radius: 10px; background: ${TONE[0]}; overflow: hidden; will-change: transform; }
+    .${P}-img { aspect-ratio: 4 / 3; }
+    .${P}-txt { height: ${TEXT_H}px; box-sizing: border-box; padding: 12px 14px 0; }
+    .${P}-txt b { display: block; font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .${P}-txt span { display: block; margin-top: 4px; font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+    .${P}-foot { padding: 28px 40px 40px; font-size: 14px; color: var(--ink-3); }
+    /* 경계선별 모양: 가상 창 폭 기준 */
+    .${P}-page[data-bp="3"] .${P}-title { font-size: 48px; }
+    .${P}-page[data-bp="2"] .${P}-title { font-size: 38px; }
+    .${P}-page[data-bp="1"] .${P}-title { font-size: 28px; }
+    .${P}-page[data-bp="2"] .${P}-head, .${P}-page[data-bp="2"] .${P}-title, .${P}-page[data-bp="2"] .${P}-lead, .${P}-page[data-bp="2"] .${P}-foot { padding-left: 28px; padding-right: 28px; }
+    .${P}-page[data-bp="1"] .${P}-head, .${P}-page[data-bp="1"] .${P}-title, .${P}-page[data-bp="1"] .${P}-lead, .${P}-page[data-bp="1"] .${P}-foot { padding-left: 18px; padding-right: 18px; }
+    .${P}-page[data-bp="1"] .${P}-lead { font-size: 16px; padding-bottom: 24px; }
+    .${P}-page[data-bp="1"] .${P}-nav { opacity: 0; }
+    .${P}-page[data-bp="1"] .${P}-burger { opacity: 1; }
+    .${P}-root.anim .${P}-title { transition: font-size .45s cubic-bezier(.2,.7,.2,1), padding .45s cubic-bezier(.2,.7,.2,1); }
+    .${P}-root.anim .${P}-head, .${P}-root.anim .${P}-lead { transition: padding .45s cubic-bezier(.2,.7,.2,1); }
+    /* 손잡이: 오른쪽 가장자리. 누르는 자리는 48px 폭 */
+    .${P}-handle { position: absolute; width: 48px; margin-left: -24px; cursor: ew-resize; touch-action: none; z-index: 5; }
+    .${P}-grip { position: absolute; left: 50%; top: 50%; width: 14px; height: 64px; margin: -32px 0 0 -7px; border-radius: 7px; background: var(--ink);
+      transition: transform .15s; }
+    .${P}-grip::before, .${P}-grip::after { content: ""; position: absolute; top: 20px; bottom: 20px; width: 1.5px; background: var(--note); opacity: .75; }
+    .${P}-grip::before { left: 4px; } .${P}-grip::after { right: 4px; }
+    .${P}-handle:hover .${P}-grip, .${P}-handle.drag .${P}-grip { transform: scaleX(1.25); }
+    .${P}-arrows { position: absolute; left: 50%; top: calc(50% - 50px); transform: translateX(-50%); font-size: 13px; color: var(--ink-2); white-space: nowrap;
+      pointer-events: none; }
   `);
 
+  /* ---------- 뼈대 ---------- */
   const root = document.createElement("div");
-  root.className = "vr-demo";
+  root.className = `${P}-root`;
+  root.innerHTML = `
+    <div class="${P}-ruler"></div>
+    <div class="${P}-info">
+      <div class="${P}-now"></div>
+      <div class="${P}-presets">${ZONES.map((z, i) => `<button data-i="${i}">${z.name}</button>`).join("")}</div>
+    </div>
+    <div class="${P}-frame">
+      <div class="${P}-bar"><i></i><i></i><i></i><span class="${P}-url">studio.kr</span></div>
+      <div class="${P}-view">
+        <div class="${P}-page">
+          <header class="${P}-head"><span class="${P}-logo">studio.kr</span>
+            <nav class="${P}-nav"><span>작업</span><span>전시</span><span>소개</span><span>연락</span></nav>
+            <span class="${P}-burger"><i></i><i></i><i></i></span></header>
+          <h2 class="${P}-title">움직이는 것들의 아카이브</h2>
+          <p class="${P}-lead">2026 졸업 전시 · 여덟 개의 작업</p>
+          <div class="${P}-grid">${CARDS.map(([t, m], i) => `
+            <div class="${P}-card"><div class="${P}-img" style="background:${TONE[SHADE[i]]}"></div>
+              <div class="${P}-txt"><b>${t}</b><span>${m}</span></div></div>`).join("")}</div>
+          <footer class="${P}-foot">© studio.kr</footer>
+        </div>
+      </div>
+    </div>
+    <div class="${P}-handle" role="slider" aria-label="창 폭" aria-valuemin="${MINW}" aria-valuemax="${MAXW}"><span class="${P}-arrows">↔</span><div class="${P}-grip"></div></div>`;
   el.appendChild(root);
-  const frame = document.createElement("div");
-  frame.className = "vr-frame";
-  frame.innerHTML = `<div class="vr-bar"><i></i><i></i><i></i><span>창</span></div>
-    <div class="vr-h r" data-h="r"></div><div class="vr-h b" data-h="b"></div><div class="vr-h rb" data-h="rb"></div>`;
-  root.appendChild(frame);
-  const label = frame.querySelector(".vr-bar span");
-  const { g, size } = fitCanvas(api, { parent: root });
-  preload(FIGS);
-  const C = { note: api.color("--note"), ink: api.color("--ink"), ink3: api.color("--ink-3") };
+  const $ = s => root.querySelector(s);
+  const ruler = $(`.${P}-ruler`), info = $(`.${P}-info`), nowEl = $(`.${P}-now`);
+  const presetEls = [...root.querySelectorAll(`.${P}-presets button`)];
+  const frame = $(`.${P}-frame`), page = $(`.${P}-page`), grid = $(`.${P}-grid`), handle = $(`.${P}-handle`);
+  const cardEls = [...root.querySelectorAll(`.${P}-card`)];
+  const url = $(`.${P}-url`);
 
-  /* ---------- 창 크기 ---------- */
-  let fw = 0, fh = 0;                // 손잡이 방식에서 원하는 창 크기
-  const box = { w: 0, h: 0 };        // ResizeObserver가 알려준 실제 크기
-  const vel = { w: 0, h: 0 };        // 크기 변화 속도 px/s
-  let lastRO = { w: 0, h: 0, t: performance.now() };
+  /* ---------- 자 (0 ~ 1400px) ---------- */
+  const pct = v => (v / RANGE * 100) + "%";
+  ruler.innerHTML = `<div class="${P}-base"></div>`
+    + ZONES.map((z, i) => {
+      const to = ZONES[i + 1] ? ZONES[i + 1].from : RANGE;
+      return `<span class="${P}-zone" style="left:${pct((z.from + to) / 2)}">${z.name}</span>`;
+    }).join("")
+    + ZONES.slice(1).map(z => `<i class="${P}-tick" data-c="${z.cols}" style="left:${pct(z.from)}"></i><span class="${P}-num" data-c="${z.cols}" style="left:${pct(z.from)}">${z.from}</span>`).join("")
+    + `<i class="${P}-dot"></i>`;
+  const zoneEls = [...ruler.querySelectorAll(`.${P}-zone`)];
+  const tickEls = [...ruler.querySelectorAll(`.${P}-tick, .${P}-num`)];
+  const dot = ruler.querySelector(`.${P}-dot`);
+  let zoneKey = "";
+  function labelZones(scale) {
+    // 구간이 넉넉하면 "태블릿 · 2칸", 좁으면 이름만
+    const key = `${scale.toFixed(3)}|${S.maxCols}`;
+    if (key === zoneKey) return;
+    zoneKey = key;
+    zoneEls.forEach((z, i) => {
+      const q = ZONES[i], to = ZONES[i + 1] ? ZONES[i + 1].from : RANGE;
+      const n = Math.min(q.cols, +S.maxCols);
+      z.textContent = (to - q.from) * scale > 104 ? `${q.name} · ${n}칸` : q.name;
+    });
+    tickEls.forEach(t => t.classList.toggle("dim", +t.dataset.c > +S.maxCols));
+  }
 
-  const margins = () => ({ top: 64, side: 24, bottom: 24 });
-  const limits = () => {
-    const m = margins();
-    return { maxW: Math.max(160, size.w - m.side * 2), maxH: Math.max(140, size.h - m.top - m.bottom) };
+  /* ---------- 상태 ---------- */
+  let W = START;          // 지금 가상 창 폭 (논리 px)
+  let target = null;      // 버튼 · 키로 정한 목표 폭 (부드럽게 옮겨간다)
+  let drag = null, grab = 0;
+  let cols = 0, flipT0 = -1e9;
+  const cards = CARDS.map(() => ({ x: 0, y: 0, w: 0, fx: 0, fy: 0, fw: 0 }));
+  let geo = { s: 1, x0: 0 };
+  const cache = new Map();
+  const setStyle = (node, prop, v) => {
+    let m = cache.get(node); if (!m) cache.set(node, m = {});
+    if (m[prop] !== v) { m[prop] = v; node.style[prop] = v; }
   };
-  function place() {
-    const m = margins();
-    if (S.source === "window") {
-      root.classList.add("win");
-      Object.assign(frame.style, { left: m.side + "px", right: m.side + "px", top: m.top + "px", bottom: m.bottom + "px", width: "", height: "" });
-    } else {
-      root.classList.remove("win");
-      const L = limits();
-      fw = clamp(fw, 160, L.maxW); fh = clamp(fh, 140, L.maxH);
-      const cy = m.top + (size.h - m.top - m.bottom) / 2;
-      Object.assign(frame.style, { right: "", bottom: "", width: fw + "px", height: fh + "px",
-        left: (size.w - fw) / 2 + "px", top: cy - fh / 2 + "px" });
-    }
-  }
-  {
-    const L = limits();
-    fw = Math.min(L.maxW, 620); fh = Math.min(L.maxH, 380);
-  }
-  place();
-  api.onResize(place);
+  const goTo = w => { target = clamp(Math.round(w), MINW, MAXW); if (!S.anim) { W = target; target = null; } api.hideHint(); };
 
-  const ro = new ResizeObserver(entries => {
-    const r = entries[entries.length - 1].contentRect;
-    const now = performance.now(), dt = Math.max(8, now - lastRO.t);
-    if (lastRO.w) {
-      vel.w = lerp(vel.w, (r.width - lastRO.w) / dt * 1000, .6);
-      vel.h = lerp(vel.h, (r.height - lastRO.h) / dt * 1000, .6);
-    }
-    lastRO = { w: r.width, h: r.height, t: now };
-    box.w = r.width; box.h = r.height;
-  });
-  ro.observe(frame);
-  api.cleanup(() => ro.disconnect());
+  root.classList.toggle("anim", !!S.anim);
+  api.onParam(k => { if (k === "anim") root.classList.toggle("anim", !!S.anim); });
 
   /* ---------- 손잡이 ---------- */
-  let drag = null;
-  api.on(frame, "pointerdown", e => {
-    const hnd = e.target.closest(".vr-h");
-    if (!hnd || S.source !== "handle") return;
+  api.on(handle, "pointerdown", e => {
     e.preventDefault();
-    frame.setPointerCapture(e.pointerId);
-    drag = hnd.dataset.h;
+    handle.setPointerCapture(e.pointerId);
+    grab = localPoint(el, e).x - (geo.x0 + W * geo.s);
+    drag = e.pointerId; target = null;
+    handle.classList.add("drag");
     api.hideHint();
   });
-  api.on(frame, "pointermove", e => {
-    if (!drag) return;
-    const p = localPoint(el, e), m = margins();
-    const cx = size.w / 2, cy = m.top + (size.h - m.top - m.bottom) / 2;
-    if (drag.includes("r")) fw = Math.abs(p.x - cx) * 2;
-    if (drag.includes("b")) fh = Math.abs(p.y - cy) * 2;
-    place();
+  api.on(handle, "pointermove", e => {
+    if (drag !== e.pointerId) return;
+    W = clamp((localPoint(el, e).x - grab - geo.x0) / geo.s, MINW, MAXW);
   });
-  const end = () => { drag = null; };
-  api.on(frame, "pointerup", end);
-  api.on(frame, "pointercancel", end);
-  api.onParam(k => {
-    if (k === "source") { place(); api.hint(HINT[S.source]); }
+  const end = e => { if (drag === e.pointerId) { drag = null; handle.classList.remove("drag"); } };
+  api.on(handle, "pointerup", end);
+  api.on(handle, "pointercancel", end);
+  api.on(handle, "lostpointercapture", end);
+
+  api.on(root, "click", e => {
+    const b = e.target.closest(`.${P}-presets button`);
+    if (b) goTo(ZONES[+b.dataset.i].preset);
+  });
+  // ←/→ 로 20px씩 (Shift는 100px)
+  api.on(window, "keydown", e => {
+    if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const step = (e.shiftKey ? 100 : 20) * (e.key === "ArrowRight" ? 1 : -1);
+    goTo((target ?? W) + step);
   });
 
-  /* ---------- 캐릭터 ---------- */
-  const sizes = [1, .78, 1.12];
-  let Rs = null;
-  const chars = sizes.map(k => ({ k, d: 1, v: 0, x: null, y: null }));
-  const KH = 2.2;                                            // 키 = R × k × KH
-  const sqOf = d => clamp(1 - d, -.35, .45);                 // 세로 배율 → drawPeep squash (눌림 +, 늘어남 −)
-  const heightOf = (R, c) => R * c.k * KH * (1 - sqOf(c.d)); // 실제로 그려지는 키
-  const widthOf = (R, c, i) => R * c.k * KH * peepRatio(FIGS[i]); // 그려지는 폭 (경계 상자 비율)
+  /* ---------- 매 프레임 ---------- */
+  api.frame((dt, t) => {
+    const { w, h } = api.size();
+    if (!w || !h) return;
 
-  function slots(cw, ch, r) {
-    const a = cw / ch;
-    const n = chars.length;
-    if (!S.layout || a >= 1.25) return chars.map((c, i) => ({ x: cw * (i + 1) / (n + 1), stack: -1 }));
-    if (a >= .8) {
-      const gap = Math.max(r * 1.2, widthOf(r, chars[1], 1) * .55 + Math.max(widthOf(r, chars[0], 0), widthOf(r, chars[2], 2)) * .45);
-      return [{ x: cw * .5 - gap, stack: -1 }, { x: cw * .5, stack: "pyr" }, { x: cw * .5 + gap, stack: -1 }];
+    // 축소 비율: 0 ~ 1400px 를 스테이지 폭에 맞춘다 (손잡이가 튀어나올 자리 24px)
+    const x0 = w < 600 ? 16 : 28;
+    const s = Math.min(1, (w - x0 * 2 - 24) / RANGE);
+    geo = { s, x0 };
+
+    if (target !== null) {
+      W += (target - W) * (1 - Math.exp(-dt / 90));
+      if (Math.abs(target - W) < .5) { W = target; target = null; }
     }
-    return chars.map((c, i) => ({ x: cw * .5, stack: i }));
-  }
 
-  api.frame((dt) => {
-    const { w, h } = size;
-    g.clearRect(0, 0, w, h);
-    if (!box.w) return;
-    vel.w *= .86; vel.h *= .86;
-    const fr = frame.getBoundingClientRect(), er = el.getBoundingClientRect();
-    const left = fr.left - er.left + 1.5, top = fr.top - er.top + 1.5 + BAR;
-    const cw = box.w, ch = box.h - BAR;
-    if (ch <= 10) return;
-    const a = cw / ch;
-    const amt = S.amount;
-    const kA = clamp(Math.log(a / A0) * .38 * amt, -.42, .42);
-    const kV = clamp(vel.h / 1400 * amt, -.45, .45) - clamp(vel.w / 2600 * amt, -.2, .2);
-    const target = clamp(1 - kA + kV, .4, 1.8);
-    const floor = ch - 14;
-    const tallest = Math.max(1, Math.min(target, 1.35));   // 늘어남은 최대 1.35배까지만 그려진다
-    let R = clamp(Math.min(ch * .22, cw / 6.2), 14, 90);
-    if (S.layout && a < 1.25) R = Math.max(10, Math.min(R, a < .8 ? (ch - 24) / (6.4 * tallest) : (ch - 24) / (4.2 * tallest), cw / 4.8));
-    Rs = Rs === null || drag ? R : lerp(Rs, R, .15); R = Rs;
-    const sl = slots(cw, ch, R);
+    // 자
+    setStyle(ruler, "left", x0 + "px"); setStyle(ruler, "top", "60px"); setStyle(ruler, "width", RANGE * s + "px");
+    labelZones(s);
+    const zone = zoneOf(W);
+    zoneEls.forEach((z, i) => z.classList.toggle("on", ZONES[i] === zone));
+    presetEls.forEach((b, i) => b.classList.toggle("on", ZONES[i] === zone));
+    setStyle(dot, "left", (W / RANGE * 100).toFixed(3) + "%");
 
-    g.save();
-    g.beginPath(); g.rect(left, top, cw, ch); g.clip();
-    g.translate(left, top);
-    // 바닥: 톤 면 + 가는 잉크 선
-    g.fillStyle = TONE[0]; g.fillRect(0, floor, cw, ch - floor);
-    inkLine(g, [[12, floor], [cw - 12, floor]], { lw: LINE });
+    // 지금 칸 수
+    const bpCols = zone.cols;
+    const nc = Math.min(bpCols, +S.maxCols);
+    const nowTxt = `<b>${nc}칸</b>${zone.name} 구간 · 창 폭 ${Math.round(W)}px`;
+    if (nowEl.dataset.t !== nowTxt) { nowEl.dataset.t = nowTxt; nowEl.innerHTML = nowTxt; }
+    setStyle(info, "left", x0 + "px"); setStyle(info, "width", (w - x0 * 2) + "px"); setStyle(info, "top", "118px");
+    const frameTop = 118 + info.offsetHeight + 16;
+    const frameH = Math.max(80, h - frameTop - 16);
 
-    let stackY = floor, squashSum = 0;
-    chars.forEach((c, i) => {
-      if (S.jiggle) { c.v += (target - c.d) * .14; c.v *= .8; c.d += c.v; }
-      else { c.v = 0; c.d = lerp(c.d, target, .18); }
-      c.d = clamp(c.d, .3, 2);
-      const sy = c.d;
-      squashSum += sy;
-      const squash = sqOf(sy);
-      const H = R * c.k * KH, hh = H * (1 - squash);
-      // 목표 자리
-      const s = sl[i];
-      let tx = s.x, ty = floor;
-      if (s.stack === "pyr") {
-        ty = floor - Math.min(heightOf(R, chars[0]), heightOf(R, chars[2])) * .86;   // 양옆 사람 어깨 위
-      } else if (typeof s.stack === "number" && s.stack >= 0) {
-        ty = stackY; stackY -= hh * .96;
+    // 창틀과 손잡이
+    const fw = W * s;
+    setStyle(frame, "left", x0 + "px"); setStyle(frame, "top", frameTop + "px");
+    setStyle(frame, "width", fw + "px"); setStyle(frame, "height", frameH + "px");
+    setStyle(handle, "left", x0 + fw + "px"); setStyle(handle, "top", frameTop + "px"); setStyle(handle, "height", frameH + "px");
+    handle.setAttribute("aria-valuenow", Math.round(W));
+    setStyle(url, "visibility", fw < 130 ? "hidden" : "visible");
+
+    // 페이지: 논리 폭으로 만들고 축소
+    setStyle(page, "width", W + "px");
+    setStyle(page, "minHeight", Math.ceil((frameH - BAR) / s) + "px");
+    setStyle(page, "transform", `scale(${s})`);
+    if (page.dataset.bp !== String(bpCols)) page.dataset.bp = bpCols;
+
+    // 카드 배치 (칸 수가 바뀌면 FLIP: 지금 자리에서 새 자리로 옮겨간다)
+    if (nc !== cols) {
+      if (cols) {
+        if (S.anim) { cards.forEach(c => { c.fx = c.x; c.fy = c.y; c.fw = c.w; }); flipT0 = t; }
+        api.flash(`${cols}칸 → ${nc}칸으로 다시 배치`, "ok", 1400);
       }
-      if (c.x === null) { c.x = tx; c.y = ty; }
-      c.x = lerp(c.x, tx, .14); c.y = lerp(c.y, ty, .14);
-      drawPeep(g, FIGS[i], c.x, c.y, H, { squash });
+      cols = nc;
+    }
+    if (!S.anim) flipT0 = -1e9;
+    const pad = W >= 820 ? 40 : W >= 520 ? 28 : 18;
+    const gap = W >= 820 ? 24 : 16;
+    const cw = (W - pad * 2 - gap * (cols - 1)) / cols;
+    const chH = cw * .75 + TEXT_H;
+    let moving = false, bottom = 0;
+    cards.forEach((c, i) => {
+      const tx = pad + (i % cols) * (cw + gap), ty = Math.floor(i / cols) * (chH + gap);
+      const k = clamp((t - flipT0 - i * STAGGER) / DUR, 0, 1);
+      if (k < 1) {
+        const e = ease(k); moving = true;
+        c.x = c.fx + (tx - c.fx) * e; c.y = c.fy + (ty - c.fy) * e; c.w = c.fw + (cw - c.fw) * e;
+      } else { c.x = tx; c.y = ty; c.w = cw; }
+      setStyle(cardEls[i], "transform", `translate(${c.x.toFixed(1)}px, ${c.y.toFixed(1)}px)`);
+      setStyle(cardEls[i], "width", c.w.toFixed(1) + "px");
+      bottom = Math.max(bottom, ty + chH);
     });
-    g.restore();
+    setStyle(grid, "height", Math.ceil(bottom) + "px");
 
-    const avg = squashSum / chars.length;
-    label.textContent = `창 ${Math.round(box.w)} × ${Math.round(box.h)}`;
-    const sp = Math.hypot(vel.w, vel.h);
-    api.read("size", `${Math.round(box.w)} × ${Math.round(box.h)}`);
-    api.read("ratio", a.toFixed(2));
-    api.read("speed", Math.round(sp));
-    api.read("squash", `${Math.round((1 - avg) * 100)}`);
-    if (drag || sp > 30) api.status(vel.h < -30 ? "빠르게 줄이는 중 · 눌림" : vel.h > 30 ? "빠르게 늘리는 중 · 늘어남" : "크기 바꾸는 중", "active");
-    else if (chars.some(c => Math.abs(c.v) > .004)) api.status("출렁이는 중", "alt");
-    else api.status(avg < .9 ? "넓은 창 · 눌린 모양" : avg > 1.1 ? "좁은 창 · 늘어난 모양" : "기준 비율", "idle");
+    // 읽는 값 · 상태
+    api.read("win", Math.round(W));
+    api.read("cols", nc);
+    api.read("zone", zone.name);
+    if (drag !== null) api.status(`창 폭 바꾸는 중 · ${Math.round(W)}px`, "active");
+    else if (moving) api.status(`다시 배치하는 중 · ${nc}칸`, "alt");
+    else api.status(`${zone.name} 구간 · ${nc}칸`, "idle");
   });
 }

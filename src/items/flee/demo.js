@@ -3,13 +3,13 @@ import { TONE, ILLO } from "../../lib/draw.js";
 import { drawPeep, preload, outfit } from "../../lib/figure.js";
 
 /* ---------- 사람 생김새: 8가지를 돌려 쓴다 (서기 포즈 4종 · 걷기 포즈 2종) ---------- */
-const CALM = outfit(ILLO.blue), SCARED = outfit(ILLO.orange);
+const CALM = outfit(ILLO.paper), SCARED = outfit(ILLO.orange);
 const LOOKS = [
-  { rest: "ShirtBW", walk: "WalkingBW", hair: "ShortWavy", face: "Calm" },
+  { rest: "ShirtPantsBW", walk: "WalkingBW", hair: "ShortWavy", face: "Calm" },
   { rest: "CrossedArmsBW", walk: "WalkingFilled", hair: "Bun", face: "Smile" },
   { rest: "EasingBW", walk: "WalkingBW", hair: "Afro", face: "Cheeky" },
   { rest: "RestingBW", walk: "WalkingFilled", hair: "Long", face: "Calm" },
-  { rest: "ShirtBW", walk: "WalkingBW", hair: "Short", face: "Smile" },
+  { rest: "ShirtPantsBW", walk: "WalkingBW", hair: "Short", face: "Smile" },
   { rest: "CrossedArmsBW", walk: "WalkingFilled", hair: "MediumBangs", face: "Calm" },
   { rest: "EasingBW", walk: "WalkingBW", hair: "Turban", face: "Serious" },
   { rest: "RestingBW", walk: "WalkingFilled", hair: "ShortCurly", face: "Smile" }

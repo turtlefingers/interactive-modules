@@ -4,8 +4,8 @@ import { ILLO, TONE, circle } from "../../lib/draw.js";
 import { drawPeep, preload, outfit } from "../../lib/figure.js";
 import { drawObject } from "../../lib/objects.js";
 
-// 사람(Open Peeps): 서기(ShirtBW) / 걷기(WalkingBW) / 달리기(WalkingFilled, 세기 0.5 초과) 자세. 기본 그림은 오른쪽을 보므로 왼쪽으로 갈 땐 flip.
-const STAND = { body: "ShirtBW", face: "Calm", hair: "Short", colors: outfit(ILLO.blue) };
+// 사람(Open Peeps): 서기(ShirtPantsBW) / 걷기(WalkingBW) / 달리기(WalkingFilled, 세기 0.5 초과) 자세. 기본 그림은 오른쪽을 보므로 왼쪽으로 갈 땐 flip.
+const STAND = { body: "ShirtPantsBW", face: "Calm", hair: "Short", colors: outfit(ILLO.paper) };
 const WALK = { ...STAND, body: "WalkingBW" };
 const RUN = { ...STAND, body: "WalkingFilled" };
 const both = o => ({ R: o, L: { ...o, flip: true } });

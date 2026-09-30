@@ -10,7 +10,7 @@ export default function demo(api) {
      view는 썸네일 viewBox(peepInner 좌표계: 머리 그룹은 translate(225 0), 머리통은 대략 x 270~665 · y 110~585). */
   const GROUPS = [
     { key: "body", name: "자세", type: "body", options: [
-      { name: "서기", part: "ShirtBW", price: 0 }, { name: "걷기", part: "WalkingBW", price: 1000 }, { name: "가리키기", part: "PointingFingerBW", price: 1500 },
+      { name: "서기", part: "ShirtPantsBW", price: 0 }, { name: "걷기", part: "WalkingBW", price: 1000 }, { name: "가리키기", part: "PointingFingerBW", price: 1500 },
       { name: "팔짱", part: "CrossedArmsBW", price: 1000 }, { name: "기대기", part: "EasingBW", price: 2000 }, { name: "쉬기", part: "RestingBW", price: 2000 }] },
     { key: "face", name: "표정", view: "330 130 400 400", options: [
       { name: "미소", part: "Smile", price: 0 }, { name: "차분", part: "Calm", price: 0 }, { name: "장난", part: "Cheeky", price: 1000 },
@@ -22,7 +22,7 @@ export default function demo(api) {
       { name: "없음", part: "None", price: 0 }, { name: "동그란", part: "GlassRound", price: 2000 },
       { name: "보잉", part: "GlassAviator", price: 3000 }, { name: "선글라스", part: "SunglassWayfarer", price: 4000 }] },
     { key: "color", name: "옷 색", type: "color", options: [
-      { name: "파랑", c: ILLO.blue, price: 0 }, { name: "주황", c: ILLO.orange, price: 0 },
+      { name: "흰색", c: ILLO.paper, price: 0 }, { name: "주황", c: ILLO.orange, price: 0 },
       { name: "초록", c: ILLO.green, price: 0 }, { name: "라일락", c: ILLO.lilac, price: 1000 }] }
   ];
   const sel = { body: 0, face: 0, hair: 0, accessory: 0, color: 0 };

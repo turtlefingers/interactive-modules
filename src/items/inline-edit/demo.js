@@ -65,7 +65,7 @@ export default function demo(api) {
   const ava = root.querySelector(".ile-ava");
   // 상반신은 세로로 길어서 너비를 원에 맞추고 위쪽(머리·어깨)을 보여준다
   ava.innerHTML = `<div class="ile-bust">${
-    peepSVG({ body: "Hoodie", face: "Smile", hair: "Bun", colors: outfit(ILLO.blue) }).replace("<svg ", '<svg preserveAspectRatio="xMidYMin slice" ')
+    peepSVG({ body: "Hoodie", face: "Smile", hair: "Bun", colors: outfit(ILLO.paper) }).replace("<svg ", '<svg preserveAspectRatio="xMidYMin slice" ')
   }</div><b></b>`;
   const avaInitial = ava.querySelector("b");
   FIELDS.forEach(F => {

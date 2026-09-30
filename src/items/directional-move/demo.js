@@ -3,7 +3,7 @@ import { ILLO, TONE } from "../../lib/draw.js";
 import { drawPeep, preload, outfit } from "../../lib/figure.js";
 
 // 사람(Open Peeps)은 옆모습이라, 위에서 본 장면이어도 옆에서 본 사람을 가로 방향으로만 뒤집어 쓴다. 채움은 장면의 강조색(주황) 하나.
-const STAND = { body: "ShirtBW", face: "Calm", hair: "ShortCurly", colors: outfit(ILLO.orange) };
+const STAND = { body: "ShirtPantsBW", face: "Calm", hair: "ShortCurly", colors: outfit(ILLO.orange) };
 const WALK = { ...STAND, body: "WalkingBW" };
 const FIG = { stand: { R: STAND, L: { ...STAND, flip: true } }, walk: { R: WALK, L: { ...WALK, flip: true } } };
 

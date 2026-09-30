@@ -18,10 +18,10 @@ export const FIG = { ink: ILLO.ink, fill: ILLO.paper, paper: ILLO.paper };
 export const outfit = fill => ({ fill });
 
 export const PEOPLE = [
-  { body: "WalkingBW", face: "Smile", hair: "ShortWavy", colors: outfit(ILLO.blue) },
-  { body: "ShirtWB", face: "Calm", hair: "Bun", colors: outfit(ILLO.orange) },
+  { body: "WalkingBW", face: "Smile", hair: "ShortWavy", colors: outfit(ILLO.paper) },
+  { body: "ShirtPantsWB", face: "Calm", hair: "Bun", colors: outfit(ILLO.orange) },
   { body: "EasingBW", face: "Cheeky", hair: "Afro", colors: outfit(ILLO.green) },
-  { body: "PointingFingerWB", face: "Smile", hair: "Long", colors: outfit(ILLO.blue) },
+  { body: "PointingFingerWB", face: "Smile", hair: "Long", colors: outfit(ILLO.paper) },
   { body: "RestingWB", face: "Calm", hair: "Short", colors: outfit(TONE[2]) },
   { body: "BlazerPantsBW", face: "SmileNM", hair: "MediumBangs", colors: outfit(ILLO.pink) },
   { body: "CrossedArmsWB", face: "Serious", hair: "Turban", colors: outfit(ILLO.lilac) },
@@ -29,7 +29,10 @@ export const PEOPLE = [
 ];
 
 const postureOf = body => STANDING[body] ? "standing" : SITTING[body] ? "sitting" : BUST[body] ? "bust" : "standing";
-const partOf = body => STANDING[body] || SITTING[body] || BUST[body] || "";
+/* 의족을 한 서 있는 자세는 쓰지 않는다(2026-09-30 결정). 이름으로 불러도 같은 옷의 긴바지 자세로 바꿔 그린다 */
+const NO_PROSTHETIC = { BlazerBW: "BlazerPantsBW", BlazerWB: "BlazerPantsWB", ShirtBW: "ShirtPantsBW", ShirtWB: "ShirtPantsWB" };
+const safeBody = body => NO_PROSTHETIC[body] || body;
+const partOf = body => { body = safeBody(body); return STANDING[body] || SITTING[body] || BUST[body] || ""; };
 const fill = (frag, c) => frag.replace(/\{\{(\w+)\}\}/g, (_, k) => c[k] || FIG[k]);
 
 /** 조립된 <g> 조각 (Open Peeps 원본 좌표계: 머리는 translate(225 0) 기준) */
