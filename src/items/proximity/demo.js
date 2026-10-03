@@ -154,9 +154,9 @@ export default function demo(api) {
     api.read("nearest", cur.inside && nearest < Infinity ? Math.round(nearest) : "–");
     api.read("affected", affected);
     api.read("peak", peak.toFixed(2));
-    if (S.pressOnly && cur.inside && !cur.down) api.status("누르고 있을 때만 반응 · 눌러보기", "idle");
+    if (S.pressOnly && cur.inside && !cur.down) api.status("누른 채 움직이면 → 점이 반응한다", "idle");
     else if (affected) api.status(`반경 안 ${affected}개가 반응하는 중`, "active");
-    else if (S.effect === "ignite" && (S.layout === "grid" ? dots : icons).some(o => o.heat > 0.05)) api.status("천천히 식는 중", "alt");
+    else if (S.effect === "ignite" && (S.layout === "grid" ? dots : icons).some(o => o.heat > 0.05)) api.status("주황색이 천천히 돌아오는 중", "alt");
     else api.status("대기", "idle");
   });
 }

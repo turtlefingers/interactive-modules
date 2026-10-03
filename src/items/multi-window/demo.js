@@ -259,7 +259,7 @@ export default function demo(api) {
 
     if (!others.length) {
       g.fillStyle = C.ink2; g.font = `15px ${FF}`; g.textAlign = "center"; g.textBaseline = "top";
-      g.fillText("혼자 있다. ‘새 창 열기’로 창을 하나 더 열어 옆에 두면 서로를 찾는다.", w / 2, me.y + R + 40, w - 40);
+      g.fillText("다른 창이 없다. ‘새 창 열기’로 창을 하나 더 열어 옆에 두면 두 창의 구슬이 선으로 이어진다.", w / 2, me.y + R + 40, w - 40);
       g.fillStyle = C.ink3; g.font = `13px ${FF}`;
       g.fillText(bc ? "같은 브라우저의 창끼리만 이어진다" : "이 브라우저는 창끼리 메시지를 주고받지 못해 저장소로만 잇는다", w / 2, me.y + R + 66, w - 40);
     }
@@ -291,7 +291,7 @@ export default function demo(api) {
       const url = location.href.split("#")[0] + "#mw-real";
       const win = window.open(url, "mw-" + Date.now(), `popup,width=${pw},height=${ph},left=${Math.round(window.screenX + window.outerWidth - pw * .6)},top=${Math.round(window.screenY + 80)}`);
       if (!win) api.flash("팝업이 막혔다 · 브라우저에서 팝업을 허용해야 한다", "alt", 2600);
-      else api.flash("새 창을 열었다 · 창을 끌어 옮겨 보기", "ok", 2200);
+      else api.flash("새 창을 열었다 · 창을 옮기면 → 선이 따라 돈다", "ok", 2200);
     }
   });
   api.onParam(k => {

@@ -184,7 +184,7 @@ export default function demo(api) {
     api.read("snapd", over && cur ? (S.snap ? `${cur.snapD.toFixed(1)}px` : "스냅 꺼짐") : "–");
 
     if (over && cur) api.status(`${cur.t} · ${fmtV(cur.v)}${S.snap ? "" : " (보간)"}`, "active");
-    else if (m.inside) api.status("그래프 영역으로 커서 옮기기", "idle");
+    else if (m.inside) api.status("커서를 그래프에 올리면 → 값이 보인다", "idle");
     else api.status("대기", "idle");
   });
 }

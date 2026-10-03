@@ -226,7 +226,7 @@ export default function demo(api) {
     api.read("speed", p.inside ? p.speed.toFixed(1) : "0.0");
     if (p.speed > 0.01) p.speed *= 0.9;
 
-    if (S.pressOnly && !p.down && p.inside && !fleeing) api.status("누르면 놀라서 흩어진다", "idle");
+    if (S.pressOnly && !p.down && p.inside && !fleeing) api.status("누른 채 다가가면 → 사람들이 흩어진다", "idle");
     else if (fleeing) api.status(`${fleeing}명 도망 중`, "active");
     else if (returning) api.status(`제자리로 돌아가는 중 · ${returning}명`, "alt");
     else if (away && !S.returnHome) api.status(`흩어진 채 서 있는 중 · ${away}명`, "idle");

@@ -99,7 +99,7 @@ export default function demo(api) {
   api.onParam(k => { if (k === "states") build(); if (k === "trans") transition(); render(); });
 
   api.on(track, "click", () => { if (S.target === "switch") next(); });
-  api.on(fan, "click", () => { if (S.target === "object") next(); else api.flash("스위치로 바꾸는 모드다 · 왼쪽 스위치를 누른다", "idle"); });
+  api.on(fan, "click", () => { if (S.target === "object") next(); else api.flash("선풍기 클릭 → 반응 없음 · 왼쪽 스위치를 누른다", "idle"); });
   api.on(window, "keydown", e => {
     if (e.target.closest("input, textarea, [contenteditable]")) return;
     if (e.code !== "Space" && e.code !== "Enter") return;

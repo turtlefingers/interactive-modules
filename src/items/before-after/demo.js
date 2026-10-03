@@ -178,7 +178,7 @@ export default function demo(api) {
 
     if (st.down) api.status("분할선을 끄는 중", "active");
     else if (S.follow === "hover" && st.inside) api.status(`분할선이 커서를 따라가는 중 · 원본 ${pct}%`, "active");
-    else if (S.follow === "drag" && st.inside) api.status("누른 채 끌어야 움직인다", "idle");
+    else if (S.follow === "drag" && st.inside) api.status("분할선을 누른 채 끌면 → 분할선이 움직인다", "idle");
     else api.status("대기", "idle");
   });
 }

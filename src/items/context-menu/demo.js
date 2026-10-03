@@ -295,7 +295,7 @@ export default function demo(api) {
         lastLong = performance.now();
         if (drag) { drag.o.el.classList.remove("dragging"); drag = null; }
         openMenu(p, o);
-        api.flash("길게 누르기로 메뉴 열기", "ok");
+        api.flash("길게 누름 → 메뉴가 열렸다", "ok");
       }, 500) };
     }
     if (!o) return;

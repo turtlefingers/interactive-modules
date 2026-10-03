@@ -44,7 +44,7 @@ export default function demo(api) {
   root.className = `${P}-root`;
   root.innerHTML = `
     <div class="${P}-sheet">
-      <p class="${P}-text" data-cm="text">커서를 이 문단 위에 올리면 글자를 고를 수 있는 모양으로 바뀐다. 모양은 뚝 끊기지 않고 녹아들듯 이어진다.</p>
+      <p class="${P}-text" data-cm="text">커서를 이 문단 위에 올리면 커서가 글자를 고를 수 있는 세로 막대 모양으로 바뀐다. 커서 모양은 한 번에 바뀌지 않고 약 0.2초에 걸쳐 이어서 바뀐다.</p>
       <div class="${P}-row">
         <button class="${P}-btn ${P}-icon" data-cm="ring" aria-label="추가">＋</button>
         <button class="${P}-btn ${P}-pill" data-cm="wrap">저장하기</button>

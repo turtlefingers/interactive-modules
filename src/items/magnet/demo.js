@@ -243,7 +243,7 @@ export default function demo(api) {
 
     if (S.pressOnly && !p.down) api.status(p.inside ? "자석 꺼짐 · 누르면 켜진다" : "대기", "idle");
     else if (on && stuck.length) api.status(`끌어당기는 중 · ${stuck.length}개 붙음`, "active");
-    else if (on) api.status("자석 켜짐 · 개체에 다가가기", "alt");
+    else if (on) api.status("자석 켜짐 · 개체에 다가가면 → 붙는다", "alt");
     else if (stuck.length) api.status(`${stuck.length}개가 붙은 채 대기`, "idle");
     else api.status("대기", "idle");
   });

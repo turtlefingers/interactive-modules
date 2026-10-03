@@ -249,7 +249,7 @@ export default function demo(api) {
     api.read("picks", picks);
     api.read("ends", `${found.size} / ${ENDS.length}`);
     api.read("branch", n.end ? "결말" : `${n.c.length}갈래`);
-    if (typing) api.status("글자가 나타나는 중 · 누르면 건너뛴다", "alt");
+    if (typing) api.status("글자가 나타나는 중 · 카드를 누르면 → 전부 보인다", "alt");
     else if (n.end) api.status(`결말에 닿았다 · ${n.end}`, "ok");
     else api.status(`선택을 기다리는 중 · ${n.c.length}갈래`, "active");
   });

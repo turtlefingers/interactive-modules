@@ -242,7 +242,7 @@ export default function demo(api) {
     api.read("len", Math.round(strokeLen) + "px");
     api.read("left", aliveCount);
 
-    if (aliveCount === 0) api.status("모두 드러남 · 처음 상태로 다시 덮을 수 있다", "ok");
+    if (aliveCount === 0) api.status("모두 드러남 · 「처음 상태로」를 누르면 → 다시 덮인다", "ok");
     else if (queue.length) api.status("나머지 덮개가 저절로 벗겨지는 중", "alt");
     else if (ptr.down) api.status(`긁는 중 · ${pct.toFixed(0)}% 드러남`, "active");
     else if (pieces.some(p => p.fall && p.rest === 0)) api.status("긁힌 조각이 중력으로 떨어지는 중", "alt");

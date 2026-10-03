@@ -143,6 +143,6 @@ export default function demo(api) {
     api.read("count", shapes.length);
 
     if (cur.down) api.status(`그리는 중 · 시작점이 ${fromCenter() ? "중심" : "모서리"}${locked() ? " · 비율 1:1" : ""} · 떼면 확정`, "active");
-    else api.status(shapes.length ? "대기 · 백스페이스로 마지막 도형 지우기" : "대기", "idle");
+    else api.status(shapes.length ? "대기 · 백스페이스를 누르면 → 마지막 도형이 지워진다" : "대기", "idle");
   });
 }

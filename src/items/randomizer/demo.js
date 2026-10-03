@@ -260,7 +260,7 @@ export default function demo(api) {
       row.querySelector(".randomizer-exp").style.left = p[i] * 100 + "%";
       row.querySelector("span").textContent = `${counts[i]}회 · ${Math.round(obs * 100)}%`;
     });
-    noteEl.textContent = h.length < 20 ? "여러 번 뽑을수록 막대가 확률선에 가까워진다." : "많이 뽑을수록 막대가 확률선에 붙는다. 운은 사실 정해진 비율이다.";
+    noteEl.textContent = h.length < 20 ? "여러 번 뽑을수록 막대가 확률선에 가까워진다." : "많이 뽑을수록 나온 비율 막대가 확률선에 가까워진다.";
   };
 
   const applyKind = () => {
@@ -343,7 +343,7 @@ export default function demo(api) {
     api.read("prob", lastResult ? Math.round(lastResult.p * 1000) / 10 + "%" : "–");
     api.read("total", hist[S.kind].length);
     api.read("time", roll ? `${((now - roll.t0) / 1000).toFixed(1)} / ${S.dur.toFixed(1)}` : "–");
-    if (roll) api.status(`뜸 들이는 중 · ${((now - roll.t0) / 1000).toFixed(1)}초`, "alt");
+    if (roll) api.status(`연출 중 · ${((now - roll.t0) / 1000).toFixed(1)}초`, "alt");
     else api.status(lastResult ? `결과 · ${lastResult.name}` : "대기", lastResult ? "ok" : "idle");
   });
 }

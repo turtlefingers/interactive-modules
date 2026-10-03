@@ -255,7 +255,7 @@ export default function demo(api) {
       for (let k = 0; k < win.dirt.length; k++) if (win.dirt[k] < win.base[k]) win.dirt[k] = Math.min(win.base[k], win.dirt[k] + r * 0.6);
     }
     genie = lerp(genie, st.lamp >= 0.999 || (genie > 0.5 && st.lamp > 0.6) ? 1 : 0, 0.05);
-    if (st.lamp >= 0.999 && genie < 0.05) api.flash("램프에서 무언가 나온다", "ok");
+    if (st.lamp >= 0.999 && genie < 0.05) api.flash("램프에서 요정이 나온다", "ok");
     fade = Math.min(1, fade + s * 3);
     const sp = ptr.down && now - lastRub < 120 ? Math.hypot(ptr.vx, ptr.vy) : 0;
     speed = lerp(speed, sp, 0.2);
@@ -303,7 +303,7 @@ export default function demo(api) {
 
     const verb = { dirt: "닦는 중", creature: "쓰다듬는 중", lamp: "램프를 문지르는 중" }[S.target];
     if (ptr.down && now - lastRub < 150) api.status(`${verb} · 왕복 ${reversals}회 · ${Math.round(amt * 100)}%`, "active");
-    else if (ptr.down && !hit(ptr.x, ptr.y)) api.status("대상 위에서 문질러야 쌓인다", "idle");
+    else if (ptr.down && !hit(ptr.x, ptr.y)) api.status("대상 위에서 문지르면 → 변화가 쌓인다", "idle");
     else if (S.decay && idle && amt > 0.005 && !(S.target === "dirt" && amt < 0.01)) api.status("멈춰서 서서히 되돌아가는 중", "alt");
     else if (amt > 0.99) api.status(S.target === "lamp" ? "소환 완료" : "가득 찼다", "ok");
     else api.status("대기", "idle");

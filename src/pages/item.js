@@ -84,7 +84,7 @@ function renderSidebar(I, S) {
     <section class="concept"><h2>디자인 포인트</h2><ul class="plain">${dp.map(d => `<li>${d}</li>`).join("")}</ul></section>
 
     <section class="concept"><h2>AI 프롬프트</h2>
-      <p class="prompt-note">AI에게 이 인터랙션을 만들어달라고 할 때 붙여넣는다. 간단은 개념만, 상세는 동작 방식까지 정해준다.</p>
+      <p class="prompt-note">AI에게 ${esc(I.name)} 인터랙션을 만들어달라고 할 때 아래 프롬프트를 복사해 붙여넣는다. 「간단」 프롬프트는 개념만 담고, 「상세」 프롬프트는 동작 방식까지 정해준다.</p>
       <div class="prompt">
         <div class="prompt-head">
           <div class="seg" id="promptTabs"><button data-v="simple" class="on">간단</button><button data-v="detailed">상세</button></div>

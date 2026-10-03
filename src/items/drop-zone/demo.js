@@ -101,7 +101,7 @@ export default function demo(api) {
       else { seeds.splice(seeds.indexOf(o), 1); }
       api.flash(z.kind === "crowded" ? "자리가 좁다 · 상자로 돌아간다" : "화단 밖이다 · 상자로 돌아간다", "idle");
     } else {
-      api.flash(z.kind === "crowded" ? "자리가 좁다 · 그 자리에 남는다" : "화단 밖이다 · 그 자리에 남는다", "idle");
+      api.flash(z.kind === "crowded" ? "자리가 좁다 · 놓은 자리에 남는다" : "화단 밖이다 · 놓은 자리에 남는다", "idle");
     }
   };
   api.on(root, "pointerup", up);

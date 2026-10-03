@@ -261,7 +261,7 @@ export default function demo(api) {
 
     if ((mode === "rotate" || mode === "two") && snapped) api.status(`${mod(Math.round(cam.tgt), 360)}°에 맞춰짐 · 더 돌리면 풀린다`, "ok");
     else if (mode === "rotate" || mode === "two") api.status(`회전 중 · ${dtxt}`, "active");
-    else if (mode === "pan") api.status("끌어서 이동 중 · 돌리려면 R을 누른 채 끌기", "alt");
+    else if (mode === "pan") api.status("끌어서 이동 중 · R을 누른 채 끌면 → 화면이 돈다", "alt");
     else if (Math.abs(cam.tgt - cam.th) > 0.05) api.status(`회전 중 · ${dtxt}`, "active");
     else if (rHeld) api.status("R 누름 · 끌면 화면 가운데를 중심으로 돈다", "alt");
     else api.status(`대기 · ${dtxt}`, "idle");

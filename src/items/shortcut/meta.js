@@ -4,10 +4,10 @@ export default {
   input: "여러 키 동시에 누르기",
   effect: "명령 바로 실행",
   definition: "여러 키를 함께 눌러 명령을 바로 실행하기",
-  hint: "도형을 고르고 ⌘/Ctrl + D",
+  hint: "도형 선택 후 ⌘/Ctrl+D → 복제된다",
   description: [
-    "⌘(또는 Ctrl)를 누른 채 D를 누르면 복제, G를 누르면 그룹이 된다. 메뉴를 찾아 들어가지 않고 <strong>손가락 모양 하나로</strong> 명령을 바로 실행한다. 익숙해질수록 손이 먼저 움직이는, 숙련자를 위한 지름길이다.",
-    "보조 키(⌘, Ctrl, ⇧, ⌥)를 먼저 누르고 있다가 글자 키를 누르는 <strong>동시 누름(chord)</strong>이 핵심이다. 화음(chord)처럼 여러 키가 함께 울린다는 뜻이다. 순서대로 누르는 치트 코드와 다르다."
+    "⌘(또는 Ctrl)를 누른 채 D를 누르면 복제, G를 누르면 그룹이 된다. 사용자는 메뉴를 찾아 들어가지 않고 <strong>키 조합 한 번으로</strong> 명령을 바로 실행한다. 단축키는 메뉴보다 빠른 실행 방법이라서, 단축키를 외운 숙련자가 주로 쓴다.",
+    "보조 키(⌘, Ctrl, ⇧, ⌥)를 먼저 누르고 있다가 글자 키를 누르는 <strong>동시 누름(chord)</strong>이 핵심이다. 화음(chord)처럼 여러 키가 함께 울린다는 뜻이다. 단축키는 키를 순서대로 누르는 치트 코드와 다르다."
   ],
   uses: [
     "문서 편집의 ⌘C, ⌘V, ⌘Z (복사, 붙여넣기, 되돌리기)",
@@ -16,10 +16,10 @@ export default {
     "게임의 퀵슬롯(1~9)과 ⇧+클릭 같은 조합 입력"
   ],
   designPoints: [
-    "단축키는 보이지 않는 기능이다. 메뉴나 툴팁 옆에 단축키를 적어두고, <code>?</code>로 목록을 여는 관례를 따른다.",
+    "단축키는 화면에 표시되지 않는 기능이다. 메뉴나 툴팁 옆에 단축키를 적어두고, <code>?</code>로 목록을 여는 관례를 따른다.",
     "브라우저와 운영체제가 쓰는 단축키(⌘W 탭 닫기, ⌘T 새 탭, ⌘R 새로고침, ⌘Q 종료)는 빼앗지 않는다. 처리하는 조합에만 <code>preventDefault</code>를 한다.",
     "맥은 ⌘, 윈도우는 Ctrl이 주 보조 키다. 표시는 플랫폼에 맞추고, 입력은 둘 다 받아주면 편하다. 맥에서는 ⌘를 누른 채 다른 키를 떼도 <code>keyup</code>이 오지 않으므로 ⌘를 뗄 때 함께 정리한다.",
-    "한 번에 여러 번 누른 방향키 이동은 되돌리기 한 번으로 묶는다. 되돌리기 단위가 곧 사용자가 생각하는 동작 단위다."
+    "한 번에 여러 번 누른 방향키 이동은 되돌리기 한 번으로 묶는다. 사용자는 방향키를 여러 번 눌러 옮긴 것을 한 번의 동작으로 생각하기 때문이다."
   ],
   prompts: {
     simple: "단축키(Keyboard Shortcut) 인터랙션을 만든다. 작은 편집 화면에서 도형을 고른 뒤 ⌘(윈도우는 Ctrl)를 누른 채 D를 누르면 복제, G를 누르면 그룹, Z를 누르면 되돌리기가 바로 실행된다. 키를 순서대로가 아니라 동시에 누르는 조합을 읽으며, 브라우저가 쓰는 탭 닫기나 새로고침 같은 단축키는 빼앗지 않는다.",
@@ -31,7 +31,7 @@ export default {
   ],
   references: [
     { name: "Keyboard shortcuts — Apple Human Interface Guidelines", url: "https://developer.apple.com/design/human-interface-guidelines/keyboards", note: "맥의 표준 단축키와 보조 키 순서(⌃⌥⇧⌘) 규칙이다." },
-    { name: "Mac keyboard shortcuts — Apple Support", url: "https://support.apple.com/en-us/102650", note: "사용자가 이미 몸으로 익힌 단축키 목록이다. 이것과 겹치지 않게 설계한다." },
+    { name: "Mac keyboard shortcuts — Apple Support", url: "https://support.apple.com/en-us/102650", note: "사용자가 이미 외워 쓰는 macOS 기본 단축키 목록이다. 새 단축키는 이 목록의 단축키와 겹치지 않게 설계한다." },
     { name: "Figma", url: "https://www.figma.com/", note: "⌘D, ⌘G, ⇧+방향키 같은 편집 단축키와 단축키 목록 패널의 좋은 예다." }
   ],
   reads: "동시에 눌린 키 조합 — 글자 키가 눌린 순간 보조 키(⌘/Ctrl, ⇧, ⌥)가 함께 눌려 있는지를 보고 명령을 고른다.",

@@ -60,7 +60,7 @@ export function createRuntime({ meta, demo, S, stage, hintEl, statusEl, statusTe
       c.destroy = r && r.destroy;
     } catch (err) {
       console.error(err);
-      el.innerHTML = `<div style="padding:40px;color:var(--ink-2)">데모를 불러오지 못했다.</div>`;
+      el.innerHTML = `<div style="padding:40px;color:var(--ink-2)">브라우저가 데모를 불러오지 못했다.</div>`;
     }
     el.focus({ preventScroll: true });
   }

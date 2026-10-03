@@ -64,7 +64,7 @@ export default function demo(api) {
     if (joy.active) return;
     const p = localPoint(root, e);
     if (S.mode === "fixed") {
-      if (Math.hypot(p.x - joy.bx, p.y - joy.by) > R * 1.5) { api.flash("고정 방식: 왼쪽 아래 조이스틱을 누른다", "idle"); return; }
+      if (Math.hypot(p.x - joy.bx, p.y - joy.by) > R * 1.5) { api.flash("고정 방식 · 왼쪽 아래 조이스틱을 밀면 → 움직인다", "idle"); return; }
     } else {
       // 떠 있는 방식: 누른 자리에 조이스틱이 나타난다
       joy.bx = clamp(p.x, R + 12, size.w - R - 12); joy.by = clamp(p.y, R + 12, size.h - R - 12);

@@ -133,7 +133,7 @@ export default function demo(api) {
     // 포인터 이벤트가 없으면(커서가 멈추면) 속도를 줄인다
     if (now - p.lt > 60) { p.vx *= 0.8; p.vy *= 0.8; }
 
-    if (S.pressOnly && !p.down) api.status(p.inside ? "누르는 동안만 생긴다" : "대기", "idle");
+    if (S.pressOnly && !p.down) api.status(p.inside ? "누르면 → 입자가 생긴다" : "대기", "idle");
     else if (on && sp < 0.3) api.status(`멈춰 있어도 계속 생성 중 · 초당 ${S.rate}개`, "active");
     else if (on) api.status(`생성 중 · 초당 ${S.rate}개`, "active");
     else if (parts.length) api.status("남은 입자가 사라지는 중", "alt");

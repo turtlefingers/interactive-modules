@@ -181,6 +181,6 @@ export default function demo(api) {
     if (cur.down && cur.snapped) api.status(`각도 스냅 · ${ang}°에 맞춰졌다`, "alt");
     else if (cur.down) api.status(`긋는 중 · 떼면 확정${S.snap === "shift" ? " (Shift: 45° 단위)" : ""}`, "active");
     else if (chain.on) api.status(`이어 긋기 · ${chain.n}개 · 더블클릭이나 Esc로 끝내기`, "alt");
-    else api.status(lines.length ? `대기 · 백스페이스로 마지막 선 지우기` : "대기", "idle");
+    else api.status(lines.length ? `대기 · 백스페이스를 누르면 → 마지막 선이 지워진다` : "대기", "idle");
   });
 }

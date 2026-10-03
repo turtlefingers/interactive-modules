@@ -155,7 +155,7 @@ export default function demo(api) {
     if (win > 0) api.status("성공", "ok");
     else if (round) api.status(`연타 중 · ${tps}회/초 · 5초 제한`, "active");
     else if (tps > 0 && tps >= need) api.status(`연타 중 · ${tps}회/초 · 오르는 중`, "active");
-    else if (tps > 0) api.status(`연타 중 · ${tps}회/초 · 줄어드는 속도를 못 이긴다`, "alt");
+    else if (tps > 0) api.status(`연타 중 · ${tps}회/초 · 느려서 게이지가 줄어든다`, "alt");
     else if (v > 0) api.status("멈췄다 · 게이지가 줄어드는 중", "alt");
     else api.status("대기", "idle");
   });

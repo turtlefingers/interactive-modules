@@ -169,6 +169,6 @@ export default function demo(api) {
     const moving = Math.abs(cur.tx - cur.x) + Math.abs(cur.ty - cur.y) > 0.01;
     if (!cur.inside && moving) api.status("제자리로 돌아오는 중", "alt");
     else if (moving) api.status(S.levels <= 1 ? "모든 층이 같이 움직이는 중 · 깊이감 없음" : "층마다 다른 양만큼 움직이는 중", "active");
-    else api.status(cur.inside ? "멈춤 · 커서를 움직여보기" : "대기", "idle");
+    else api.status(cur.inside ? "멈춤 · 커서를 움직이면 → 층이 움직인다" : "대기", "idle");
   });
 }

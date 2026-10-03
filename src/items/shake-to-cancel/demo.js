@@ -262,6 +262,6 @@ export default function demo(api) {
     api.read("held", held);
     if (count > 0) api.status(`흔드는 중 · 방향 전환 ${count} / ${S.need}`, "active");
     else if (held) api.status(S.target === "stick" ? `${held}개가 붙어 있다 · 흔들어 떼기` : `${held}개 선택됨 · 흔들어 풀기`, "alt");
-    else api.status(S.target === "stick" ? "대기 · 가시 공 위로 지나가보기" : "대기 · 카드 위로 지나가보기", "idle");
+    else api.status(S.target === "stick" ? "대기 · 가시 공 위로 지나가면 → 커서에 붙는다" : "대기 · 카드 위로 지나가면 → 선택된다", "idle");
   });
 }

@@ -365,8 +365,8 @@ export default function demo(api) {
     api.read("out", values.out ? rgb2hex(values.out) : "신호 없음");
 
     if (drag.on && drag.snap) api.status(`단자에 달라붙음 · 놓으면 ${nodeName(drag.snap.node, drag.snap.dir, drag.snap.i)}에 연결`, "ok");
-    else if (drag.on) api.status("선을 끄는 중 · 반대쪽 단자 가까이 가져가기", "active");
+    else if (drag.on) api.status("선을 반대쪽 단자에 가까이 가져가면 → 달라붙는다", "active");
     else if (moveNode.on) api.status(`${moveNode.n.title} 노드를 옮기는 중 · 선이 따라온다`, "alt");
-    else api.status(values.out ? "화면 노드에 색이 흐르고 있다" : "대기 · 화면 노드에 아직 신호가 없다", "idle");
+    else api.status(values.out ? "화면 노드가 색을 받고 있다" : "대기 · 화면 노드에 아직 신호가 없다", "idle");
   });
 }

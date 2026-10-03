@@ -149,7 +149,7 @@ export default function demo(api) {
 
   const buildSheet = () => {
     const l = L();
-    sheet.innerHTML = `<h4>단축키 · 누르거나 클릭해서 실행</h4>` +
+    sheet.innerHTML = `<h4>단축키 · 키를 누르거나 줄을 클릭하면 → 실행</h4>` +
       CMDS.map(c => `<div class="shortcut-row" data-c="${c.id}"><span>${c.name}</span><span>${c.keys(l).map(k => `<kbd>${k}</kbd>`).join("")}</span></div>`).join("") +
       `<p>${l.mod}W(탭 닫기), ${l.mod}T(새 탭), ${l.mod}R(새로고침)처럼 브라우저가 쓰는 단축키는 빼앗지 않는다.</p>`;
     sheet.querySelectorAll("[data-c]").forEach(r => api.on(r, "click", () => {

@@ -149,7 +149,7 @@ export default function demo(api) {
   };
   api.on(root, "pointerup", up);
   api.on(root, "pointercancel", up);
-  api.onParam(k => { if (k === "mode") { build(); api.hint(S.mode === "feed" ? "먹이를 끌어다 먹이기" : "같은 숫자끼리 겹쳐 놓기"); } });
+  api.onParam(k => { if (k === "mode") { build(); api.hint(S.mode === "feed" ? "먹이를 생명체 몸에 놓으면 → 생명체가 커진다" : "같은 숫자 원에 놓으면 → 한 단계 위 원이 된다"); } });
 
   /* ---------- 그리기 ---------- */
   const circle = (x, y, r) => { g.beginPath(); g.arc(x, y, Math.max(0, r), 0, Math.PI * 2); };
@@ -189,7 +189,7 @@ export default function demo(api) {
       }
       if (!blob.resetting && eqR() > MAX_R && !eating.length) {
         blob.resetting = true;
-        api.flash("가득 찼다 · 처음 크기로 돌아간다", "alt", 1400);
+        api.flash("최대 크기를 넘음 → 생명체가 처음 크기로 돌아간다", "alt", 1400);
         api.timeout(() => { blob.tR = BASE_R; blob.bumps.forEach(b => { b.gone = true; }); }, 700);
         api.timeout(() => { blob.bumps = []; blob.resetting = false; }, 1500);
       }

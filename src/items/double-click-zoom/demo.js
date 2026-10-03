@@ -67,7 +67,7 @@ export default function demo(api) {
     { x: 350, y: 360, w: 240, h: 200, p: 4, shape: "ring", title: "둥근 정원", body: "정원은 가운데가 비어 있는 고리 모양이다. 어느 쪽으로 걸어도 처음 자리로 돌아온다." },
     { x: 640, y: 330, w: 200, h: 230, p: 5, shape: "square", title: "네모 도서관", body: "책장은 모두 정사각형 칸으로 되어 있다. 한 칸에는 꼭 한 권만 꽂는다는 규칙이 있다." }
   ];
-  let html = `<div class="dcz-board"></div><div class="dcz-title">작은 섬 안내도 · 두 번 눌러 들여다보기</div>`;
+  let html = `<div class="dcz-board"></div><div class="dcz-title">작은 섬 안내도 · 두 번 누르면 → 확대된다</div>`;
   cards.forEach((c, i) => {
     html += `<div class="dcz-card" data-i="${i}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px">
       <div class="pic">${shapes[c.shape]()}</div>

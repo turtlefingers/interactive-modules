@@ -94,7 +94,7 @@ export default function demo(api) {
     ptr.down = false;
     const o = ptr.obj; ptr.obj = null;
     if (!o) return;
-    if (o.state === "tug") { o.state = "planted"; api.flash("거리가 모자라 다시 박힌다", "idle"); return; }
+    if (o.state === "tug") { o.state = "planted"; api.flash("뽑히는 거리 전에 놓음 → 식물이 다시 박힌다", "idle"); return; }
     if (o.state === "held") {
       if (S.release === "return") { o.state = "return"; o.t = 0; o.rx = o.x; o.ry = o.y; }
       else {

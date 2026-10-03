@@ -151,7 +151,7 @@ export default function demo(api) {
     const h = held, p = h.p;
     held = null;
     root.classList.remove("is-holding");
-    if (!h.broken) { p.tx = p.hx; p.ty = p.hy; if (h.pull > 4) api.flash("저항을 넘지 못해 제자리로 돌아간다", "idle"); return; }
+    if (!h.broken) { p.tx = p.hx; p.ty = p.hy; if (h.pull > 4) api.flash("저항 한계 전에 놓음 → 조각이 제자리로 돌아간다", "idle"); return; }
     if (S.reattach && dist(p.tx, p.ty, p.hx, p.hy) < 55) {
       p.tx = p.hx; p.ty = p.hy; p.trot = 0; p.free = false;
       api.flash("제자리에 다시 붙였다", "ok");

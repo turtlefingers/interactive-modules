@@ -168,9 +168,9 @@ export default function demo(api) {
     api.read("cam", `${Math.round(cam.x)}, ${Math.round(cam.y)}`);
     api.read("speed", cam.spd.toFixed(1));
     api.read("edge", S.mode === "edge" && cur.inside ? edgeDist : "–");
-    if (S.mode === "edge" && (edgeV.x || edgeV.y)) api.status("가장자리 스크롤 중 · 그쪽으로 흘러가는 중", "active");
+    if (S.mode === "edge" && (edgeV.x || edgeV.y)) api.status("가장자리 스크롤 중 · 보드가 커서 쪽으로 이동 중", "active");
     else if (cam.spd > 0.3) api.status("시야가 커서 쪽으로 옮겨 가는 중", "active");
-    else if (S.mode === "edge" && cur.inside) api.status("가장자리 띠에 커서를 대면 움직인다", "idle");
+    else if (S.mode === "edge" && cur.inside) api.status("커서를 가장자리 띠에 대면 → 보드가 움직인다", "idle");
     else api.status(cur.inside ? "멈춤 · 커서 위치에 맞춰 보는 중" : "대기", "idle");
   });
 }

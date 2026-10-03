@@ -64,7 +64,7 @@ export default function demo(api) {
     st.hold = false;
     root.classList.remove("is-down");
     if (st.popped) { st.popped = false; st.v = 0; st.dv = 0; st.vel = 0; return; }
-    if (S.release === "reset" && st.v > 0) { st.v = 0; api.flash("놓자마자 리셋", "alt"); }
+    if (S.release === "reset" && st.v > 0) { st.v = 0; api.flash("손을 뗌 → 값이 0으로 돌아갔다", "alt"); }
   };
 
   api.on(root, "pointerdown", e => {
@@ -97,7 +97,7 @@ export default function demo(api) {
     }
     st.popped = true; st.popT = 0; st.pops++;
     st.v = 0; st.dv = 0; st.vel = 0;
-    api.flash("펑! 최대에서 터졌다", "ok");
+    api.flash("값이 최대에 닿음 → 풍선이 터졌다", "ok");
   };
 
   // 풍선: 사물 카탈로그(balloon). state = 값(부풀기), t = 끈의 흔들림. 값 숫자는 몸통 위에 얹는다

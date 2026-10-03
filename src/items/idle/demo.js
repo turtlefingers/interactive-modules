@@ -49,7 +49,7 @@ export default function demo(api) {
   const onInput = kind => () => {
     if (S.by === "click" && (kind === "움직임" || kind === "휠") && stage >= 3) {
       lastKind = kind + " (무시)";
-      if (now() - nagT > 2500) { nagT = now(); api.flash("움직임으로는 깨지 않는다 · 클릭이나 키", "idle", 1400); }
+      if (now() - nagT > 2500) { nagT = now(); api.flash("움직여도 안 깬다 · 클릭이나 키를 누르면 → 깬다", "idle", 1400); }
       return;
     }
     lastKind = kind;

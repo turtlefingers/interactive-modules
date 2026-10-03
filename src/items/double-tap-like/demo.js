@@ -186,7 +186,7 @@ export default function demo(api) {
     setLiked(!liked);
     api.flash(liked ? "버튼 → 좋아요" : "버튼 → 좋아요 취소", liked ? "ok" : "alt");
   });
-  card.querySelectorAll(".dtl-ico").forEach(b => api.on(b, "click", () => api.flash("이 데모에서는 좋아요만 다룬다", "idle", 1200)));
+  card.querySelectorAll(".dtl-ico").forEach(b => api.on(b, "click", () => api.flash("댓글·공유 클릭 → 반응 없음 · 좋아요만 다룬다", "idle", 1200)));
 
   api.frame(() => {
     if (last) api.status(`한 번 눌림 · 두 번째를 기다리는 중`, "alt");

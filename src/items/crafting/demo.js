@@ -115,7 +115,7 @@ export default function demo(api) {
     </div>
     <div class="crafting-msg"></div>
     <div class="crafting-lower">
-      <div><h4>재료<span>눌러서 칸에 넣기</span></h4><div class="crafting-shelf"></div></div>
+      <div><h4>재료<span>누르면 → 칸에 들어간다</span></h4><div class="crafting-shelf"></div></div>
       <div class="crafting-bookwrap"><h4>레시피 북<span class="crafting-count"></span></h4><div class="crafting-book"></div></div>
     </div>`;
   const $ = s => root.querySelector(s);
@@ -221,7 +221,7 @@ export default function demo(api) {
   });
   api.onResize(applyNarrow);
   applyNarrow(); renderShelf(); renderBook(); renderSlots();
-  say("재료 두 개를 넣고 조합을 눌러 본다");
+  say("재료 두 개를 칸에 넣고 조합을 누르면 → 결과가 나온다");
 
   api.frame(() => {
     api.read("slots", `${filled()} / ${S.slots}`);
@@ -229,7 +229,7 @@ export default function demo(api) {
     api.read("tries", tries);
     api.read("last", last);
     if (busy) api.status("조합하는 중", "active");
-    else if (filled() >= 2) api.status(S.mode === "auto" ? `칸 ${filled()}/${S.slots} · 가득 차면 자동으로 합쳐진다` : `칸 ${filled()}/${S.slots} · 조합할 수 있다`, "alt");
+    else if (filled() >= 2) api.status(S.mode === "auto" ? `칸 ${filled()}/${S.slots} · 가득 차면 자동으로 합쳐진다` : `칸 ${filled()}/${S.slots} · 조합을 누르면 → 합쳐진다`, "alt");
     else api.status(`재료를 기다리는 중 · 칸 ${filled()}/${S.slots}`, "idle");
   });
 }
